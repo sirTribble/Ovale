@@ -10,66 +10,69 @@
 # Libraries.
 libs\libs.xml
 
-Ovale.lua
-Localization.lua
-Options.lua
+define.lua
+stub.lua
+
+built/Ovale.lua
+built/Localization.lua
+built/Options.lua
 
 # Debugging and profiling modules.
-Debug.lua
-Profiler.lua
+built/Debug.lua
+built/Profiler.lua
 
 # Utility modules.
-Pool.lua
-PoolGC.lua
-Queue.lua
-TimeSpan.lua
+built/Pool.lua
+built/PoolGC.lua
+built/Queue.lua
+built/TimeSpan.lua
 
 # Core modules.
-AST.lua
-ActionBar.lua
-Aura.lua
-BestAction.lua
-ComboPoints.lua
-Compile.lua
-Condition.lua
-Cooldown.lua
-Data.lua
-Equipment.lua
-Future.lua
-GUID.lua
-Health.lua
-Lexer.lua
-PaperDoll.lua
-Power.lua
-Runes.lua
-Score.lua
-Scripts.lua
-SimulationCraft.lua
-SpellBook.lua
-SpellFlash.lua
-Stance.lua
-State.lua
-Version.lua
+built/AST.lua
+built/ActionBar.lua
+built/Aura.lua
+built/BestAction.lua
+built/ComboPoints.lua
+built/Compile.lua
+built/Condition.lua
+built/Cooldown.lua
+built/Data.lua
+built/Equipment.lua
+built/Future.lua
+built/GUID.lua
+built/Health.lua
+built/Lexer.lua
+built/PaperDoll.lua
+built/Power.lua
+built/Runes.lua
+built/Score.lua
+built/Scripts.lua
+built/SimulationCraft.lua
+built/SpellBook.lua
+built/SpellFlash.lua
+built/Stance.lua
+built/State.lua
+built/Version.lua
 
 # Core modules with dependencies.
-Icon.lua
+built/Icon.lua
 Icon.xml
-Frame.lua
+built/Frame.lua
 
 # Additional modules.
-BanditsGuile.lua
-DamageTaken.lua
-DataBroker.lua
-Enemies.lua
-HonorAmongThieves.lua
-PassiveAura.lua
-Recount.lua
-ShadowWordDeath.lua
-Skada.lua
-SpellDamage.lua
-SteadyFocus.lua
-Totem.lua
-WarriorCharge.lua
+built/BanditsGuile.lua
+built/DamageTaken.lua
+built/DataBroker.lua
+built/Enemies.lua
+built/HonorAmongThieves.lua
+built/PassiveAura.lua
+built/Recount.lua
+built/ShadowWordDeath.lua
+built/Skada.lua
+built/SpellDamage.lua
+built/SteadyFocus.lua
+built/Totem.lua
+built/WarriorCharge.lua
 
-conditions.lua
+built/conditions.lua
 scripts\files.xml

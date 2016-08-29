@@ -3,7 +3,7 @@ local OvaleScripts = Ovale.OvaleScripts
 
 do
 	local name = "ovale_common"
-	local desc = "[6.0.2] Ovale: Common spell definitions"
+	local desc = "[7.0.3] Ovale: Common spell definitions"
 	local code = [[
 # Common spell definitions shared by all classes and specializations.
 

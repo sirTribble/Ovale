@@ -1,0 +1,24 @@
+{
+  "name": "ovale",
+  "version": "1.0.0",
+  "description": "An add-on for World of Warcraft",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tstolua -p .",
+    "watch": "tstolua -w",
+    "convert": "node utils/convertlua.js built/Equipment.lua src/Equipment.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.curseforge.com:wow/ovale/mainline.git"
+  },
+  "author": "Sidoine De Wispelaere",
+  "license": "MIT",
+  "devDependencies": {
+    "tstolua":"latest"
+  }
+}

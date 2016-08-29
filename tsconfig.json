@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es5",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "outDir": "built",
+        "rootDir": "src"
+    },
+    "files":[
+        "typings/index.d.ts",
+        "src/ActionBar.ts",
+        "src/Debug.ts",
+        "src/Equipment.ts",
+        "src/GUID.ts",
+        "src/Localization.ts",
+        "src/Options.ts",
+        "src/Ovale.ts",
+        "src/Pool.ts",
+        "src/Profiler.ts",
+        "src/Queue.ts",
+        "src/Stance.ts",
+        "src/State.ts"
+    ]
+}
