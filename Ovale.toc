@@ -10,4 +10,3 @@
 # Libraries.
 libs\libs.xml
 dist\files.xml
-dist\myscripts\myfiles.xml
