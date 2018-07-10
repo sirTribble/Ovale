@@ -349,9 +349,11 @@ local OvalePaperDollClass = __class(OvalePaperDollBase, {
     UpdateSpecialization = function(self, event)
         self:StartProfiling("OvalePaperDoll_UpdateSpecialization")
         local newSpecialization = GetSpecialization()
+		self.specializationName = OVALE_SPECIALIZATION_NAME[self.class][self.specialization]																																								  
         if self.specialization ~= newSpecialization then
             local oldSpecialization = self.specialization
             self.specialization = newSpecialization
+			self.specializationName = OVALE_SPECIALIZATION_NAME[self.class][self.specialization]																																						 
             self.current.snapshotTime = GetTime()
             Ovale:needRefresh()
             self:SendMessage("Ovale_SpecializationChanged", self:GetSpecialization(newSpecialization), self:GetSpecialization(oldSpecialization))
@@ -458,6 +460,7 @@ local OvalePaperDollClass = __class(OvalePaperDollBase, {
         self.class = Ovale.playerClass
         self.level = UnitLevel("player")
         self.specialization = nil
+		self.specializationName = nil										   
         self.STAT_NAME = {
             snapshotTime = true,
             agility = true,
