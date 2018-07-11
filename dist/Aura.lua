@@ -37,6 +37,7 @@ local insert = table.insert
 local sort = table.sort
 local GetTime = GetTime
 local UnitAura = UnitAura
+local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
 local INFINITY = math.huge
 local huge = math.huge
 local __PaperDoll = LibStub:GetLibrary("ovale/PaperDoll")
@@ -66,12 +67,14 @@ do
                     width = "full",
                     get = function(info)
                         wipe(output)
-                        local helpful = __exports.OvaleAura:DebugUnitAuras("player", "HELPFUL", nil)
+                        local harmfulFilter = (Ovale.db.profile.apparence.onlyPlayerDebuffs or Ovale.db.profile.apparence.laptopMode) and "HARMFUL|PLAYER" or "HARMFUL"
+                        local helpfulFilter = (Ovale.db.profile.apparence.onlyPlayerBuffs or Ovale.db.profile.apparence.laptopMode) and "HELPFUL|PLAYER" or "HELPFUL"
+                        local helpful = __exports.OvaleAura:DebugUnitAuras("player", helpfulFilter, nil)
                         if helpful then
                             output[#output + 1] = "== BUFFS =="
                             output[#output + 1] = helpful
                         end
-                        local harmful = __exports.OvaleAura:DebugUnitAuras("player", "HARMFUL", nil)
+                        local harmful = __exports.OvaleAura:DebugUnitAuras("player", harmfulFilter, nil)
                         if harmful then
                             output[#output + 1] = "== DEBUFFS =="
                             output[#output + 1] = harmful
@@ -93,12 +96,14 @@ do
                     width = "full",
                     get = function(info)
                         wipe(output)
-                        local helpful = __exports.OvaleAura:DebugUnitAuras("target", "HELPFUL", nil)
+                        local harmfulFilter = (Ovale.db.profile.apparence.onlyPlayerDebuffs or Ovale.db.profile.apparence.laptopMode) and "HARMFUL|PLAYER" or "HARMFUL"
+                        local helpfulFilter = (Ovale.db.profile.apparence.onlyPlayerBuffs or Ovale.db.profile.apparence.laptopMode) and "HELPFUL|PLAYER" or "HELPFUL"
+                        local helpful = __exports.OvaleAura:DebugUnitAuras("target", helpfulFilter, nil)
                         if helpful then
                             output[#output + 1] = "== BUFFS =="
                             output[#output + 1] = helpful
                         end
-                        local harmful = __exports.OvaleAura:DebugUnitAuras("target", "HARMFUL", nil)
+                        local harmful = __exports.OvaleAura:DebugUnitAuras("target", harmfulFilter, nil)
                         if harmful then
                             output[#output + 1] = "== DEBUFFS =="
                             output[#output + 1] = harmful
@@ -499,7 +504,13 @@ __exports.OvaleAuraClass = __class(OvaleAuraBase, {
         self_pool:Drain()
     end,
     UNIT_AURA = function(self, event, unitId)
+<<<<<<< HEAD
             self:Debug("%s: %s", event, unitId)
+=======
+        if  not Ovale.db.profile.apparence.laptopMode then
+            self:ScanAuras(unitId)
+        elseif unitId == "player" or unitId == "target" or unitId == "pet" or unitId == "focus" then
+>>>>>>> upstream/master
             self:ScanAuras(unitId)
     end,
     Ovale_UnitChanged = function(self, event, unitId, guid)
@@ -692,19 +703,30 @@ __exports.OvaleAuraClass = __class(OvaleAuraBase, {
         self:StartProfiling("OvaleAura_ScanAuras")
         guid = guid or OvaleGUID:UnitGUID(unitId)
         if guid then
+            local harmfulFilter = (Ovale.db.profile.apparence.onlyPlayerDebuffs or Ovale.db.profile.apparence.laptopMode) and "HARMFUL|PLAYER" or "HARMFUL"
+            local helpfulFilter = (Ovale.db.profile.apparence.onlyPlayerBuffs or Ovale.db.profile.apparence.laptopMode) and "HELPFUL|PLAYER" or "HELPFUL"
             self:DebugTimestamp("Scanning auras on %s (%s)", guid, unitId)
             local serial = self.current.serial[guid] or 0
             serial = serial + 1
             self:Debug("    Advancing age of auras for %s (%s) to %d.", guid, unitId, serial)
             self.current.serial[guid] = serial
             local i = 1
+<<<<<<< HEAD
             local filter = "HELPFUL"
+=======
+            local filter = helpfulFilter
+>>>>>>> upstream/master
             local now = GetTime()
             while true do
                 local name, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, _, spellId, _, _, _, value1, value2, value3 = UnitAura(unitId, i, filter)
                 if  not name then
+<<<<<<< HEAD
                     if filter == "HELPFUL" then
                         filter = "HARMFUL"
+=======
+                    if filter == helpfulFilter then
+                        filter = harmfulFilter
+>>>>>>> upstream/master
                         i = 1
                     else
                         break
