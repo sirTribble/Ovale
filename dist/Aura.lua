@@ -495,14 +495,11 @@ __exports.OvaleAuraClass = __class(OvaleAuraBase, {
         self_pool:Drain()
     end,
     UNIT_AURA = function(self, event, unitId)
-<<<<<<< HEAD
-            self:Debug("%s: %s", event, unitId)
-=======
         if  not Ovale.db.profile.apparence.laptopMode then
             self:ScanAuras(unitId)
         elseif unitId == "player" or unitId == "target" or unitId == "pet" or unitId == "focus" then
->>>>>>> upstream/master
             self:ScanAuras(unitId)
+		end	   
     end,
     Ovale_UnitChanged = function(self, event, unitId, guid)
         if (unitId == "pet" or unitId == "target") and guid then
@@ -702,22 +699,13 @@ __exports.OvaleAuraClass = __class(OvaleAuraBase, {
             self:Debug("    Advancing age of auras for %s (%s) to %d.", guid, unitId, serial)
             self.current.serial[guid] = serial
             local i = 1
-<<<<<<< HEAD
-            local filter = "HELPFUL"
-=======
             local filter = helpfulFilter
->>>>>>> upstream/master
             local now = GetTime()
             while true do
                 local name, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, _, spellId, _, _, _, value1, value2, value3 = UnitAura(unitId, i, filter)
                 if  not name then
-<<<<<<< HEAD
-                    if filter == "HELPFUL" then
-                        filter = "HARMFUL"
-=======
                     if filter == helpfulFilter then
                         filter = harmfulFilter
->>>>>>> upstream/master
                         i = 1
                     else
                         break
