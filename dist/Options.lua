@@ -13,6 +13,7 @@ local aceConsole = LibStub:GetLibrary("AceConsole-3.0", true)
 local aceEvent = LibStub:GetLibrary("AceEvent-3.0", true)
 local InterfaceOptionsFrame_OpenToCategory = InterfaceOptionsFrame_OpenToCategory
 local ipairs = ipairs
+local huge = math.huge
 local OvaleOptionsBase = Ovale:NewModule("OvaleOptions", aceConsole, aceEvent)
 local self_register = {}
 local OvaleOptionsClass = __class(OvaleOptionsBase, {
@@ -442,8 +443,8 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                                     type = "range",
                                     name = L["Min Refresh"],
                                     desc = L["Minimum time (in milliseconds) between updates; lower values may reduce FPS."],
-                                    min = 10,
-                                    max = 50,
+                                    min = 50,
+                                    max = 100,
                                     step = 5
                                 },
                                 maxFrameRefresh = {
@@ -451,7 +452,7 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                                     type = "range",
                                     name = L["Max Refresh"],
                                     desc = L["Minimum time (in milliseconds) between updates; lower values may reduce FPS."],
-                                    min = 50,
+                                    min = 100,
                                     max = 400,
                                     step = 10
                                 },
@@ -500,6 +501,9 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                             type = "execute",
                             func = function()
                                 local avgRefresh, minRefresh, maxRefresh, count = Ovale:GetRefreshIntervalStatistics()
+                                if minRefresh == huge then
+                                    avgRefresh, minRefresh, maxRefresh, count = 0, 0, 0, 0
+                                end
                                 Ovale:Print("Refresh intervals: count = %d, avg = %d, min = %d, max = %d (ms)", count, avgRefresh, minRefresh, maxRefresh)
                             end
                         }

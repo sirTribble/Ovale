@@ -8,6 +8,7 @@ import aceConsole from "@wowts/ace_console-3.0";
 import aceEvent from "@wowts/ace_event-3.0";
 import { InterfaceOptionsFrame_OpenToCategory } from "@wowts/wow-mock";
 import { ipairs, LuaObj, lualength, LuaArray } from "@wowts/lua";
+import { huge } from "@wowts/math";
 let OvaleOptionsBase = Ovale.NewModule("OvaleOptions", aceConsole, aceEvent);
 interface OptionModule {
     UpgradeSavedVariables():void;
@@ -391,8 +392,8 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 type: "range",
                                 name: L["Min Refresh"],
                                 desc: L["Minimum time (in milliseconds) between updates; lower values may reduce FPS."],
-                                min: 10,
-                                max: 50,
+                                min: 50,
+                                max: 100,
                                 step: 5
                             },
                             maxFrameRefresh: {
@@ -400,7 +401,7 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 type: "range",
                                 name: L["Max Refresh"],
                                 desc: L["Minimum time (in milliseconds) between updates; lower values may reduce FPS."],
-                                min: 50,
+                                min: 100,
                                 max: 400,
                                 step: 10
                             },
@@ -449,6 +450,9 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                         type: "execute",
                         func: () => {
                             let [avgRefresh, minRefresh, maxRefresh, count] = Ovale.GetRefreshIntervalStatistics();
+                            if(minRefresh == huge){
+                                [avgRefresh, minRefresh, maxRefresh, count] = [0,0,0,0]
+                            }
                             Ovale.Print("Refresh intervals: count = %d, avg = %d, min = %d, max = %d (ms)", count, avgRefresh, minRefresh, maxRefresh);
                         }
                     }
