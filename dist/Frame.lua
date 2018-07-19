@@ -119,7 +119,7 @@ local OvaleFrame = __class(AceGUI.WidgetContainerBase, {
         end
     end,
     OnUpdate = function(self, elapsed)
-        local guid = OvaleGUID:UnitGUID("target") or OvaleGUID:UnitGUID("focus")
+        local guid = OvaleGUID:UnitGUID("target") or OvaleGUID:UnitGUID("focus") or OvaleGUID:UnitGUID("mouseover") or Ovale.db.profile.apparence.fullAuraScan
         self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed
         local refresh = OvaleDebug.trace or self.visible and (self.timeSinceLastUpdate > Ovale.db.profile.apparence.minFrameRefresh / 1000 and next(Ovale.refreshNeeded) or guid and self.timeSinceLastUpdate > Ovale.db.profile.apparence.maxFrameRefresh / 1000)
         if refresh then
