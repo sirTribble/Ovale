@@ -119,6 +119,7 @@ local OvaleFrame = __class(AceGUI.WidgetContainerBase, {
         end
     end,
     OnUpdate = function(self, elapsed)
+<<<<<<< HEAD
         local guid = OvaleGUID:UnitGUID("target") or OvaleGUID:UnitGUID("focus") or OvaleGUID:UnitGUID("mouseover") or Ovale.db.profile.apparence.fullAuraScan
 =======
 >>>>>>> upstream/master
