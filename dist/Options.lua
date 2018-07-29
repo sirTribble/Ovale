@@ -110,6 +110,7 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                     minFrameRefresh = 50,
                     maxFrameRefresh = 250,
                     fullAuraScan = false,
+					baseScale = false,
                     auraLag = 400,
                     moving = false,
                     spellFlash = {
@@ -462,6 +463,13 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                                     type = "toggle",
                                     name = L["Full buffs/debuffs scan"],
                                     desc = L["Scans also buffs/debuffs casted by other players\n\nWarning!: Very CPU intensive"]
+                                },
+								baseScale = {
+                                    order = 60,
+                                    width = "full",
+                                    type = "toggle",
+                                    name = L["FullHD scale mode"],
+                                    desc = L["Resize icon to FullHD Mode"]
                                 }
                             }
                         }
