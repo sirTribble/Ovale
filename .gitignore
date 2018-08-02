@@ -3,3 +3,6 @@
 /dist/**/*.js
 /libs
 dist/**/*.js.map
+/yarn-error.log
+*.orig
+/package-lock.json

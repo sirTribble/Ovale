@@ -1,4 +1,4 @@
-local __exports = LibStub:NewLibrary("ovale/DemonHunterSigils", 10000)
+local __exports = LibStub:NewLibrary("ovale/DemonHunterSigils", 80000)
 if not __exports then return end
 local __class = LibStub:GetLibrary("tslib").newClass
 local __Profiler = LibStub:GetLibrary("ovale/Profiler")
@@ -17,8 +17,12 @@ local tonumber = tonumber
 local insert = table.insert
 local remove = table.remove
 local GetTime = GetTime
+<<<<<<< HEAD
 local UnitDebuff = UnitDebuff
 local huge = math.huge
+=======
+local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
+>>>>>>> upstream/master
 local OvaleSigilBase = OvaleProfiler:RegisterProfiling(Ovale:NewModule("OvaleSigil", aceEvent))
 local UPDATE_DELAY = 0.5
 local SIGIL_ACTIVATION_TIME = 2
@@ -70,13 +74,34 @@ local OvaleSigilClass = __class(OvaleSigilBase, {
     OnInitialize = function(self)
         if Ovale.playerClass == "DEMONHUNTER" then
             self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+<<<<<<< HEAD
 			self:RegisterEvent("UNIT_AURA")
+=======
+            self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+>>>>>>> upstream/master
         end
     end,
     OnDisable = function(self)
         if Ovale.playerClass == "DEMONHUNTER" then
             self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+<<<<<<< HEAD
 			self:UnregisterEvent("UNIT_AURA")
+=======
+            self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+        end
+    end,
+    COMBAT_LOG_EVENT_UNFILTERED = function(self, event, ...)
+        if ( not OvalePaperDoll:IsSpecialization("vengeance")) then
+            return 
+        end
+        local _, cleuEvent, _, sourceGUID, _, _, _, _, _, _, _, spellid = CombatLogGetCurrentEventInfo()
+        if sourceGUID == Ovale.playerGUID and cleuEvent == "SPELL_AURA_APPLIED" then
+            if (sigil_end[spellid] ~= nil) then
+                local s = sigil_end[spellid]
+                local t = s.type
+                remove(activated_sigils[t], 1)
+            end
+>>>>>>> upstream/master
         end
     end,
 	UNIT_AURA = function(self, event, unitId, guid, spellId, ...)
