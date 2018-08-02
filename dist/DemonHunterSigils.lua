@@ -17,12 +17,9 @@ local tonumber = tonumber
 local insert = table.insert
 local remove = table.remove
 local GetTime = GetTime
-<<<<<<< HEAD
 local UnitDebuff = UnitDebuff
 local huge = math.huge
-=======
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
->>>>>>> upstream/master
 local OvaleSigilBase = OvaleProfiler:RegisterProfiling(Ovale:NewModule("OvaleSigil", aceEvent))
 local UPDATE_DELAY = 0.5
 local SIGIL_ACTIVATION_TIME = 2
@@ -74,19 +71,12 @@ local OvaleSigilClass = __class(OvaleSigilBase, {
     OnInitialize = function(self)
         if Ovale.playerClass == "DEMONHUNTER" then
             self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-<<<<<<< HEAD
-			self:RegisterEvent("UNIT_AURA")
-=======
             self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
->>>>>>> upstream/master
         end
     end,
     OnDisable = function(self)
         if Ovale.playerClass == "DEMONHUNTER" then
             self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-<<<<<<< HEAD
-			self:UnregisterEvent("UNIT_AURA")
-=======
             self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
         end
     end,
@@ -101,7 +91,6 @@ local OvaleSigilClass = __class(OvaleSigilBase, {
                 local t = s.type
                 remove(activated_sigils[t], 1)
             end
->>>>>>> upstream/master
         end
     end,
 	UNIT_AURA = function(self, event, unitId, guid, spellId, ...)
