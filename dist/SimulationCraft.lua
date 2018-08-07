@@ -83,6 +83,8 @@ local MODIFIER_KEYWORD = {
     ["op"] = true,
     ["pct_health"] = true,
     ["precombat"] = true,
+    ["precombat_seconds"] = true,
+    ["precast_time"] = true,
     ["range"] = true,
     ["sec"] = true,
     ["slot"] = true,
@@ -1107,6 +1109,8 @@ local function Disambiguate(annotation, name, className, specialization, _type)
 end
 local InitializeDisambiguation = function()
     AddDisambiguation("none", "none")
+    AddDisambiguation("bloodlust_buff", "burst_haste_buff")
+    AddDisambiguation("buff_sephuzs_secret", "sephuzs_secret_buff")
     AddDisambiguation("arcane_torrent", "arcane_torrent_runicpower", "DEATHKNIGHT")
     AddDisambiguation("arcane_torrent", "arcane_torrent_dh", "DEMONHUNTER")
     AddDisambiguation("arcane_torrent", "arcane_torrent_energy", "DRUID")
@@ -1147,7 +1151,17 @@ local InitializeDisambiguation = function()
     AddDisambiguation("throw_glaive", "throw_glaive_havoc", "DEMONHUNTER", "havoc")
     AddDisambiguation("feral_affinity_talent", "feral_affinity_talent_balance", "DRUID", "balance")
     AddDisambiguation("guardian_affinity_talent", "guardian_affinity_talent_restoration", "DRUID", "restoration")
-    AddDisambiguation("a_murder_of_crows_talent", "a_murder_of_crows_talent_marksman", "HUNTER", "marksman")
+    AddDisambiguation("a_murder_of_crows_talent", "mm_a_murder_of_crows_talent", "HUNTER", "marksmanship")
+    AddDisambiguation("cat_beast_cleave", "pet_beast_cleave", "HUNTER", "beast_mastery")
+    AddDisambiguation("cat_frenzy", "pet_frenzy", "HUNTER", "beast_mastery")
+    AddDisambiguation("kill_command", "kill_command_sv", "HUNTER", "survival")
+    AddDisambiguation("kill_command", "kill_command_sv", "HUNTER", "survival")
+    AddDisambiguation("mongoose_bite_eagle", "mongoose_bite", "HUNTER", "survival")
+    AddDisambiguation("multishot", "multishot_bm", "HUNTER", "beast_mastery")
+    AddDisambiguation("multishot", "multishot_mm", "HUNTER", "marksmanship")
+    AddDisambiguation("raptor_strike_eagle", "raptor_strike", "HUNTER", "survival")
+    AddDisambiguation("serpent_sting", "serpent_sting_mm", "HUNTER", "marksmanship")
+    AddDisambiguation("serpent_sting", "serpent_sting_sv", "HUNTER", "survival")
     AddDisambiguation("healing_elixir_talent", "healing_elixir_talent_mistweaver", "MONK", "mistweaver")
     AddDisambiguation("bok_proc_buff", "blackout_kick_buff", "MONK", "windwalker")
     AddDisambiguation("fortifying_brew", "fortifying_brew_mistweaver", "MONK", "mistweaver")
@@ -1162,8 +1176,23 @@ local InitializeDisambiguation = function()
     AddDisambiguation("judgment", "judgment_prot", "PALADIN", "protection")
     AddDisambiguation("mindbender_talent", "mindbender_talent_discipline", "PRIEST", "discipline")
     AddDisambiguation("twist_of_fate_talent", "twist_of_fate_talent_discipline", "PRIEST", "discipline")
+    AddDisambiguation("stealth_buff", "stealthed_buff", "ROGUE")
+    AddDisambiguation("the_dreadlords_deceit_buff", "the_dreadlords_deceit_assassination_buff", "ROGUE", "assassination")
+    AddDisambiguation("the_dreadlords_deceit_buff", "the_dreadlords_deceit_outlaw_buff", "ROGUE", "outlaw")
+    AddDisambiguation("the_dreadlords_deceit_buff", "the_dreadlords_deceit_subtlety_buff", "ROGUE", "subtlety")
+    AddDisambiguation("ascendance", "ascendance_elemental", "SHAMAN", "elemental")
+    AddDisambiguation("ascendance", "ascendance_enhancement", "SHAMAN", "enhancement")
+    AddDisambiguation("ascendance", "ascendance_restoration", "SHAMAN", "restoration")
+    AddDisambiguation("chain_lightning", "chain_lightning_restoration", "SHAMAN", "restoration")
     AddDisambiguation("earth_shield_talent", "earth_shield_talent_restoration", "SHAMAN", "restoration")
-    AddDisambiguation("echo_of_the_elements_talent", "echo_of_the_elements_talent_restoration", "SHAMAN", "restoration")
+    AddDisambiguation("echo_of_the_elements_talent", "resto_echo_of_the_elements_talent", "SHAMAN", "restoration")
+    AddDisambiguation("flame_shock", "flame_shock_restoration", "SHAMAN", "restoration")
+    AddDisambiguation("healing_surge", "healing_surge_restoration", "SHAMAN", "restoration")
+    AddDisambiguation("lightning_bolt", "lightning_bolt_elemental", "SHAMAN", "elemental")
+    AddDisambiguation("lightning_bolt", "lightning_bolt_enhancement", "SHAMAN", "enhancement")
+    AddDisambiguation("strike", "windstrike", "SHAMAN", "enhancement")
+    AddDisambiguation("totem_mastery", "totem_mastery_elemental", "SHAMAN", "elemental")
+    AddDisambiguation("totem_mastery", "totem_mastery_enhancement", "SHAMAN", "enhancement")
     AddDisambiguation("soul_conduit_talent", "soul_conduit_talent_demonology", "WARLOCK", "demonology")
     AddDisambiguation("anger_management_talent", "fury_anger_management_talent", "WARRIOR", "fury")
     AddDisambiguation("bladestorm", "bladestorm_arms", "WARRIOR", "arms")
@@ -2149,14 +2178,16 @@ EmitAction = function(parseNode, nodeList, annotation)
             isSpellAction = false
         elseif action == "potion" then
             local name = (modifier.name and Unparse(modifier.name)) or annotation.consumables["potion"]
-            if match(name, "^(%w+)_potion") then
-                name = match(name, "^(%w+)_potion")
+            if match(name, "^battle_potion_of_%w+") then
+                name = match(name, "^battle_potion_of_%w+")
+            elseif match(name, "^%w+_potion") then
+                name = match(name, "^%w+_potion")
             end
             if name then
-                bodyCode = format("Item(%s_potion usable=1)", name)
+                bodyCode = format("Item(%s usable=1)", name)
                 conditionCode = "CheckBoxOn(opt_use_consumables) and target.Classification(worldboss)"
                 annotation.opt_use_consumables = className
-                AddSymbol(annotation, format("%s_potion", name))
+                AddSymbol(annotation, format("%s", name))
                 isSpellAction = false
             end
         elseif action == "stance" then
@@ -2782,15 +2813,17 @@ EmitOperandAzerite = function(operand, parseNode, nodeList, annotation, action, 
         local code
         local name = tokenIterator()
         local property = tokenIterator()
-        if property == "enabled" then
-            code = format("HasAzeriteTrait(%s)", name)
+        if property == "rank" then
+            code = format("AzeriteTraitRank(%s_trait)", name)
+        elseif property == "enabled" then
+            code = format("HasAzeriteTrait(%s_trait)", name)
         else
             ok = false
         end
         if ok and code then
             annotation.astAnnotation = annotation.astAnnotation or {}
             node = OvaleAST:ParseCode("expression", code, nodeList, annotation.astAnnotation)
-            AddSymbol(annotation, name)
+            AddSymbol(annotation, name .. "_trait")
         end
     else
         ok = false
@@ -2954,7 +2987,7 @@ do
         ["rage.deficit"] = "RageDeficit()",
         ["rage.max"] = "MaxRage()",
         ["raid_event.adds.remains"] = "0",
-        ["raw_haste_pct"] = "SpellHaste()",
+        ["raw_haste_pct"] = "SpellCastSpeedPercent()",
         ["rtb_list.any.5"] = "BuffCount(roll_the_bones_buff more 4)",
         ["rtb_list.any.6"] = "BuffCount(roll_the_bones_buff more 5)",
         ["runic_power"] = "RunicPower()",
@@ -3043,9 +3076,9 @@ do
                 code = format("False(role_%s)", role)
             end
         elseif operand == "spell_haste" or operand == "stat.spell_haste" then
-            code = "100 / { 100 + SpellHaste() }"
+            code = "100 / { 100 + SpellCastSpeedPercent() }"
         elseif operand == "attack_haste" or operand == "stat.attack_haste" then
-            code = "100 / { 100 + MeleeHaste() }"
+            code = "100 / { 100 + MeleeAttackSpeedPercent() }"
         elseif sub(operand, 1, 13) == "spell_targets" then
             code = "Enemies()"
         elseif operand == "t18_class_trinket" then
@@ -3389,6 +3422,8 @@ EmitOperandRaidEvent = function(operand, parseNode, nodeList, annotation, action
             code = "False(raid_event_adds_exists)"
         elseif property == "in" then
             code = "600"
+        elseif property == "duration" then
+            code = "10"
         else
             ok = false
         end
@@ -3668,6 +3703,12 @@ EmitOperandSpecial = function(operand, parseNode, nodeList, annotation, action, 
     elseif className == "ROGUE" and operand == "exsanguinated" then
         code = "target.DebuffPresent(exsanguinated)"
         AddSymbol(annotation, "exsanguinated")
+    elseif className == "ROGUE" and operand == "master_assassin_remains" then
+        code = "BuffRemaining(master_assassin_buff)"
+        AddSymbol(annotation, "master_assassin_buff")
+    elseif className == "ROGUE" and operand == "buff.roll_the_bones.remains" then
+        code = "BuffRemaining(roll_the_bones_buff)"
+        AddSymbol(annotation, "roll_the_bones_buff")
     elseif className == "SHAMAN" and operand == "buff.resonance_totem.remains" then
         code = "TotemRemaining(totem_mastery)"
         ok = true
@@ -4411,7 +4452,7 @@ local InsertInterruptFunctions = function(child, annotation)
             })
         end
         insert(interrupts, {
-            name = "lightning_surge_totem",
+            name = "capacitor_totem",
             stun = 1,
             order = 30,
             range = "",
@@ -4562,35 +4603,17 @@ local InsertSupportingFunctions = function(child, annotation)
     end
     if annotation.summon_pet == "HUNTER" then
         local fmt
-        if annotation.specialization == "beast_mastery" then
-            fmt = [[
-				AddFunction %sSummonPet
+        fmt = [[
+			AddFunction %sSummonPet
+			{
+				if pet.IsDead()
 				{
-					if pet.IsDead()
-					{
-						if not DebuffPresent(heart_of_the_phoenix_debuff) Spell(heart_of_the_phoenix)
-						Spell(revive_pet)
-					}
-					if not pet.Present() and not pet.IsDead() and not PreviousSpell(revive_pet) Texture(ability_hunter_beastcall help=L(summon_pet))
+					if not DebuffPresent(heart_of_the_phoenix_debuff) Spell(heart_of_the_phoenix)
+					Spell(revive_pet)
 				}
-			]]
-        else
-            fmt = [[
-				AddFunction %sSummonPet
-				{
-					if not Talent(lone_wolf_talent)
-					{
-						if pet.IsDead()
-						{
-							if not DebuffPresent(heart_of_the_phoenix_debuff) Spell(heart_of_the_phoenix)
-							Spell(revive_pet)
-						}
-						if not pet.Present() and not pet.IsDead() and not PreviousSpell(revive_pet) Texture(ability_hunter_beastcall help=L(summon_pet))
-					}
-				}
-			]]
-            AddSymbol(annotation, "lone_wolf_talent")
-        end
+				if not pet.Present() and not pet.IsDead() and not PreviousSpell(revive_pet) Texture(ability_hunter_beastcall help=L(summon_pet))
+			}
+		]]
         local code = format(fmt, camelSpecialization)
         local node = OvaleAST:ParseCode("add_function", code, nodeList, annotation.astAnnotation)
         insert(child, 1, node)

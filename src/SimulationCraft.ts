@@ -179,6 +179,8 @@ let MODIFIER_KEYWORD: LuaObj<boolean> = {
     ["op"]: true,
     ["pct_health"]: true,
     ["precombat"]: true,
+    ["precombat_seconds"]: true, //todo
+    ["precast_time"]: true, //todo
     ["range"]: true,
     ["sec"]: true,
     ["slot"]: true,
@@ -1210,6 +1212,12 @@ function Disambiguate(annotation: Annotation, name: string, className: string, s
 const InitializeDisambiguation = function() {
     AddDisambiguation("none", "none");
 
+    //Bloodlust
+    AddDisambiguation("bloodlust_buff", "burst_haste_buff")
+
+    //Items
+    AddDisambiguation("buff_sephuzs_secret", "sephuzs_secret_buff")
+
     //Arcane Torrent
     AddDisambiguation("arcane_torrent", "arcane_torrent_runicpower", "DEATHKNIGHT");
     AddDisambiguation("arcane_torrent", "arcane_torrent_dh", "DEMONHUNTER");
@@ -1261,7 +1269,17 @@ const InitializeDisambiguation = function() {
     AddDisambiguation("guardian_affinity_talent", "guardian_affinity_talent_restoration", "DRUID", "restoration");
 
     //Hunter
-    AddDisambiguation("a_murder_of_crows_talent", "a_murder_of_crows_talent_marksman", "HUNTER", "marksman");
+    AddDisambiguation("a_murder_of_crows_talent", "mm_a_murder_of_crows_talent", "HUNTER", "marksmanship");
+    AddDisambiguation("cat_beast_cleave", "pet_beast_cleave", "HUNTER", "beast_mastery");
+    AddDisambiguation("cat_frenzy", "pet_frenzy", "HUNTER", "beast_mastery");
+    AddDisambiguation("kill_command", "kill_command_sv", "HUNTER", "survival");
+    AddDisambiguation("kill_command", "kill_command_sv", "HUNTER", "survival");
+    AddDisambiguation("mongoose_bite_eagle", "mongoose_bite", "HUNTER", "survival")
+    AddDisambiguation("multishot", "multishot_bm", "HUNTER", "beast_mastery");
+    AddDisambiguation("multishot", "multishot_mm", "HUNTER", "marksmanship");
+    AddDisambiguation("raptor_strike_eagle", "raptor_strike", "HUNTER", "survival")
+    AddDisambiguation("serpent_sting", "serpent_sting_mm", "HUNTER", "marksmanship");
+    AddDisambiguation("serpent_sting", "serpent_sting_sv", "HUNTER", "survival");    
 
     //Monk
     AddDisambiguation("healing_elixir_talent", "healing_elixir_talent_mistweaver", "MONK", "mistweaver");
@@ -1282,10 +1300,27 @@ const InitializeDisambiguation = function() {
     //Priest
     AddDisambiguation("mindbender_talent", "mindbender_talent_discipline", "PRIEST", "discipline");
     AddDisambiguation("twist_of_fate_talent", "twist_of_fate_talent_discipline", "PRIEST", "discipline");
-    
+
+    //Rogue
+    AddDisambiguation("stealth_buff", "stealthed_buff", "ROGUE");
+    AddDisambiguation("the_dreadlords_deceit_buff", "the_dreadlords_deceit_assassination_buff", "ROGUE", "assassination");
+    AddDisambiguation("the_dreadlords_deceit_buff", "the_dreadlords_deceit_outlaw_buff", "ROGUE", "outlaw");
+    AddDisambiguation("the_dreadlords_deceit_buff", "the_dreadlords_deceit_subtlety_buff", "ROGUE", "subtlety");
+
     //Shaman
+    AddDisambiguation("ascendance", "ascendance_elemental", "SHAMAN", "elemental")
+    AddDisambiguation("ascendance", "ascendance_enhancement", "SHAMAN", "enhancement")
+    AddDisambiguation("ascendance", "ascendance_restoration", "SHAMAN", "restoration")
+    AddDisambiguation("chain_lightning", "chain_lightning_restoration", "SHAMAN", "restoration")
     AddDisambiguation("earth_shield_talent", "earth_shield_talent_restoration", "SHAMAN", "restoration");
-    AddDisambiguation("echo_of_the_elements_talent", "echo_of_the_elements_talent_restoration", "SHAMAN", "restoration");
+    AddDisambiguation("echo_of_the_elements_talent", "resto_echo_of_the_elements_talent", "SHAMAN", "restoration");
+    AddDisambiguation("flame_shock", "flame_shock_restoration", "SHAMAN", "restoration")
+    AddDisambiguation("healing_surge", "healing_surge_restoration", "SHAMAN", "restoration")
+    AddDisambiguation("lightning_bolt", "lightning_bolt_elemental", "SHAMAN", "elemental")
+    AddDisambiguation("lightning_bolt", "lightning_bolt_enhancement", "SHAMAN", "enhancement")
+    AddDisambiguation("strike", "windstrike", "SHAMAN", "enhancement")
+    AddDisambiguation("totem_mastery", "totem_mastery_elemental", "SHAMAN", "elemental")
+    AddDisambiguation("totem_mastery", "totem_mastery_enhancement", "SHAMAN", "enhancement")
 
     //Warlock
     AddDisambiguation("soul_conduit_talent", "soul_conduit_talent_demonology", "WARLOCK", "demonology");
@@ -2278,14 +2313,16 @@ EmitAction = function (parseNode: ParseNode, nodeList, annotation) {
             isSpellAction = false;
         } else if (action == "potion") {
             let name = (modifier.name && Unparse(modifier.name)) || annotation.consumables["potion"];
-            if (truthy(match(name, "^(%w+)_potion"))) {
-                [name] = match(name, "^(%w+)_potion");
+            if(truthy(match(name, "^battle_potion_of_%w+"))){
+                [name] = match(name, "^battle_potion_of_%w+");
+            }else if (truthy(match(name, "^%w+_potion"))) {
+                [name] = match(name, "^%w+_potion");
             }
             if (name) {
-                bodyCode = format("Item(%s_potion usable=1)", name);
+                bodyCode = format("Item(%s usable=1)", name);
                 conditionCode = "CheckBoxOn(opt_use_consumables) and target.Classification(worldboss)";
                 annotation.opt_use_consumables = className;
-                AddSymbol(annotation, format("%s_potion", name));
+                AddSymbol(annotation, format("%s", name));
                 isSpellAction = false;
             }
         } else if (action == "stance") {
@@ -2909,15 +2946,17 @@ EmitOperandAzerite = function (operand, parseNode, nodeList, annotation, action,
         let code:string;
         let name = tokenIterator();
         let property = tokenIterator();
-        if (property == "enabled") {
-            code = format("HasAzeriteTrait(%s)", name);
+        if (property == "rank") {
+            code = format("AzeriteTraitRank(%s_trait)", name);
+        } else if (property == "enabled") {
+            code = format("HasAzeriteTrait(%s_trait)", name);
         } else {
             ok = false;
         }
         if (ok && code) {
             annotation.astAnnotation = annotation.astAnnotation || {};
             [node] = OvaleAST.ParseCode("expression", code, nodeList, annotation.astAnnotation);
-            AddSymbol(annotation, name);
+            AddSymbol(annotation, `${name}_trait`);
         }
     } else {
         ok = false;
@@ -3078,7 +3117,7 @@ EmitOperandBuff = function (operand, parseNode, nodeList, annotation, action, ta
         ["rage.deficit"]: "RageDeficit()",
         ["rage.max"]: "MaxRage()",
         ["raid_event.adds.remains"]: "0", // TODO
-        ["raw_haste_pct"]: "SpellHaste()",
+        ["raw_haste_pct"]: "SpellCastSpeedPercent()",
         ["rtb_list.any.5"]: "BuffCount(roll_the_bones_buff more 4)",
         ["rtb_list.any.6"]: "BuffCount(roll_the_bones_buff more 5)",
         ["runic_power"]: "RunicPower()",
@@ -3167,9 +3206,9 @@ EmitOperandBuff = function (operand, parseNode, nodeList, annotation, action, ta
                 code = format("False(role_%s)", role);
             }
         } else if (operand == "spell_haste" || operand == "stat.spell_haste") {
-            code = "100 / { 100 + SpellHaste() }";
+            code = "100 / { 100 + SpellCastSpeedPercent() }";
         } else if (operand == "attack_haste" || operand == "stat.attack_haste") {
-            code = "100 / { 100 + MeleeHaste() }";
+            code = "100 / { 100 + MeleeAttackSpeedPercent() }";
         } else if (sub(operand, 1, 13) == "spell_targets") {
             code = "Enemies()";
         } else if (operand == "t18_class_trinket") {
@@ -3509,6 +3548,8 @@ EmitOperandRaidEvent = function (operand, parseNode, nodeList, annotation, actio
             code = "False(raid_event_adds_exists)";
         } else if (property == "in") {
             code = "600";
+        } else if (property == "duration") {
+            code = "10"  //TODO
         } else {
             ok = false;
         }
@@ -3792,6 +3833,12 @@ EmitOperandSpecial = function (operand, parseNode, nodeList, annotation, action,
     } else if (className == "ROGUE" && operand == "exsanguinated") {
         code = "target.DebuffPresent(exsanguinated)";
         AddSymbol(annotation, "exsanguinated");
+    } else if (className == "ROGUE" && operand == "master_assassin_remains") {
+        code = "BuffRemaining(master_assassin_buff)";
+        AddSymbol(annotation, "master_assassin_buff");
+    } else if (className == "ROGUE" && operand == "buff.roll_the_bones.remains"){
+        code = "BuffRemaining(roll_the_bones_buff)";
+        AddSymbol(annotation, "roll_the_bones_buff");
     } else if (className == "SHAMAN" && operand == "buff.resonance_totem.remains") {
         code = "TotemRemaining(totem_mastery)";
         ok = true;
@@ -4551,7 +4598,7 @@ const InsertInterruptFunctions = function(child: LuaArray<AstNode>, annotation: 
             });
         }
         insert(interrupts, {
-            name: "lightning_surge_totem",
+            name: "capacitor_totem",
             stun: 1,
             order: 30,
             range: "",
@@ -4701,35 +4748,17 @@ const InsertSupportingFunctions = function(child: LuaArray<AstNode>, annotation:
     }
     if (annotation.summon_pet == "HUNTER") {
         let fmt;
-        if (annotation.specialization == "beast_mastery") {
-            fmt = `
-				AddFunction %sSummonPet
+        fmt = `
+			AddFunction %sSummonPet
+			{
+				if pet.IsDead()
 				{
-					if pet.IsDead()
-					{
-						if not DebuffPresent(heart_of_the_phoenix_debuff) Spell(heart_of_the_phoenix)
-						Spell(revive_pet)
-					}
-					if not pet.Present() and not pet.IsDead() and not PreviousSpell(revive_pet) Texture(ability_hunter_beastcall help=L(summon_pet))
+					if not DebuffPresent(heart_of_the_phoenix_debuff) Spell(heart_of_the_phoenix)
+					Spell(revive_pet)
 				}
-			`;
-        } else {
-            fmt = `
-				AddFunction %sSummonPet
-				{
-					if not Talent(lone_wolf_talent)
-					{
-						if pet.IsDead()
-						{
-							if not DebuffPresent(heart_of_the_phoenix_debuff) Spell(heart_of_the_phoenix)
-							Spell(revive_pet)
-						}
-						if not pet.Present() and not pet.IsDead() and not PreviousSpell(revive_pet) Texture(ability_hunter_beastcall help=L(summon_pet))
-					}
-				}
-			`;
-            AddSymbol(annotation, "lone_wolf_talent");
-        }
+				if not pet.Present() and not pet.IsDead() and not PreviousSpell(revive_pet) Texture(ability_hunter_beastcall help=L(summon_pet))
+			}
+		`;
         let code = format(fmt, camelSpecialization);
         let [node] = OvaleAST.ParseCode("add_function", code, nodeList, annotation.astAnnotation);
         insert(child, 1, node);
