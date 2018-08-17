@@ -312,7 +312,7 @@ local OvalePowerClass = __class(OvalePowerBase, {
         }
         for powerType, powerId in pairs(Enum.PowerType) do
             local powerTypeLower = strlower(powerType)
-            local powerToken = possiblePowerTypes[Ovale.playerClass][powerTypeLower]
+            local powerToken = Ovale.playerClass ~= nil and possiblePowerTypes[Ovale.playerClass][powerTypeLower]
             if powerToken then
                 self.POWER_TYPE[powerId] = powerTypeLower
                 self.POWER_TYPE[powerToken] = powerTypeLower
@@ -545,7 +545,7 @@ local OvalePowerClass = __class(OvalePowerBase, {
         if si then
             for powerType, powerInfo in pairs(__exports.OvalePower.POWER_INFO) do
                 local cost, refund = self.next:PowerCost(spellId, powerType, atTime, targetGUID)
-                local power = self[powerType] or 0
+                local power = self.next.power[powerType] or 0
                 if cost then
                     power = power - cost
                 end
@@ -565,7 +565,7 @@ local OvalePowerClass = __class(OvalePowerBase, {
                 if maxi and power > maxi then
                     power = maxi
                 end
-                self[powerType] = power
+                self.next.power[powerType] = power
             end
         end
         __exports.OvalePower:StopProfiling("OvalePower_state_ApplyPowerCost")

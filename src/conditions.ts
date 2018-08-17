@@ -18,7 +18,6 @@ import { OvaleBossMod } from "./BossMod";
 import { Ovale } from "./Ovale";
 import { OvalePaperDoll } from "./PaperDoll";
 import { OvaleAura } from "./Aura";
-import { OvaleWildImps } from "./WildImps";
 import { OvaleEnemies } from "./Enemies";
 import { OvaleTotem } from "./Totem";
 import { OvaleDemonHunterSoulFragments } from "./DemonHunterSoulFragments";
@@ -35,6 +34,7 @@ import { OvaleSigil } from "./DemonHunterSigils";
 import { baseState } from "./BaseState";
 import { OvaleSpells } from "./Spells";
 import { OvaleAzerite } from "./AzeriteArmor";
+import { OvaleWarlock } from "./Warlock";
 let INFINITY = huge;
 
 type BaseState = {};
@@ -1165,17 +1165,17 @@ function GetHastedTime(seconds, haste, state: BaseState) {
 {
     function Demons(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
         let [creatureId, comparator, limit] = [positionalParams[1], positionalParams[2], positionalParams[3]];
-        let value = OvaleWildImps.GetDemonsCount(creatureId, atTime);
+        let value = OvaleWarlock.GetDemonsCount(creatureId, atTime);
         return Compare(value, comparator, limit);
     }
     function NotDeDemons(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
         let [creatureId, comparator, limit] = [positionalParams[1], positionalParams[2], positionalParams[3]];
-        let value = OvaleWildImps.GetNotDemonicEmpoweredDemonsCount(creatureId, atTime);
+        let value = OvaleWarlock.GetNotDemonicEmpoweredDemonsCount(creatureId, atTime);
         return Compare(value, comparator, limit);
     }
     function DemonDuration(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
         let [creatureId, comparator, limit] = [positionalParams[1], positionalParams[2], positionalParams[3]];
-        let value = OvaleWildImps.GetRemainingDemonDuration(creatureId, atTime);
+        let value = OvaleWarlock.GetRemainingDemonDuration(creatureId, atTime);
         return Compare(value, comparator, limit);
     }
     OvaleCondition.RegisterCondition("demons", false, Demons);
@@ -3099,7 +3099,23 @@ l    */
     function MaxSoulShards(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
         return MaxPower("soulshards", positionalParams, namedParams, state, atTime);
     }
+
+    /** Get the maximum amount of Arcane Charges of the target.
+	 @name MaxArcaneCharges
+	 @paramsig number or boolean
+	 @param operator Optional. Comparison operator: less, atMost, equal, atLeast, more.
+	 @param number Optional. The number to compare against.
+	 @param target Optional. Sets the target to check. The target may also be given as a prefix to the condition.
+	     Defaults to target=player.
+	     Valid values: player, target, focus, pet.
+	 @return The maximum value.
+	 @return A boolean value for the result of the comparison.
+     */
+    function MaxArcaneCharges(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
+        return MaxPower("arcanecharges", positionalParams, namedParams, state, atTime);
+    }
     OvaleCondition.RegisterCondition("maxalternatepower", false, MaxAlternatePower);
+    OvaleCondition.RegisterCondition("maxarcanecharges", false, MaxArcaneCharges);
     OvaleCondition.RegisterCondition("maxchi", false, MaxChi);
     OvaleCondition.RegisterCondition("maxcombopoints", false, MaxComboPoints);
     OvaleCondition.RegisterCondition("maxenergy", false, MaxEnergy);
@@ -4956,4 +4972,12 @@ l    */
         return Compare(value, comparator, limit);
     }
     OvaleCondition.RegisterCondition("soulfragments", false, SoulFragments);
+}
+{
+    function TimeToShard(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number){
+        let [comparator, limit] = [positionalParams[1], positionalParams[2]];
+        let value = OvaleWarlock.TimeToShard()
+        return Compare(value, comparator, limit);
+    }
+    OvaleCondition.RegisterCondition("timetoshard", false, TimeToShard);
 }

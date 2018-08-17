@@ -165,6 +165,7 @@ let MODIFIER_KEYWORD: LuaObj<boolean> = {
     ["for_next"]: true,
     ["if"]: true,
     ["interrupt"]: true,
+    ["interrupt_global"]: true,
     ["interrupt_if"]: true,
     ["interrupt_immediate"]: true,
     ["interval"]: true,
@@ -1214,6 +1215,7 @@ const InitializeDisambiguation = function() {
 
     //Bloodlust
     AddDisambiguation("bloodlust_buff", "burst_haste_buff")
+    AddDisambiguation("exhaustion_buff", "burst_haste_debuff")
 
     //Items
     AddDisambiguation("buff_sephuzs_secret", "sephuzs_secret_buff")
@@ -1243,6 +1245,7 @@ const InitializeDisambiguation = function() {
     AddDisambiguation("blood_fury", "blood_fury_ap", "WARRIOR");
 
     //Death Knight
+    AddDisambiguation("137075", "taktheritrixs_shoulderpads", "DEATHKNIGHT");
     AddDisambiguation("deaths_reach_talent", "deaths_reach_talent_unholy", "DEATHKNIGHT", "unholy");
     AddDisambiguation("grip_of_the_dead_talent", "grip_of_the_dead_talent_unholy", "DEATHKNIGHT", "unholy");
     AddDisambiguation("wraith_walk_talent", "wraith_walk_talent_blood", "DEATHKNIGHT", "blood");
@@ -1281,6 +1284,13 @@ const InitializeDisambiguation = function() {
     AddDisambiguation("serpent_sting", "serpent_sting_mm", "HUNTER", "marksmanship");
     AddDisambiguation("serpent_sting", "serpent_sting_sv", "HUNTER", "survival");    
 
+    //Mage
+    AddDisambiguation("132410", "shard_of_the_exodar", "MAGE");
+    AddDisambiguation("132454", "koralons_burning_touch", "MAGE", "fire");
+    AddDisambiguation("132863", "darcklis_dragonfire_diadem", "MAGE", "fire");
+    AddDisambiguation("summon_arcane_familiar", "arcane_familiar", "MAGE", "arcane");
+    AddDisambiguation("water_elemental", "summon_water_elemental", "MAGE", "frost");
+    
     //Monk
     AddDisambiguation("healing_elixir_talent", "healing_elixir_talent_mistweaver", "MONK", "mistweaver");
     AddDisambiguation("bok_proc_buff", "blackout_kick_buff", "MONK", "windwalker");
@@ -1290,6 +1300,7 @@ const InitializeDisambiguation = function() {
     AddDisambiguation("brews", "ironskin_brew", "MONK", "brewmaster");
 
     //Paladin
+    AddDisambiguation("avenger_shield", "avengers_shield", "PALADIN", "protection");
     AddDisambiguation("judgment_of_light_talent", "judgment_of_light_talent_holy", "PALADIN", "holy");
     AddDisambiguation("unbreakable_spirit_talent", "unbreakable_spirit_talent_holy", "PALADIN", "holy");
     AddDisambiguation("cavalier_talent", "cavalier_talent_holy", "PALADIN", "holy");
@@ -1323,7 +1334,9 @@ const InitializeDisambiguation = function() {
     AddDisambiguation("totem_mastery", "totem_mastery_enhancement", "SHAMAN", "enhancement")
 
     //Warlock
-    AddDisambiguation("soul_conduit_talent", "soul_conduit_talent_demonology", "WARLOCK", "demonology");
+    AddDisambiguation("132369", "wilfreds_sigil_of_superior_summoning", "WARLOCK", "demonology");
+    AddDisambiguation("dark_soul", "dark_soul_misery", "WARLOCK", "affliction");
+    AddDisambiguation("soul_conduit_talent", "demo_soul_conduit_talent", "WARLOCK", "demonology");
 
     //Warrior
     AddDisambiguation("anger_management_talent", "fury_anger_management_talent", "WARRIOR", "fury");
@@ -1711,6 +1724,7 @@ let EmitOperandCooldown:EmitOperandVisitor = undefined;
 let EmitOperandDisease:EmitOperandVisitor = undefined;
 let EmitOperandDot:EmitOperandVisitor = undefined;
 let EmitOperandGlyph:EmitOperandVisitor = undefined;
+let EmitOperandGroundAoe:EmitOperandVisitor = undefined;
 let EmitOperandPet:EmitOperandVisitor = undefined;
 let EmitOperandPreviousSpell:EmitOperandVisitor = undefined;
 let EmitOperandRefresh:EmitOperandVisitor = undefined;
@@ -2110,8 +2124,16 @@ EmitAction = function (parseNode: ParseNode, nodeList, annotation) {
         } else if (className == "MAGE" && action == "time_warp") {
             conditionCode = "CheckBoxOn(opt_time_warp) and DebuffExpires(burst_haste_debuff any=1)";
             annotation[action] = className;
-        } else if (className == "MAGE" && action == "water_elemental") {
+        } else if (className == "MAGE" && action == "summon_water_elemental") {
             conditionCode = "not pet.Present()";
+        } else if (className == "MAGE" && action == "ice_floes") {
+            conditionCode = "Speed() > 0";
+        } else if (className == "MAGE" && action == "blast_wave") {
+            conditionCode = "target.Distance(less 8)"
+        } else if (className == "MAGE" && action == "dragons_breath") {
+            conditionCode = "target.Distance(less 12)"
+        } else if (className == "MAGE" && action == "arcane_blast") {
+            conditionCode = "Mana() > ManaCost(arcane_blast)"
         } else if (className == "MONK" && action == "chi_sphere") {
             isSpellAction = false;
         } else if (className == "MONK" && action == "gift_of_the_ox") {
@@ -3058,6 +3080,9 @@ EmitOperandBuff = function (operand, parseNode, nodeList, annotation, action, ta
         ["astral_power.deficit"]: "AstralPowerDeficit()",
         ["blade_dance_worth_using"]: "0",
         ["blood.frac"]: "Rune(blood)",
+        ["buff.arcane_charge.stack"]: "ArcaneCharges()",
+        ["buff.arcane_charge.max_stack"]: "MaxArcaneCharges()",
+        ["buff.movement.up"]: "Speed() > 0",
         ["buff.out_of_range.up"]: "not target.InRange()",
         ["bugs"]: "0",
         ["chi"]: "Chi()",
@@ -3065,6 +3090,7 @@ EmitOperandBuff = function (operand, parseNode, nodeList, annotation, action, ta
         ["combo_points"]: "ComboPoints()",
         ["combo_points.deficit"]: "ComboPointsDeficit()",
         ["combo_points.max"]: "MaxComboPoints()",
+        ["consecration.remains"]: "target.DebuffRemaining(consecration_debuff)",
         ["cp_max_spend"]: "MaxComboPoints()",
         ["crit_pct_current"]: "SpellCritChance()",
         ["current_insanity_drain"]: "CurrentInsanityDrain()",
@@ -3072,6 +3098,7 @@ EmitOperandBuff = function (operand, parseNode, nodeList, annotation, action, ta
         ["death_sweep_worth_using"]: "0",
         ["delay"]: "0",
         ["demonic_fury"]: "DemonicFury()",
+        ["death_and_decay.ticking"]: "SpellCooldown(death_and_decay) > 20",
         ["desired_targets"]: "Enemies(tagged=1)",
         ["doomguard_no_de"]: "NotDeDemons(doomguard)",
         ["dreadstalker_no_de"]: "NotDeDemons(dreadstalker)",
@@ -3120,6 +3147,7 @@ EmitOperandBuff = function (operand, parseNode, nodeList, annotation, action, ta
         ["raw_haste_pct"]: "SpellCastSpeedPercent()",
         ["rtb_list.any.5"]: "BuffCount(roll_the_bones_buff more 4)",
         ["rtb_list.any.6"]: "BuffCount(roll_the_bones_buff more 5)",
+        ["rune.deficit"]: "{6 - RuneCount()}",
         ["runic_power"]: "RunicPower()",
         ["runic_power.deficit"]: "RunicPowerDeficit()",
         ["service_no_de"]: "0",
@@ -3137,6 +3165,7 @@ EmitOperandBuff = function (operand, parseNode, nodeList, annotation, action, ta
         ["time_to_20pct"]: "TimeToHealthPercent(20)",
         ["time_to_die"]: "TimeToDie()",
         ["time_to_die.remains"]: "TimeToDie()",
+        ["time_to_shard"]: "TimeToShard()",
         ["time_to_sht.4"]: "100", // TODO
         ["time_to_sht.5"]: "100",
         ["wild_imp_count"]: "Demons(wild_imp)",
@@ -3305,7 +3334,7 @@ EmitOperandDisease = function (operand, parseNode, nodeList, annotation, action,
     return [ok, node];
 }
 
-function EmitOperandGroundAoe(operand, parseNode, nodeList, annotation, action) {
+EmitOperandGroundAoe = function(operand, parseNode, nodeList, annotation, action) {
     let ok = true;
     let node;
     let tokenIterator = gmatch(operand, OPERAND_TOKEN_PATTERN);
@@ -3774,6 +3803,9 @@ EmitOperandSpecial = function (operand, parseNode, nodeList, annotation, action,
     } else if (className == "MAGE" && operand == "firestarter.active") {
         code = "Talent(firestarter_talent) and target.HealthPercent() >= 90";
         AddSymbol(annotation, "firestarter_talent");
+    } else if (className == "MAGE" && operand == "brain_freeze_active") {
+        code = "target.DebuffPresent(winters_chill_debuff)"
+        AddSymbol(annotation, "winters_chill_debuff");
     } else if (className == "MONK" && sub(operand, 1, 35) == "debuff.storm_earth_and_fire_target.") {
         let property = sub(operand, 36);
         if (target == "") {
@@ -3858,6 +3890,21 @@ EmitOperandSpecial = function (operand, parseNode, nodeList, annotation, action,
         code = format("target.DebuffStacks(unstable_affliction_debuff) >= %s", num);
     } else if (className == "WARLOCK" && operand == "buff.active_uas.stack") {
         code = "target.DebuffStacks(unstable_affliction_debuff)";
+    } else if (className == "WARLOCK" && truthy(match(operand, "pet%.[a-z_]+%..+"))) {
+        let [spellName, property] = match(operand, "pet%.([a-z_]+)%.(.+)");
+        if(property == "remains"){
+            code = format("DemonDuration(%s)", spellName)
+        }else if(property == "active"){
+            code = format("DemonDuration(%s) > 0", spellName)
+        }
+    } else if (className == "WARLOCK" && operand == "contagion") {
+        code = "BuffRemaining(unstable_affliction_buff)";
+    } else if (className == "WARLOCK" && operand == "buff.wild_imps.stack") {
+        code = "Demons(wild_imp)";
+    } else if (className == "WARLOCK" && operand == "buff.dreadstalkers.remains") {
+        code = "DemonDuration(dreadstalker)";
+    } else if (className == "WARLOCK" && truthy(match(operand, "prev_gcd.%d.hand_of_guldan"))) { // TODO improve PreviousGCDSpell(spell count=number)
+        code = "PreviousGCDSpell(hand_of_guldan)";
     } else if (className == "WARRIOR" && sub(operand, 1, 23) == "buff.colossus_smash_up.") {
         let property = sub(operand, 24);
         let debuffName = "colossus_smash_debuff";
@@ -3887,7 +3934,7 @@ EmitOperandSpecial = function (operand, parseNode, nodeList, annotation, action,
     } else if (operand == "distance") {
         code = `${target}Distance()`;
     } else if (sub(operand, 1, 9) == "equipped.") {
-        let name = sub(operand, 10);
+        let [name] = Disambiguate(annotation, sub(operand, 10), className, specialization);
         code = format("HasEquippedItem(%s_item)", name);
         AddSymbol(annotation, `${name}_item`);
     } else if (operand == "gcd.max") {
