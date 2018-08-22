@@ -8,7 +8,6 @@ local NewAddon = __tsaddon.NewAddon
 local aceEvent = LibStub:GetLibrary("AceEvent-3.0", true)
 local ipairs = ipairs
 local pairs = pairs
-local select = select
 local strjoin = strjoin
 local tostring = tostring
 local tostringall = tostringall
@@ -42,7 +41,7 @@ end
 local OvaleBase = NewAddon("Ovale", aceEvent)
 local OvaleClass = __class(OvaleBase, {
     constructor = function(self)
-        self.playerClass = select(2, UnitClass("player"))
+        self.playerClass = nil
         self.playerGUID = nil
         self.db = nil
         self.refreshNeeded = {}
@@ -58,6 +57,8 @@ local OvaleClass = __class(OvaleBase, {
     end,
     OnInitialize = function(self)
         self.playerGUID = UnitGUID("player")
+        local _, classId = UnitClass("player")
+        self.playerClass = classId
         wipe(self_refreshIntervals)
         self_refreshIndex = 1
         self:ClearOneTimeMessages()

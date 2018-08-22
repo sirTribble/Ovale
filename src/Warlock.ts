@@ -101,7 +101,7 @@ class OvaleWarlockClass extends OvaleWarlockBase {
             }
             for (const [k, d] of pairs(self_demons)) {
                 if (d.finish < now) {
-                    self_demons[k] = undefined;
+                    delete self_demons[k];
                 }
             }
             Ovale.needRefresh();
@@ -109,14 +109,14 @@ class OvaleWarlockClass extends OvaleWarlockBase {
             if (spellId == 196277) {
                 for (const [k, d] of pairs(self_demons)) {
                     if (d.id == 55659) {
-                        self_demons[k] = undefined;
+                        delete self_demons[k];
                     }
                 }
                 Ovale.needRefresh();
             }
 
-            if(CUSTOM_AURAS[spellId]){
-                let aura = CUSTOM_AURAS[spellId];
+            const aura = CUSTOM_AURAS[spellId];
+            if (aura){
                 this.AddCustomAura(aura.customId, aura.stacks, aura.duration, aura.auraName);
             }
         }
@@ -128,7 +128,7 @@ class OvaleWarlockClass extends OvaleWarlockBase {
     }
     ResetState(): void {
     }
-    GetNotDemonicEmpoweredDemonsCount(creatureId, atTime) {
+    GetNotDemonicEmpoweredDemonsCount(creatureId: number, atTime: number) {
         let count = 0;
         for (const [, d] of pairs(self_demons)) {
             if (d.finish >= atTime && d.id == creatureId && !d.de) {
@@ -137,7 +137,7 @@ class OvaleWarlockClass extends OvaleWarlockBase {
         }
         return count;
     }
-    GetDemonsCount(creatureId, atTime) {
+    GetDemonsCount(creatureId: number, atTime: number) {
         let count = 0;
         for (const [, d] of pairs(self_demons)) {
             if (d.finish >= atTime && d.id == creatureId) {
@@ -146,7 +146,7 @@ class OvaleWarlockClass extends OvaleWarlockBase {
         }
         return count;
     }
-    GetRemainingDemonDuration(creatureId, atTime) {
+    GetRemainingDemonDuration(creatureId: number, atTime: number) {
         let max = 0;
         for (const [, d] of pairs(self_demons)) {
             if (d.finish >= atTime && d.id == creatureId) {
@@ -162,16 +162,15 @@ class OvaleWarlockClass extends OvaleWarlockBase {
     AddCustomAura(customId: number, stacks: number, duration: number, buffName: string){
         let now = GetTime()
         let expire = now + duration;
-        let filter = OvaleOptions.defaultDB.profile.apparence.fullAuraScan && 'HELPFUL' || 'HELPFUL|PLAYER';
-        OvaleAura.GainedAuraOnGUID(Ovale.playerGUID, now, customId, Ovale.playerGUID, filter, undefined, undefined, stacks, undefined, duration, expire, undefined, buffName, undefined, undefined, undefined);
+        const filter = OvaleOptions.defaultDB.profile.apparence.fullAuraScan && 'HELPFUL' || 'HELPFUL|PLAYER';
+        OvaleAura.GainedAuraOnGUID(Ovale.playerGUID, now, customId, Ovale.playerGUID, filter, false, undefined, stacks, undefined, duration, expire, false, buffName, undefined, undefined, undefined);
     }
 
     /**
      * Based on SimulationCraft function time_to_shard
      * Seeks to return the average expected time for the player to generate a single soul shard.
      */
-    TimeToShard(){
-        let now = GetTime();
+    TimeToShard(now: number){
         let filter = OvaleOptions.defaultDB.profile.apparence.fullAuraScan && 'HARMFUL' || 'HARMFUL|PLAYER';
         let value = 3600;
         let creepingDeathTalent = 20;

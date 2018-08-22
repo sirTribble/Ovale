@@ -45,11 +45,14 @@ local tostring = tostring
 local type = type
 local wipe = wipe
 local setmetatable = setmetatable
+local kpairs = pairs
 local concat = table.concat
 local insert = table.insert
 local remove = table.remove
 local sort = table.sort
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
+local __tools = LibStub:GetLibrary("ovale/tools")
+local isLuaArray = __tools.isLuaArray
 local OvaleSimulationCraftBase = OvaleDebug:RegisterDebugging(Ovale:NewModule("OvaleSimulationCraft"))
 local KEYWORD = {}
 local MODIFIER_KEYWORD = {
@@ -125,6 +128,7 @@ local SPECIAL_ACTION = {
     ["pool_resource"] = true,
     ["potion"] = true,
     ["run_action_list"] = true,
+    ["sequence"] = true,
     ["snapshot_stats"] = true,
     ["stance"] = true,
     ["start_moving"] = true,
@@ -359,7 +363,7 @@ do
         overrideCode = ""
     }
     for k, v in pairs(defaultDB) do
-        OvaleOptions.defaultDB.profile[k] = v
+        (OvaleOptions.defaultDB.profile)[k] = v
     end
     OvaleOptions:RegisterOptions(__exports.OvaleSimulationCraft)
 end
@@ -372,7 +376,7 @@ local print_r = function(node, indent, done, output)
     elseif type(node) ~= "table" then
         insert(output, indent .. node)
     else
-        for key, value in pairs(node) do
+        for key, value in kpairs(node) do
             if type(value) == "table" then
                 if done[value] then
                     insert(output, indent .. "[" .. tostring(key) .. "] => (self_reference)")
@@ -425,7 +429,7 @@ end
 
 local MATCHES = {
     [1] = {
-        [1] = "^%d+%a[%w_]*[.:]?[%w_.]*",
+        [1] = "^%d+%a[%w_]*([.:]?[%w_.]*)*",
         [2] = TokenizeName
     },
     [2] = {
@@ -433,7 +437,7 @@ local MATCHES = {
         [2] = TokenizeNumber
     },
     [3] = {
-        [1] = "^[%a_][%w_]*[.:]?[%w_.]*",
+        [1] = "^[%a_][%w_]*([.:]?[%w_.]*)*",
         [2] = TokenizeName
     },
     [4] = {
@@ -1099,9 +1103,13 @@ local function Disambiguate(annotation, name, className, specialization, _type)
     local disname, distype = GetPerClassSpecialization(EMIT_DISAMBIGUATION, name, className, specialization)
     if  not disname then
         if  not annotation.dictionary[name] then
-            local otherName = name:match("_buff$") and gsub(name, "_buff$", "") or gsub(name, "_debuff$", "")
+            local otherName = match(name, "_buff$") and gsub(name, "_buff$", "") or gsub(name, "_debuff$", "")
             if annotation.dictionary[otherName] then
                 return otherName, _type
+            end
+            local potionName = gsub(name, "potion_of_", "")
+            if annotation.dictionary[potionName] then
+                return potionName, _type
             end
         end
         return name, _type
@@ -1332,7 +1340,7 @@ SplitByTagAction = function(tag, node, nodeList, annotation)
             id = annotation.dictionary and annotation.dictionary[name]
         elseif isValueNode(firstParamNode) then
             name = firstParamNode.value
-            id = name
+            id = firstParamNode.value
         end
         if id then
             if actionType == "item" then
@@ -2198,18 +2206,16 @@ EmitAction = function(parseNode, nodeList, annotation)
             isSpellAction = false
         elseif action == "potion" then
             local name = (modifier.name and Unparse(modifier.name)) or annotation.consumables["potion"]
-            if match(name, "^battle_potion_of_%w+") then
-                name = match(name, "^battle_potion_of_%w+")
-            elseif match(name, "^%w+_potion") then
-                name = match(name, "^%w+_potion")
-            end
             if name then
+                name = Disambiguate(annotation, name, className, specialization, "item")
                 bodyCode = format("Item(%s usable=1)", name)
                 conditionCode = "CheckBoxOn(opt_use_consumables) and target.Classification(worldboss)"
                 annotation.opt_use_consumables = className
                 AddSymbol(annotation, format("%s", name))
                 isSpellAction = false
             end
+        elseif action == "sequence" then
+            isSpellAction = false
         elseif action == "stance" then
             if modifier.choose then
                 local name = Unparse(modifier.choose)
@@ -2669,6 +2675,9 @@ EmitOperandAction = function(operand, parseNode, nodeList, annotation, action, t
         name = action
         property = operand
     end
+    if  not name then
+        return false, nil
+    end
     local className, specialization = annotation.class, annotation.specialization
     name = Disambiguate(annotation, name, className, specialization)
     target = target and (target .. ".") or ""
@@ -2958,15 +2967,15 @@ do
         ["combo_points"] = "ComboPoints()",
         ["combo_points.deficit"] = "ComboPointsDeficit()",
         ["combo_points.max"] = "MaxComboPoints()",
-        ["consecration.remains"] = "target.DebuffRemaining(consecration_debuff)",
+        ["consecration.remains"] = "BuffRemaining(consecration)",
         ["cp_max_spend"] = "MaxComboPoints()",
         ["crit_pct_current"] = "SpellCritChance()",
         ["current_insanity_drain"] = "CurrentInsanityDrain()",
         ["darkglare_no_de"] = "NotDeDemons(darkglare)",
+        ["death_and_decay.ticking"] = "BuffPresent(death_and_decay)",
         ["death_sweep_worth_using"] = "0",
         ["delay"] = "0",
         ["demonic_fury"] = "DemonicFury()",
-        ["death_and_decay.ticking"] = "SpellCooldown(death_and_decay) > 20",
         ["desired_targets"] = "Enemies(tagged=1)",
         ["doomguard_no_de"] = "NotDeDemons(doomguard)",
         ["dreadstalker_no_de"] = "NotDeDemons(dreadstalker)",
@@ -3004,6 +3013,9 @@ do
         ["mana.max"] = "MaxMana()",
         ["mana.pct"] = "ManaPercent()",
         ["maelstrom"] = "Maelstrom()",
+        ["next_wi_bomb.pheromone"] = "SpellUsable(270323)",
+        ["next_wi_bomb.shrapnel"] = "SpellUsable(270335)",
+        ["next_wi_bomb.volatile"] = "SpellUsable(271045)",
         ["nonexecute_actors_pct"] = "0",
         ["pain"] = "Pain()",
         ["pain.deficit"] = "PainDeficit()",
@@ -3015,7 +3027,7 @@ do
         ["raw_haste_pct"] = "SpellCastSpeedPercent()",
         ["rtb_list.any.5"] = "BuffCount(roll_the_bones_buff more 4)",
         ["rtb_list.any.6"] = "BuffCount(roll_the_bones_buff more 5)",
-        ["rune.deficit"] = "{6 - RuneCount()}",
+        ["rune.deficit"] = "RuneDeficit()",
         ["runic_power"] = "RunicPower()",
         ["runic_power.deficit"] = "RunicPowerDeficit()",
         ["service_no_de"] = "0",
@@ -3232,7 +3244,6 @@ EmitOperandGroundAoe = function(operand, parseNode, nodeList, annotation, action
     end
     return ok, node
 end
-
 EmitOperandDot = function(operand, parseNode, nodeList, annotation, action, target)
     local ok = true
     local node
@@ -3267,6 +3278,8 @@ EmitOperandDot = function(operand, parseNode, nodeList, annotation, action, targ
             code = format("TargetDebuffRemaining(%s_exsanguinated)", dotName)
         elseif property == "refreshable" then
             code = format("%s%sRefreshable(%s)", target, prefix, dotName)
+        elseif property == "max_stacks" then
+            code = format("MaxStacks(%s)", dotName)
         else
             ok = false
         end
@@ -4178,7 +4191,6 @@ end
 local InsertInterruptFunction = function(child, annotation, interrupts)
     local nodeList = annotation.astAnnotation.nodeList
     local className = annotation.class
-    local specialization = annotation.specialization
     local camelSpecialization = CamelSpecialization(annotation)
     local spells = interrupts or {}
     if OvaleData.PANDAREN_CLASSES[className] then
@@ -5026,7 +5038,7 @@ local OvaleSimulationCraftClass = __class(OvaleSimulationCraftBase, {
                     self_pool:Release(node)
                 end
             end
-            for key, value in pairs(annotation) do
+            for key, value in kpairs(annotation) do
                 if type(value) == "table" then
                     wipe(value)
                 end
@@ -5055,13 +5067,13 @@ local OvaleSimulationCraftClass = __class(OvaleSimulationCraftBase, {
                 end
             end
         end
-        for k, v in pairs(profile) do
-            if type(v) == "table" then
+        for k, v in kpairs(profile) do
+            if isLuaArray(v) then
                 profile[k] = concat(v)
             end
         end
         profile.templates = {}
-        for k in pairs(profile) do
+        for k in kpairs(profile) do
             if sub(k, 1, 2) == "$(" and sub(k, -1) == ")" then
                 insert(profile.templates, k)
             end
@@ -5070,7 +5082,7 @@ local OvaleSimulationCraftClass = __class(OvaleSimulationCraftBase, {
         annotation = annotation or {}
         local nodeList = {}
         local actionList = {}
-        for k, _v in pairs(profile) do
+        for k, _v in kpairs(profile) do
             local v = _v
             if ok and match(k, "^actions") then
                 local name = match(k, "^actions%.([%w_]+)")
