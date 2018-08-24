@@ -31,7 +31,7 @@ function HasTalent(talentId: number) {
     if (OvaleSpellBook.IsKnownTalent(talentId)) {
         return OvaleSpellBook.GetTalentPoints(talentId) > 0;
     } else {
-        OvaleCompile.Print("Warning: unknown talent ID '%s'", talentId);
+        OvaleCompile.Error("Unknown talent ID '%s'", talentId);
         return false;
     }
 }
@@ -298,7 +298,7 @@ function EvaluateSpellAuraList(node: AstNode) {
     let ok = true;
     let [spellId, positionalParams, namedParams] = [node.spellId, node.positionalParams, node.namedParams];
     if (!spellId) {
-        OvaleCompile.Print("No spellId for name %s", node.name);
+        OvaleCompile.Error("No spellId for name %s", node.name);
         return false;
     }
     if (TestConditions(positionalParams, namedParams)) {
@@ -319,12 +319,17 @@ function EvaluateSpellAuraList(node: AstNode) {
         let count = 0;
         for (const [k, v] of kpairs(namedParams)) {
             if (!checkToken(PARAMETER_KEYWORD, k)) {
-                const id = tonumber(k);
-                if (id === undefined) {
-                    OvaleCompile.Print(`Info: ${k} is not a parameter keyword in '${node.name}' ${node.type}`);
-                } else {
-                    tbl[tonumber(k)] = <any>v;
+                if (OvaleData.buffSpellList[k]) {
+                    tbl[k] = v;
                     count = count + 1;
+                } else {
+                    const id = tonumber(k);
+                    if (!id) {
+                        OvaleCompile.Warning(`${k} is not a parameter keyword in '${node.name}' ${node.type}`);
+                    } else {
+                        tbl[id] = v;
+                        count = count + 1;
+                    }
                 }
             }
         }
@@ -444,7 +449,7 @@ function AddMissingVariantSpells(annotation: AstAnnotation) {
                         if (node.paramsAsString) {
                             functionCall = `${node.name}(${node.paramsAsString})`;
                         }
-                        OvaleCompile.Print("Unknown spell with ID %s used in %s.", spellId, functionCall);
+                        OvaleCompile.Error("Unknown spell with ID %s used in %s.", spellId, functionCall);
                     }
                 }
             }
@@ -514,7 +519,7 @@ let UpdateTrinketInfo = function () {
     }
 
 const OvaleCompileClassBase = OvaleDebug.RegisterDebugging(OvaleProfiler.RegisterProfiling(OvaleCompileBase));
-class OvaleCompileClass extends OvaleCompileClassBase {
+export class OvaleCompileClass extends OvaleCompileClassBase {
     serial: number | undefined = undefined;
     ast: AstNode | undefined = undefined;
      

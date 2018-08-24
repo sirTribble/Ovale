@@ -210,7 +210,6 @@ AddFunction HolyDefaultCdActions
 	Item(Trinket0Slot usable=1 text=13)
 	Item(Trinket1Slot usable=1 text=14)
 	Spell(tyrs_deliverance)
-	Spell(avenging_wrath_heal)
 	Spell(holy_avenger)
 	Spell(aura_mastery)
 }
@@ -248,7 +247,7 @@ AddIcon help=cd specialization=holy
 # Based on SimulationCraft profile "PR_Paladin_Protection".
 #	class=paladin
 #	spec=protection
-#	talents=2112132
+#	talents=1200003
 
 Include(ovale_common)
 Include(ovale_trinkets_mop)

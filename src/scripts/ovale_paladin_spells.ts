@@ -6,6 +6,7 @@ export function register() {
 // ANY CHANGES MADE BELOW THIS POINT WILL BE LOST
     let code = `Define(avengers_shield 31935)
 # Hurls your shield at an enemy target, dealing s1 Holy damage?a231665[, interrupting and silencing the non-Player target for d][], and then jumping to x1-1 additional nearby enemies.rnrnIncreases the effects of your next Shield of the Righteous by 197561s2.
+# Rank 2: Avenger's Shield interrupts and silences the main target for 31935d if it is not a player.
   SpellInfo(avengers_shield cd=15 duration=3 interrupt=1)
   # Silenced.
   SpellAddTargetDebuff(avengers_shield avengers_shield=1)
@@ -36,10 +37,10 @@ Define(crusade 231895)
   SpellInfo(crusade cd=20 cd=120 duration=25 max_stacks=10 talent=crusade_talent)
   # ?a206338[Damage done increased by w1.rnHaste increased by w3.][Damage done and Haste increased by <damage>.]
   SpellAddBuff(crusade crusade=1)
-Define(crusader_strike 231667)
-# Crusader Strike now has s1+1 charges.
-  SpellInfo(crusader_strike channel=0 gcd=0 offgcd=1)
-  SpellAddBuff(crusader_strike crusader_strike=1)
+Define(crusader_strike 35395)
+# Strike the target for s1 Physical damage.?s137027[rnrn|cFFFFFFFFGenerates s2 Holy Power.][]
+# Rank 2: Crusader Strike now has s1+1 charges.
+  SpellInfo(crusader_strike cd=6 holypower=0)
 Define(divine_right_buff 278519)
 # @spelldesc277678
   SpellInfo(divine_right_buff channel=-0.001 gcd=0 offgcd=1)
@@ -69,7 +70,7 @@ Define(hammer_of_wrath 24275)
   SpellInfo(hammer_of_wrath cd=7.5 talent=hammer_of_wrath_talent holypower=-1)
 Define(hammer_of_the_righteous 53595)
 # Hammers the current target for 53595sw1 Physical damage.?s26573&s203785[rnrnHammer of the Righteous also causes a wave of light that hits all other targets within 88263A1 yds for 88263sw1 Holy damage.]?s26573[rnrnWhile you are standing in your Consecration, Hammer of the Righteous also causes a wave of light that hits all other targets within 88263A1 yds for 88263sw1 Holy damage.][]
-  SpellInfo(hammer_of_the_righteous cd=4.5)
+  SpellInfo(hammer_of_the_righteous cd=4.5 replace=crusader_strike)
 Define(inquisition 84963)
 # Consumes up to 3 Holy Power to increase your damage done and Haste by s1.rnrnLasts d per Holy Power consumed.
   SpellInfo(inquisition holypower=1 duration=15 talent=inquisition_talent tick=15)
@@ -80,6 +81,7 @@ Define(judgment_protection 275779)
   SpellInfo(judgment_protection cd=12)
 Define(judgment 20271)
 # Judges the target, dealing s1 Holy damage?s231663[, and causing them to take 197277s1 increased damage from your next ability that costs Holy Power.][]?s137027[rnrn|cFFFFFFFFGenerates 220637s1 Holy Power.][]
+# Rank 2: Judgment causes the target to take s1 increased damage from your next Holy Power spender.
   SpellInfo(judgment cd=12)
 Define(lights_judgment 255647)
 # Call down a strike of Holy energy, dealing <damage> Holy damage to enemies within A1 yards after 3 sec.
@@ -116,22 +118,22 @@ Define(war_stomp 20549)
   SpellInfo(war_stomp cd=90 duration=2 gcd=0 offgcd=1)
   # Stunned.
   SpellAddTargetDebuff(war_stomp war_stomp=1)
-Define(crusaders_judgment_talent 5)
-# Judgment now has 1+s1 charges, and Grand Crusader now also grants a charge of Judgment.
-Define(seraphim_talent 21)
-# The Light temporarily magnifies your power, increasing your Haste, Critical Strike, Mastery, and Versatility by s1.rnrnConsumes up to s2 charges of Shield of the Righteous, and lasts d per charge.
-Define(crusade_talent 20)
+Define(crusade_talent 20) #22215
 # Call upon the Light and begin a crusade, increasing your damage done and Haste by <damage> for d.rnrnEach Holy Power spent during Crusade increases damage done and Haste by an additional <damage>.rnrnMaximum u stacks.
-Define(divine_judgment_talent 10)
+Define(crusaders_judgment_talent 5) #22604
+# Judgment now has 1+s1 charges, and Grand Crusader now also grants a charge of Judgment.
+Define(divine_judgment_talent 10) #22375
 # Each enemy hit by an ability that consumes Holy Power increases the damage of your next Judgment by 271581s1, stacking up to 271581u times.
-Define(execution_sentence_talent 3)
+Define(execution_sentence_talent 3) #22175
 # Calls down the Light's punishment upon an enemy target, dealing s1 Holy damage and increasing the target's Holy damage taken from your attacks by 267799s1 for 267799d.
-Define(hammer_of_wrath_talent 6)
+Define(hammer_of_wrath_talent 6) #22593
 # Hurls a divine hammer that strikes an enemy for s1 Holy damage. Only usable on enemies that have less than 20 health, or while you are empowered by ?s231895[Crusade][Avenging Wrath].rnrn|cFFFFFFFFGenerates s2 Holy Power.
-Define(inquisition_talent 21)
+Define(inquisition_talent 21) #22634
 # Consumes up to 3 Holy Power to increase your damage done and Haste by s1.rnrnLasts d per Holy Power consumed.
-Define(righteous_verdict_talent 2)
+Define(righteous_verdict_talent 2) #22557
 # Templar's Verdict increases the damage of your next Templar's Verdict by 267611s1 for 267611d.
+Define(seraphim_talent 21) #22645
+# The Light temporarily magnifies your power, increasing your Haste, Critical Strike, Mastery, and Versatility by s1.rnrnConsumes up to s2 charges of Shield of the Righteous, and lasts d per charge.
 Define(divine_right_trait 277678)
     `;
 // END

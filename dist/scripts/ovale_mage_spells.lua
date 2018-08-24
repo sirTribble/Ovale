@@ -11,6 +11,7 @@ __exports.register = function()
   SpellAddBuff(ancestral_call ancestral_call=1)
 Define(arcane_barrage 44425)
 # Launches bolts of arcane energy at the enemy target, causing s1 Arcane damage. rnrnFor each Arcane Charge, deals 36032s2 additional damage?a231564[ and hits 36032s3 additional nearby Ltarget:targets; for s2 of its damage][].rnrn|cFFFFFFFFConsumes all Arcane Charges.|r
+# Rank 2: Arcane Barrage hits s1 additional Ltarget:targets; within 44425s3 yds per Arcane Charge for 44425s2 damage.
   SpellInfo(arcane_barrage cd=3)
 Define(arcane_blast 30451)
 # Blasts the target with energy, dealing 30451s1 Arcane damage.rnrnEach Arcane Charge increases damage by 36032s1 and mana cost by 36032s5, and reduces cast time by 36032s4.rnrn|cFFFFFFFFGenerates 1 Arcane Charge.|r
@@ -67,6 +68,7 @@ Define(blink 1953)
   SpellAddBuff(blink blink=1)
 Define(blizzard 190356)
 # Ice shards pelt the target area, dealing 190357m1*8 Frost damage over d and reducing movement speed by 205708s1 for 205708d.?a236662[rnrnEach time Blizzard deals damage, the cooldown of Frozen Orb is reduced by 236662s1/100.1 sec.][]
+# Rank 2: Each time Blizzard deals damage, the cooldown of Frozen Orb is reduced by s1/100.1 sec.
   SpellInfo(blizzard cd=8 duration=8)
 Define(charged_up 205032)
 # Immediately grants s1 Arcane Charges.
@@ -100,11 +102,13 @@ Define(ebonbolt 214634)
   SpellInfo(ebonbolt cd=45)
 Define(evocation 12051)
 # Increases your mana regeneration by s1 for d.
+# Rank 2: Evocation's cooldown is reduced by s1.
   SpellInfo(evocation cd=180 duration=6 channel=6)
   # Mana regeneration increased by s1.
   SpellAddBuff(evocation evocation=1)
 Define(fire_blast 108853)
 # Blasts the enemy for s1 Fire damage. Castable while casting other spells.?a231568[ Always deals a critical strike.][]
+# Rank 2: Fire Blast always deals a critical strike.
   SpellInfo(fire_blast cd=0.5 cd=12 gcd=0 offgcd=1)
 Define(fireball 133)
 # Throws a fiery ball that causes s1 Fire damage.
@@ -228,61 +232,61 @@ Define(winters_reach 273347)
   SpellInfo(winters_reach duration=15 channel=15 gcd=0 offgcd=1)
   # Damage of your next non-instant Flurry increased by w1 per hit.
   SpellAddBuff(winters_reach winters_reach=1)
-Define(amplification_talent 1)
-# When Clearcast, Arcane Missiles fires s2 additional lmissile:missiles;.
-Define(arcane_orb_talent 21)
-# Launches an Arcane Orb forward from your position, traveling up to 40 yards, dealing 153640s1 Arcane damage to enemies it passes through.rnrn|cFFFFFFFFGrants 1 Arcane Charge when cast and every time it deals damage.|r
-Define(charged_up_talent 11)
-# Immediately grants s1 Arcane Charges.
-Define(overpowered_talent 19)
-# Arcane Power now increases damage by 30+s1 and reduces mana costs by 30-s2.
-Define(resonance_talent 10)
-# Arcane Barrage deals s1 increased damage per target it hits.
-Define(alexstraszas_fury_talent 11)
+Define(alexstraszas_fury_talent 11) #22465
 # Dragon's Breath always critically strikes and contributes to Hot Streak.
-Define(firestarter_talent 1)
-# Your Fireball and Pyroblast spells always deal a critical strike when the target is above s1 health.
-Define(flame_patch_talent 16)
-# Flamestrike leaves behind a patch of flames which burns enemies within it for 8*205472s1 Fire damage over 205470d. 
-Define(kindling_talent 19)
-# Your Fireball, Pyroblast, Fire Blast, and Phoenix Flames critical strikes reduce the remaining cooldown on Combustion by s1 sec.
-Define(mirror_image_talent 8)
-# Creates s2 copies of you nearby for 55342d, which cast spells and attack your enemies.
-Define(rune_of_power_talent 9)
-# Places a Rune of Power on the ground for 116011d which increases your spell damage by 116014s1 while you stand within 8 yds.
-Define(searing_touch_talent 3)
-# Scorch deals s2 increased damage and is a guaranteed Critical Strike when the target is below s1 health.
-Define(comet_storm_talent 18)
-# Calls down a series of 7 icy comets on and around the target, that deals up to 7*153596s1 Frost damage to all enemies within 228601A1 yds of its impacts.
-Define(ebonbolt_talent 12)
-# Launch a bolt of ice at the enemy, dealing 257538s1 Frost damage and granting you Brain Freeze.
-Define(freezing_rain_talent 16)
-# Frozen Orb makes Blizzard instant cast and increases its damage done by 270232s2 for 270232d.
-Define(glacial_spike_talent 21)
-# Conjures a massive spike of ice, and merges your current Icicles into it. It impales your target, dealing 228600s1 damage plus all of the damage stored in your Icicles, and freezes the target in place for 228600d. Damage may interrupt the freeze effect.rnrnRequires 5 Icicles to cast.rnrn|cFFFFFFFFPassive:|r Ice Lance no longer launches Icicles.
-Define(ray_of_frost_talent 20)
-# Channel an icy beam at the enemy for d, dealing s2 Frost damage every t2 sec and slowing movement by s4. Each time Ray of Frost deals damage, its damage and snare increases by 208141s1.rnrnGenerates s3 charges of Fingers of Frost over its duration.
-Define(splitting_ice_talent 17)
-# Your Ice Lance and Icicles now deal s3 increased damage, and hit a second nearby target for s2 of their damage.rnrnYour Ebonbolt and Glacial Spike also hit a second nearby target for s2 of its damage.
-Define(arcane_familiar_talent 3)
+Define(amplification_talent 1) #22458
+# When Clearcast, Arcane Missiles fires s2 additional lmissile:missiles;.
+Define(arcane_familiar_talent 3) #22464
 # Summon a Familiar that attacks your enemies and increases your maximum mana by 210126s1 for d.
-Define(blast_wave_talent 6)
+Define(arcane_orb_talent 21) #21145
+# Launches an Arcane Orb forward from your position, traveling up to 40 yards, dealing 153640s1 Arcane damage to enemies it passes through.rnrn|cFFFFFFFFGrants 1 Arcane Charge when cast and every time it deals damage.|r
+Define(blast_wave_talent 6) #23074
 # Causes an explosion around yourself, dealing s1 Fire damage to all enemies within A1 yards, knocking them back, and reducing movement speed by s2 for d.
-Define(ice_floes_talent 6)
+Define(charged_up_talent 11) #22467
+# Immediately grants s1 Arcane Charges.
+Define(comet_storm_talent 18) #22473
+# Calls down a series of 7 icy comets on and around the target, that deals up to 7*153596s1 Frost damage to all enemies within 228601A1 yds of its impacts.
+Define(ebonbolt_talent 12) #22469
+# Launch a bolt of ice at the enemy, dealing 257538s1 Frost damage and granting you Brain Freeze.
+Define(firestarter_talent 1) #22456
+# Your Fireball and Pyroblast spells always deal a critical strike when the target is above s1 health.
+Define(flame_patch_talent 16) #22451
+# Flamestrike leaves behind a patch of flames which burns enemies within it for 8*205472s1 Fire damage over 205470d. 
+Define(freezing_rain_talent 16) #22454
+# Frozen Orb makes Blizzard instant cast and increases its damage done by 270232s2 for 270232d.
+Define(glacial_spike_talent 21) #21634
+# Conjures a massive spike of ice, and merges your current Icicles into it. It impales your target, dealing 228600s1 damage plus all of the damage stored in your Icicles, and freezes the target in place for 228600d. Damage may interrupt the freeze effect.rnrnRequires 5 Icicles to cast.rnrn|cFFFFFFFFPassive:|r Ice Lance no longer launches Icicles.
+Define(ice_floes_talent 6) #23073
 # Makes your next Mage spell with a cast time shorter than s2 sec castable while moving. Unaffected by the global cooldown and castable while casting.
-Define(ice_nova_talent 3)
+Define(ice_nova_talent 3) #22463
 # Causes a whirl of icy wind around the enemy, dealing s1*s3/100 Frost damage to the target and s1 Frost damage to all other enemies within a2 yards, and freezing them in place for d.
-Define(living_bomb_talent 18)
+Define(kindling_talent 19) #21631
+# Your Fireball, Pyroblast, Fire Blast, and Phoenix Flames critical strikes reduce the remaining cooldown on Combustion by s1 sec.
+Define(living_bomb_talent 18) #22472
 # The target becomes a Living Bomb, taking 217694o1 Fire damage over 217694d, and then exploding to deal an additional 44461s2 Fire damage to the target and all other enemies within 44461A2 yards.rnrnOther enemies hit by this explosion also become a Living Bomb, but this effect cannot spread further.
-Define(nether_tempest_talent 18)
+Define(mirror_image_talent 8) #22445
+# Creates s2 copies of you nearby for 55342d, which cast spells and attack your enemies.
+Define(nether_tempest_talent 18) #22474
 # Places a Nether Tempest on the target which deals 114923o1 Arcane damage over 114923d to the target and 114954m1*12/t1 to all enemies within 10 yards. Limit 1 target.rnrnDamage increased by 36032s1 per Arcane Charge.
-Define(phoenix_flames_talent 12)
+Define(overpowered_talent 19) #21630
+# Arcane Power now increases damage by 30+s1 and reduces mana costs by 30-s2.
+Define(phoenix_flames_talent 12) #22468
 # Hurls a Phoenix that deals s1 Fire damage to the target and splashes 257542s2 Fire damage to other nearby enemies. Always deals a critical strike.
-Define(pyroclasm_talent 20)
+Define(pyroclasm_talent 20) #22220
 # Consuming Hot Streak has a s1 chance to make your next non-instant Pyroblast cast within 269651d deal 269651s1 additional damage.rnrnMaximum 2 charges.
-Define(shimmer_talent 5)
+Define(ray_of_frost_talent 20) #22309
+# Channel an icy beam at the enemy for d, dealing s2 Frost damage every t2 sec and slowing movement by s4. Each time Ray of Frost deals damage, its damage and snare increases by 208141s1.rnrnGenerates s3 charges of Fingers of Frost over its duration.
+Define(resonance_talent 10) #22453
+# Arcane Barrage deals s1 increased damage per target it hits.
+Define(rune_of_power_talent 9) #22447
+# Places a Rune of Power on the ground for 116011d which increases your spell damage by 116014s1 while you stand within 8 yds.
+Define(searing_touch_talent 3) #22462
+# Scorch deals s2 increased damage and is a guaranteed Critical Strike when the target is below s1 health.
+Define(shimmer_talent 5) #22443
 # Teleports you A1 yards forward, unless something is in the way. Unaffected by the global cooldown and castable while casting.
-Define(supernova_talent 12)
+Define(splitting_ice_talent 17) #23176
+# Your Ice Lance and Icicles now deal s3 increased damage, and hit a second nearby target for s2 of their damage.rnrnYour Ebonbolt and Glacial Spike also hit a second nearby target for s2 of its damage.
+Define(supernova_talent 12) #22470
 # Pulses arcane energy around the target enemy or ally, dealing s2 Arcane damage to all enemies within A2 yards, and knocking them upward. A primary enemy target will take s1 increased damage.
 Define(arcane_pummeling_trait 270669)
 Define(preheat_trait 273331)
@@ -367,7 +371,7 @@ Define(erupting_infernal_core_buff 248147)
 	SpellInfo(evocation cd=120 channel=3 haste=spell)
 	SpellInfo(evocation add_cd=-30 if_spell=improved_evocation)
 	SpellAddBuff(evocation ice_floes_buff=0 if_spell=ice_floes)
-Define(fingers_of_frost 112965)
+
 Define(fingers_of_frost_buff 44544)
 	SpellInfo(fingers_of_frost_buff duration=15 max_stacks=2)
 	SpellInfo(fingers_of_frost_buff max_stacks=4 itemset=T18 itemcount=4)
@@ -442,7 +446,7 @@ Define(ignite_debuff 12654)
 	SpellInfo(ignite_debuff duration=5 tick=1)
 Define(improved_evocation 157614)
 Define(improved_flamestrike 157621)
-Define(incanters_flow 1463)
+
 Define(incanters_flow_buff 116267)
 	SpellInfo(incanters_flow_buff duration=25 max_stacks=5)
 Define(inferno_blast 108853)

@@ -31,7 +31,7 @@ AddFunction DisciplineDefaultMainActions
 
 AddFunction DisciplineDefaultCdActions
 {
-	if Talent(mindbender_talent) Spell(mindbender)
+	if Talent(disc_mindbender_talent) Spell(mindbender)
 	Item(Trinket0Slot usable=1 text=13)
 	Item(Trinket1Slot usable=1 text=14)
 	Spell(shadowfiend)
@@ -55,6 +55,194 @@ AddIcon help=cd specialization=discipline
 
 	]]
     OvaleScripts:RegisterScript("PRIEST", "discipline", name, desc, code, "script")
+end
+do
+    local name = "sc_pr_priest_holy"
+    local desc = "[8.0] Simulationcraft: PR_Priest_Holy"
+    local code = [[
+# Based on SimulationCraft profile "PR_Priest_Holy".
+#	class=priest
+#	spec=holy
+#	talents=1300021
+
+Include(ovale_common)
+Include(ovale_trinkets_mop)
+Include(ovale_trinkets_wod)
+Include(ovale_priest_spells)
+
+AddCheckBox(opt_use_consumables L(opt_use_consumables) default specialization=holy)
+
+AddFunction HolyUseItemActions
+{
+ Item(Trinket0Slot text=13 usable=1)
+ Item(Trinket1Slot text=14 usable=1)
+}
+
+### actions.precombat
+
+AddFunction HolyPrecombatMainActions
+{
+ #smite
+ Spell(smite)
+}
+
+AddFunction HolyPrecombatMainPostConditions
+{
+}
+
+AddFunction HolyPrecombatShortCdActions
+{
+}
+
+AddFunction HolyPrecombatShortCdPostConditions
+{
+ Spell(smite)
+}
+
+AddFunction HolyPrecombatCdActions
+{
+ #flask
+ #food
+ #augmentation
+ #snapshot_stats
+ #potion
+ if CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(battle_potion_of_intellect usable=1)
+}
+
+AddFunction HolyPrecombatCdPostConditions
+{
+ Spell(smite)
+}
+
+### actions.default
+
+AddFunction HolyDefaultMainActions
+{
+ #holy_fire,if=refreshable&dot.holy_fire.ticking&dot.holy_fire.stack>1|dot.holy_fire.stack<2
+ if target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 Spell(holy_fire)
+ #divine_star
+ Spell(divine_star)
+ #holy_nova,if=active_enemies>2
+ if Enemies() > 2 Spell(holy_nova)
+ #smite
+ Spell(smite)
+}
+
+AddFunction HolyDefaultMainPostConditions
+{
+}
+
+AddFunction HolyDefaultShortCdActions
+{
+ unless { target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 } and Spell(holy_fire)
+ {
+  #holy_word_chastise
+  Spell(holy_word_chastise)
+
+  unless Spell(divine_star)
+  {
+   #halo
+   Spell(halo)
+  }
+ }
+}
+
+AddFunction HolyDefaultShortCdPostConditions
+{
+ { target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 } and Spell(holy_fire) or Spell(divine_star) or Enemies() > 2 and Spell(holy_nova) or Spell(smite)
+}
+
+AddFunction HolyDefaultCdActions
+{
+ #use_item,slot=trinket2
+ HolyUseItemActions()
+ #potion,if=buff.bloodlust.react|target.time_to_die<=80
+ if { BuffPresent(burst_haste_buff any=1) or target.TimeToDie() <= 80 } and CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(battle_potion_of_intellect usable=1)
+ #berserking
+ Spell(berserking)
+
+ unless { target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 } and Spell(holy_fire) or Spell(holy_word_chastise)
+ {
+  #apotheosis
+  Spell(apotheosis)
+ }
+}
+
+AddFunction HolyDefaultCdPostConditions
+{
+ { target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 } and Spell(holy_fire) or Spell(holy_word_chastise) or Spell(divine_star) or Spell(halo) or Enemies() > 2 and Spell(holy_nova) or Spell(smite)
+}
+
+### Holy icons.
+
+AddCheckBox(opt_priest_holy_aoe L(AOE) default specialization=holy)
+
+AddIcon checkbox=!opt_priest_holy_aoe enemies=1 help=shortcd specialization=holy
+{
+ if not InCombat() HolyPrecombatShortCdActions()
+ unless not InCombat() and HolyPrecombatShortCdPostConditions()
+ {
+  HolyDefaultShortCdActions()
+ }
+}
+
+AddIcon checkbox=opt_priest_holy_aoe help=shortcd specialization=holy
+{
+ if not InCombat() HolyPrecombatShortCdActions()
+ unless not InCombat() and HolyPrecombatShortCdPostConditions()
+ {
+  HolyDefaultShortCdActions()
+ }
+}
+
+AddIcon enemies=1 help=main specialization=holy
+{
+ if not InCombat() HolyPrecombatMainActions()
+ unless not InCombat() and HolyPrecombatMainPostConditions()
+ {
+  HolyDefaultMainActions()
+ }
+}
+
+AddIcon checkbox=opt_priest_holy_aoe help=aoe specialization=holy
+{
+ if not InCombat() HolyPrecombatMainActions()
+ unless not InCombat() and HolyPrecombatMainPostConditions()
+ {
+  HolyDefaultMainActions()
+ }
+}
+
+AddIcon checkbox=!opt_priest_holy_aoe enemies=1 help=cd specialization=holy
+{
+ if not InCombat() HolyPrecombatCdActions()
+ unless not InCombat() and HolyPrecombatCdPostConditions()
+ {
+  HolyDefaultCdActions()
+ }
+}
+
+AddIcon checkbox=opt_priest_holy_aoe help=cd specialization=holy
+{
+ if not InCombat() HolyPrecombatCdActions()
+ unless not InCombat() and HolyPrecombatCdPostConditions()
+ {
+  HolyDefaultCdActions()
+ }
+}
+
+### Required symbols
+# apotheosis
+# battle_potion_of_intellect
+# berserking
+# divine_star
+# halo
+# holy_fire
+# holy_nova
+# holy_word_chastise
+# smite
+]]
+    OvaleScripts:RegisterScript("PRIEST", "holy", name, desc, code, "script")
 end
 do
     local name = "sc_pr_priest_shadow"
@@ -97,7 +285,7 @@ AddFunction ShadowSingleMainActions
  #mindbender
  Spell(mindbender)
  #shadow_word_death,if=!buff.voidform.up|(cooldown.shadow_word_death.charges=2&buff.voidform.stack<15)
- if not BuffPresent(voidform_buff) or SpellCharges(shadow_word_death) == 2 and BuffStacks(voidform_buff) < 15 Spell(shadow_word_death)
+ if not DebuffPresent(voidform_shadow) or SpellCharges(shadow_word_death) == 2 and DebuffStacks(voidform_shadow) < 15 Spell(shadow_word_death)
  #mind_blast,if=variable.dots_up
  if dots_up() Spell(mind_blast)
  #void_torrent,if=dot.shadow_word_pain.remains>4&dot.vampiric_touch.remains>4
@@ -121,14 +309,14 @@ AddFunction ShadowSingleShortCdActions
  unless Spell(void_eruption)
  {
   #dark_ascension,if=buff.voidform.down
-  if BuffExpires(voidform_buff) Spell(dark_ascension)
+  if DebuffExpires(voidform_shadow) Spell(dark_ascension)
 
   unless Spell(void_bolt) or { target.TimeToDie() < 3 or SpellCharges(shadow_word_death) == 2 or SpellCharges(shadow_word_death) == 1 and SpellCooldown(shadow_word_death) < GCD() } and Spell(shadow_word_death)
   {
    #dark_void,if=raid_event.adds.in>10
    if 600 > 10 Spell(dark_void)
 
-   unless Spell(mindbender) or { not BuffPresent(voidform_buff) or SpellCharges(shadow_word_death) == 2 and BuffStacks(voidform_buff) < 15 } and Spell(shadow_word_death)
+   unless Spell(mindbender) or { not DebuffPresent(voidform_shadow) or SpellCharges(shadow_word_death) == 2 and DebuffStacks(voidform_shadow) < 15 } and Spell(shadow_word_death)
    {
     #shadow_crash,if=raid_event.adds.in>5&raid_event.adds.duration<20
     if 600 > 5 and 10 < 20 Spell(shadow_crash)
@@ -139,21 +327,21 @@ AddFunction ShadowSingleShortCdActions
 
 AddFunction ShadowSingleShortCdPostConditions
 {
- Spell(void_eruption) or Spell(void_bolt) or { target.TimeToDie() < 3 or SpellCharges(shadow_word_death) == 2 or SpellCharges(shadow_word_death) == 1 and SpellCooldown(shadow_word_death) < GCD() } and Spell(shadow_word_death) or Spell(mindbender) or { not BuffPresent(voidform_buff) or SpellCharges(shadow_word_death) == 2 and BuffStacks(voidform_buff) < 15 } and Spell(shadow_word_death) or dots_up() and Spell(mind_blast) or target.DebuffRemaining(shadow_word_pain_debuff) > 4 and target.DebuffRemaining(vampiric_touch_debuff) > 4 and Spell(void_torrent) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or { target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 or Talent(misery_talent) and target.DebuffRefreshable(shadow_word_pain_debuff) } and Spell(vampiric_touch) or Spell(mind_flay) or Spell(shadow_word_pain)
+ Spell(void_eruption) or Spell(void_bolt) or { target.TimeToDie() < 3 or SpellCharges(shadow_word_death) == 2 or SpellCharges(shadow_word_death) == 1 and SpellCooldown(shadow_word_death) < GCD() } and Spell(shadow_word_death) or Spell(mindbender) or { not DebuffPresent(voidform_shadow) or SpellCharges(shadow_word_death) == 2 and DebuffStacks(voidform_shadow) < 15 } and Spell(shadow_word_death) or dots_up() and Spell(mind_blast) or target.DebuffRemaining(shadow_word_pain_debuff) > 4 and target.DebuffRemaining(vampiric_touch_debuff) > 4 and Spell(void_torrent) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or { target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 or Talent(misery_talent) and target.DebuffRefreshable(shadow_word_pain_debuff) } and Spell(vampiric_touch) or Spell(mind_flay) or Spell(shadow_word_pain)
 }
 
 AddFunction ShadowSingleCdActions
 {
- unless Spell(void_eruption) or BuffExpires(voidform_buff) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or SpellCharges(shadow_word_death) == 2 or SpellCharges(shadow_word_death) == 1 and SpellCooldown(shadow_word_death) < GCD() } and Spell(shadow_word_death)
+ unless Spell(void_eruption) or DebuffExpires(voidform_shadow) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or SpellCharges(shadow_word_death) == 2 or SpellCharges(shadow_word_death) == 1 and SpellCooldown(shadow_word_death) < GCD() } and Spell(shadow_word_death)
  {
   #surrender_to_madness,if=buff.voidform.stack>=(15+buff.bloodlust.up)&target.time_to_die>200|target.time_to_die<75
-  if BuffStacks(voidform_buff) >= 15 + BuffPresent(burst_haste_buff any=1) and target.TimeToDie() > 200 or target.TimeToDie() < 75 Spell(surrender_to_madness)
+  if DebuffStacks(voidform_shadow) >= 15 + BuffPresent(burst_haste_buff any=1) and target.TimeToDie() > 200 or target.TimeToDie() < 75 Spell(surrender_to_madness)
  }
 }
 
 AddFunction ShadowSingleCdPostConditions
 {
- Spell(void_eruption) or BuffExpires(voidform_buff) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or SpellCharges(shadow_word_death) == 2 or SpellCharges(shadow_word_death) == 1 and SpellCooldown(shadow_word_death) < GCD() } and Spell(shadow_word_death) or 600 > 10 and Spell(dark_void) or Spell(mindbender) or { not BuffPresent(voidform_buff) or SpellCharges(shadow_word_death) == 2 and BuffStacks(voidform_buff) < 15 } and Spell(shadow_word_death) or 600 > 5 and 10 < 20 and Spell(shadow_crash) or dots_up() and Spell(mind_blast) or target.DebuffRemaining(shadow_word_pain_debuff) > 4 and target.DebuffRemaining(vampiric_touch_debuff) > 4 and Spell(void_torrent) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or { target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 or Talent(misery_talent) and target.DebuffRefreshable(shadow_word_pain_debuff) } and Spell(vampiric_touch) or Spell(mind_flay) or Spell(shadow_word_pain)
+ Spell(void_eruption) or DebuffExpires(voidform_shadow) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or SpellCharges(shadow_word_death) == 2 or SpellCharges(shadow_word_death) == 1 and SpellCooldown(shadow_word_death) < GCD() } and Spell(shadow_word_death) or 600 > 10 and Spell(dark_void) or Spell(mindbender) or { not DebuffPresent(voidform_shadow) or SpellCharges(shadow_word_death) == 2 and DebuffStacks(voidform_shadow) < 15 } and Spell(shadow_word_death) or 600 > 5 and 10 < 20 and Spell(shadow_crash) or dots_up() and Spell(mind_blast) or target.DebuffRemaining(shadow_word_pain_debuff) > 4 and target.DebuffRemaining(vampiric_touch_debuff) > 4 and Spell(void_torrent) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or { target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 or Talent(misery_talent) and target.DebuffRefreshable(shadow_word_pain_debuff) } and Spell(vampiric_touch) or Spell(mind_flay) or Spell(shadow_word_pain)
 }
 
 ### actions.precombat
@@ -205,7 +393,7 @@ AddFunction ShadowCleaveMainActions
  #void_bolt
  Spell(void_bolt)
  #shadow_word_death,target_if=target.time_to_die<3|buff.voidform.down
- if target.TimeToDie() < 3 or BuffExpires(voidform_buff) Spell(shadow_word_death)
+ if target.TimeToDie() < 3 or DebuffExpires(voidform_shadow) Spell(shadow_word_death)
  #mindbender
  Spell(mindbender)
  #mind_blast
@@ -235,9 +423,9 @@ AddFunction ShadowCleaveShortCdActions
  unless Spell(void_eruption)
  {
   #dark_ascension,if=buff.voidform.down
-  if BuffExpires(voidform_buff) Spell(dark_ascension)
+  if DebuffExpires(voidform_shadow) Spell(dark_ascension)
 
-  unless Spell(void_bolt) or { target.TimeToDie() < 3 or BuffExpires(voidform_buff) } and Spell(shadow_word_death)
+  unless Spell(void_bolt) or { target.TimeToDie() < 3 or DebuffExpires(voidform_shadow) } and Spell(shadow_word_death)
   {
    #dark_void,if=raid_event.adds.in>10
    if 600 > 10 Spell(dark_void)
@@ -253,21 +441,21 @@ AddFunction ShadowCleaveShortCdActions
 
 AddFunction ShadowCleaveShortCdPostConditions
 {
- Spell(void_eruption) or Spell(void_bolt) or { target.TimeToDie() < 3 or BuffExpires(voidform_buff) } and Spell(shadow_word_death) or Spell(mindbender) or Spell(mind_blast) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 and Spell(vampiric_touch) or target.DebuffRefreshable(shadow_word_pain_debuff) and Talent(misery_talent) and target.TimeToDie() > 4 and Spell(vampiric_touch) or Spell(void_torrent) or Enemies() > 2 and Spell(mind_sear) or Spell(mind_flay) or Spell(shadow_word_pain)
+ Spell(void_eruption) or Spell(void_bolt) or { target.TimeToDie() < 3 or DebuffExpires(voidform_shadow) } and Spell(shadow_word_death) or Spell(mindbender) or Spell(mind_blast) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 and Spell(vampiric_touch) or target.DebuffRefreshable(shadow_word_pain_debuff) and Talent(misery_talent) and target.TimeToDie() > 4 and Spell(vampiric_touch) or Spell(void_torrent) or Enemies() > 2 and Spell(mind_sear) or Spell(mind_flay) or Spell(shadow_word_pain)
 }
 
 AddFunction ShadowCleaveCdActions
 {
- unless Spell(void_eruption) or BuffExpires(voidform_buff) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or BuffExpires(voidform_buff) } and Spell(shadow_word_death)
+ unless Spell(void_eruption) or DebuffExpires(voidform_shadow) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or DebuffExpires(voidform_shadow) } and Spell(shadow_word_death)
  {
   #surrender_to_madness,if=buff.voidform.stack>=(15+buff.bloodlust.up)
-  if BuffStacks(voidform_buff) >= 15 + BuffPresent(burst_haste_buff any=1) Spell(surrender_to_madness)
+  if DebuffStacks(voidform_shadow) >= 15 + BuffPresent(burst_haste_buff any=1) Spell(surrender_to_madness)
  }
 }
 
 AddFunction ShadowCleaveCdPostConditions
 {
- Spell(void_eruption) or BuffExpires(voidform_buff) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or BuffExpires(voidform_buff) } and Spell(shadow_word_death) or 600 > 10 and Spell(dark_void) or Spell(mindbender) or Spell(mind_blast) or { 600 > 5 and 10 < 2 or 10 > 2 } and Spell(shadow_crash) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 and Spell(vampiric_touch) or target.DebuffRefreshable(shadow_word_pain_debuff) and Talent(misery_talent) and target.TimeToDie() > 4 and Spell(vampiric_touch) or Spell(void_torrent) or Enemies() > 2 and Spell(mind_sear) or Spell(mind_flay) or Spell(shadow_word_pain)
+ Spell(void_eruption) or DebuffExpires(voidform_shadow) and Spell(dark_ascension) or Spell(void_bolt) or { target.TimeToDie() < 3 or DebuffExpires(voidform_shadow) } and Spell(shadow_word_death) or 600 > 10 and Spell(dark_void) or Spell(mindbender) or Spell(mind_blast) or { 600 > 5 and 10 < 2 or 10 > 2 } and Spell(shadow_crash) or target.Refreshable(shadow_word_pain_debuff) and target.TimeToDie() > 4 and not Talent(misery_talent) and not Talent(dark_void_talent) and Spell(shadow_word_pain) or target.Refreshable(vampiric_touch_debuff) and target.TimeToDie() > 6 and Spell(vampiric_touch) or target.DebuffRefreshable(shadow_word_pain_debuff) and Talent(misery_talent) and target.TimeToDie() > 4 and Spell(vampiric_touch) or Spell(void_torrent) or Enemies() > 2 and Spell(mind_sear) or Spell(mind_flay) or Spell(shadow_word_pain)
 }
 
 ### actions.aoe
@@ -295,7 +483,7 @@ AddFunction ShadowAoeShortCdActions
  unless Spell(void_eruption)
  {
   #dark_ascension,if=buff.voidform.down
-  if BuffExpires(voidform_buff) Spell(dark_ascension)
+  if DebuffExpires(voidform_shadow) Spell(dark_ascension)
 
   unless Talent(dark_void_talent) and target.DebuffRemaining(shadow_word_pain_debuff) > TravelTime(void_bolt) and Spell(void_bolt)
   {
@@ -318,16 +506,16 @@ AddFunction ShadowAoeShortCdPostConditions
 
 AddFunction ShadowAoeCdActions
 {
- unless Spell(void_eruption) or BuffExpires(voidform_buff) and Spell(dark_ascension) or Talent(dark_void_talent) and target.DebuffRemaining(shadow_word_pain_debuff) > TravelTime(void_bolt) and Spell(void_bolt)
+ unless Spell(void_eruption) or DebuffExpires(voidform_shadow) and Spell(dark_ascension) or Talent(dark_void_talent) and target.DebuffRemaining(shadow_word_pain_debuff) > TravelTime(void_bolt) and Spell(void_bolt)
  {
   #surrender_to_madness,if=buff.voidform.stack>=(15+buff.bloodlust.up)
-  if BuffStacks(voidform_buff) >= 15 + BuffPresent(burst_haste_buff any=1) Spell(surrender_to_madness)
+  if DebuffStacks(voidform_shadow) >= 15 + BuffPresent(burst_haste_buff any=1) Spell(surrender_to_madness)
  }
 }
 
 AddFunction ShadowAoeCdPostConditions
 {
- Spell(void_eruption) or BuffExpires(voidform_buff) and Spell(dark_ascension) or Talent(dark_void_talent) and target.DebuffRemaining(shadow_word_pain_debuff) > TravelTime(void_bolt) and Spell(void_bolt) or 600 > 10 and Spell(dark_void) or Spell(mindbender) or 600 > 5 and 10 < 20 and Spell(shadow_crash) or Spell(mind_sear) or Spell(shadow_word_pain)
+ Spell(void_eruption) or DebuffExpires(voidform_shadow) and Spell(dark_ascension) or Talent(dark_void_talent) and target.DebuffRemaining(shadow_word_pain_debuff) > TravelTime(void_bolt) and Spell(void_bolt) or 600 > 10 and Spell(dark_void) or Spell(mindbender) or 600 > 5 and 10 < 20 and Spell(shadow_crash) or Spell(mind_sear) or Spell(shadow_word_pain)
 }
 
 ### actions.default
@@ -490,7 +678,7 @@ AddIcon checkbox=opt_priest_shadow_aoe help=cd specialization=shadow
 # void_bolt
 # void_eruption
 # void_torrent
-# voidform_buff
+# voidform_shadow
 ]]
     OvaleScripts:RegisterScript("PRIEST", "shadow", name, desc, code, "script")
 end

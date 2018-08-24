@@ -588,7 +588,7 @@ do
     }
 end
 local SyntaxError = function(tokenStream, ...)
-    __exports.OvaleSimulationCraft:Print(...)
+    __exports.OvaleSimulationCraft:Warning(...)
     local context = {
         [1] = "Next tokens:"
     }
@@ -601,7 +601,7 @@ local SyntaxError = function(tokenStream, ...)
             break
         end
     end
-    __exports.OvaleSimulationCraft:Print(concat(context, " "))
+    __exports.OvaleSimulationCraft:Warning(concat(context, " "))
 end
 
 local ParseFunction = nil
@@ -1100,6 +1100,12 @@ local AddDisambiguation = function(name, info, className, specialization, _type)
 end
 
 local function Disambiguate(annotation, name, className, specialization, _type)
+    if className and annotation.dictionary[name .. "_" .. className] then
+        return name .. "_" .. className, _type
+    end
+    if specialization and annotation.dictionary[name .. "_" .. specialization] then
+        return name .. "_" .. specialization, _type
+    end
     local disname, distype = GetPerClassSpecialization(EMIT_DISAMBIGUATION, name, className, specialization)
     if  not disname then
         if  not annotation.dictionary[name] then
@@ -3037,6 +3043,9 @@ do
         ["soul_shard"] = "SoulShards()",
         ["soul_fragments"] = "SoulFragments()",
         ["ssw_refund_offset"] = "target.Distance() % 3 - 1",
+        ["stagger.last_tick_damage_1"] = "0",
+        ["stagger.last_tick_damage_4"] = "0",
+        ["stagger.last_tick_damage_30"] = "0",
         ["stat.mastery_rating"] = "MasteryRating()",
         ["stealthed"] = "Stealthed()",
         ["stealthed.all"] = "Stealthed()",
@@ -3714,6 +3723,9 @@ EmitOperandSpecial = function(operand, parseNode, nodeList, annotation, action, 
             AddSymbol(annotation, buffName)
         elseif property == "pct" then
             code = format("%sStaggerRemaining() / %sMaxHealth() * 100", target, target)
+        elseif match(property, "last_tick_damage_(%d+)") then
+            local ticks = match(property, "last_tick_damage_(%d+)")
+            code = format("StaggerTick(%d)", ticks)
         else
             ok = false
         end
