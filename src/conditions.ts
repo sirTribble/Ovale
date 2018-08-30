@@ -24,7 +24,7 @@ import { OvaleDemonHunterSoulFragments } from "./DemonHunterSoulFragments";
 import { OvaleFrameModule } from "./Frame";
 import { lastSpell } from "./LastSpell";
 import { ipairs, pairs, type, LuaArray, LuaObj, lualength } from "@wowts/lua";
-import { GetBuildInfo, GetItemCooldown, GetItemCount, GetNumTrackingTypes, GetTime, GetTrackingInfo, GetUnitSpeed, GetWeaponEnchantInfo, HasFullControl, IsStealthed, UnitCastingInfo, UnitChannelInfo, UnitClass, UnitClassification, UnitCreatureFamily, UnitCreatureType, UnitDetailedThreatSituation, UnitExists, UnitInRaid, UnitIsDead, UnitIsFriend, UnitIsPVP, UnitIsUnit, UnitLevel, UnitName, UnitPower, UnitPowerMax, UnitRace, UnitStagger } from "@wowts/wow-mock";
+import { GetBuildInfo, GetItemCooldown, GetItemCount, GetNumTrackingTypes, GetTime, GetTrackingInfo, GetUnitSpeed, GetWeaponEnchantInfo, HasFullControl, IsStealthed, UnitCastingInfo, UnitChannelInfo, UnitClass, UnitClassification, UnitCreatureFamily, UnitCreatureType, UnitDetailedThreatSituation, UnitExists, UnitInParty, UnitInRaid, UnitIsDead, UnitIsFriend, UnitIsPVP, UnitIsUnit, UnitLevel, UnitName, UnitPower, UnitPowerMax, UnitRace, UnitStagger } from "@wowts/wow-mock";
 import { huge } from "@wowts/math";
 import { isValueNode, PositionalParameters, NamedParameters } from "./AST";
 import { OvaleCooldown } from "./Cooldown";
@@ -4670,7 +4670,7 @@ l    */
         let [id, seconds] = [positionalParams[1], positionalParams[2]];
         seconds = seconds || 0;
         if (type(id) == "string") {
-            let [, , startTime, duration] = OvaleTotem.GetTotemInfo(id);
+            let [, , startTime, duration] = OvaleTotem.GetTotemInfo(id, atTime);
             if (startTime) {
                 return [startTime + duration - seconds, INFINITY];
             }
@@ -4696,7 +4696,7 @@ l    */
     function TotemPresent(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
         let id = positionalParams[1];
         if (type(id) == "string") {
-            let [, , startTime, duration] = OvaleTotem.GetTotemInfo(id);
+            let [, , startTime, duration] = OvaleTotem.GetTotemInfo(id, atTime);
             if (startTime && duration > 0) {
                 return [startTime, startTime + duration];
             }
@@ -4726,7 +4726,7 @@ l    */
     function TotemRemaining(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
         let [id, comparator, limit] = [positionalParams[1], positionalParams[2], <number>positionalParams[3]];
         if (type(id) == "string") {
-            let [, , startTime, duration] = OvaleTotem.GetTotemInfo(id);
+            let [, , startTime, duration] = OvaleTotem.GetTotemInfo(id, atTime);
             if (startTime && duration > 0) {
                 let [start, ending] = [startTime, startTime + duration];
                 return TestValue(start, ending, 0, ending, -1, comparator, limit);
@@ -4929,13 +4929,29 @@ l    */
     OvaleCondition.RegisterCondition("race", false, Race);
 }
 {
+    /**  Check if the unit is in a party
+     @name UnitInParty
+	 @param target Optional. Sets the target to check. The target may also be given as a prefix to the condition.
+	     Defaults to target=player.
+	     Valid values: player, target, focus, pet.
+	 @usage
+	 if not UnitInParty() Spell(maul)
+     */
+    function UnitInPartyCond(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
+        let target = namedParams.target || "player";
+        let isTrue = UnitInParty(target);
+        return TestBoolean(isTrue, "yes");
+    }
+    OvaleCondition.RegisterCondition("unitinparty", false, UnitInPartyCond);
+}
+{
     /**  Check if the unit is in raid
      @name UnitInRaid
 	 @param target Optional. Sets the target to check. The target may also be given as a prefix to the condition.
 	     Defaults to target=player.
 	     Valid values: player, target, focus, pet.
 	 @usage
-	 if UnitInRaid(player) Spell(bloodlust)
+	 if UnitInRaid() Spell(bloodlust)
      */
     function UnitInRaidCond(positionalParams: LuaArray<any>, namedParams: LuaObj<any>, state: BaseState, atTime: number) {
         let target = namedParams.target || "player";

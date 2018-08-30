@@ -26,16 +26,16 @@ Define(blackout_combo_buff 228563)
   SpellInfo(blackout_combo_buff duration=15 gcd=0 offgcd=1)
   # Your next ability is empowered.
   SpellAddBuff(blackout_combo_buff blackout_combo_buff=1)
-Define(blackout_kick_windwalker 261917)
-# Blackout Kick costs s1 fewer Chi.
-  SpellInfo(blackout_kick_windwalker channel=0 gcd=0 offgcd=1)
-  SpellAddBuff(blackout_kick_windwalker blackout_kick_windwalker=1)
 Define(blackout_strike 205523)
 # Strike with a blast of Chi energy, dealing s1 Physical damage?s117906[ and generating a stack of Elusive Brawler][].
-  SpellInfo(blackout_strike cd=3 replace=blackout_kick)
+  SpellInfo(blackout_strike cd=3)
 Define(breath_of_fire 115181)
 # Breathe fire on targets in front of you, causing s1 Fire damage.rnrnTargets affected by Keg Smash will also burn, taking 123725o1 Fire damage and dealing 123725s2 reduced damage to you for 12 seconds.
   SpellInfo(breath_of_fire cd=15 gcd=1)
+Define(bursting_blood 251316)
+# Imbues your blood with heat for 25 seconds, giving your melee attacks a chance to create a burst of blood, dealing 265514s1 Physical damage split evenly amongst all nearby enemies.
+  SpellInfo(bursting_blood duration=25 channel=25 gcd=0 offgcd=1)
+
 Define(chi_burst 123986)
 # Hurls a torrent of Chi energy up to 40 yds forward, dealing 148135s1 Nature damage to all enemies, and 130654s1 healing to the Monk and all allies in its path.?c1[rnrnCasting Chi Burst does not prevent avoiding attacks.][]?c3[rnrnChi Burst generates 1 Chi per enemy target damaged, up to a maximum of s3.][]
   SpellInfo(chi_burst cd=30 duration=1 talent=chi_burst_talent)
@@ -92,10 +92,10 @@ Define(invoke_xuen_the_white_tiger 123904)
   SpellInfo(invoke_xuen_the_white_tiger cd=120 duration=20 gcd=1 talent=invoke_xuen_the_white_tiger_talent)
 Define(ironskin_brew 115308)
 # A swig of strong brew allows you to Stagger substantially more damage for 7 seconds. rnrnShares charges with Purifying Brew.
-  SpellInfo(ironskin_brew cd=1 gcd=0 offgcd=1)
+  SpellInfo(ironskin_brew cd=1 charge_cd=15 gcd=0 offgcd=1)
 Define(keg_smash 121253)
 # Smash a keg of brew on the target, dealing s2 damage to all enemies within A2 yds and reducing their movement speed by m3 for 15 seconds.rnrnReduces the remaining cooldown on your Brews by s4 sec.
-  SpellInfo(keg_smash energy=40 cd=1 duration=15 gcd=1)
+  SpellInfo(keg_smash energy=40 cd=1 charge_cd=8 duration=15 gcd=1)
   # ?w3!=0[Movement speed reduced by w3.rn][]Drenched in brew, vulnerable to Breath of Fire.
   SpellAddTargetDebuff(keg_smash keg_smash=1)
 Define(leg_sweep 119381)
@@ -114,7 +114,7 @@ Define(paralysis 115078)
   SpellAddTargetDebuff(paralysis paralysis=1)
 Define(purifying_brew 119582)
 # Clears s1 of your damage delayed with Stagger.rnrnShares charges with Ironskin Brew.
-  SpellInfo(purifying_brew cd=1 gcd=0 offgcd=1)
+  SpellInfo(purifying_brew cd=1 charge_cd=15 gcd=0 offgcd=1)
 Define(quaking_palm 107079)
 # Strikes the target with lightning speed, incapacitating them for 4 seconds, and turns off your attack.
   SpellInfo(quaking_palm cd=120 duration=4 gcd=1)
@@ -145,7 +145,7 @@ Define(spinning_crane_kick 101546)
 Define(storm_earth_and_fire 137639)
 # Split into 3 elemental spirits for 15 seconds, each spirit dealing 100+m1 of normal damage and healing.rnrnYou directly control the Storm spirit, while Earth and Fire spirits mimic your attacks on nearby enemies.rnrnWhile active, casting Storm, Earth, and Fire again will cause the spirits to fixate on your target.
 # Rank 2: Storm, Earth, and Fire has s1+1 charges.
-  SpellInfo(storm_earth_and_fire cd=16 duration=15 max_stacks=2 gcd=1)
+  SpellInfo(storm_earth_and_fire cd=16 charge_cd=90 duration=15 max_stacks=2 gcd=1)
   # Elemental spirits summoned, mirroring all of the Monk's attacks.rnThe Monk and spirits each do 100+m1 of normal damage and healing.
   SpellAddBuff(storm_earth_and_fire storm_earth_and_fire=1)
 Define(swift_roundhouse_buff 278707)
@@ -203,10 +203,10 @@ Define(invoke_niuzao_the_black_ox_talent 18) #22103
 # Summons an effigy of Niuzao, the Black Ox for 45 seconds. Niuzao attacks your primary target and taunts it. He also frequently Stomps, damaging all nearby enemies.
 Define(invoke_xuen_the_white_tiger_talent 18) #22102
 # Summons an effigy of Xuen, the White Tiger for 20 seconds. Xuen attacks your primary target, and strikes 3 enemies within 123996A1 yards every 123999t1 sec with Tiger Lightning for 123996s1 Nature damage.
-Define(rushing_jade_wind_talent 17) #20184
-# Summons a whirling tornado around you, causing (1+6 seconds/t1)*148187s1 damage over 6 seconds to enemies within 107270A1 yards.?s220357[ Applies Mark of the Crane to up to s2 nearby targets.][]
 Define(rushing_jade_wind_talent_windwalker 17) #23122
 # Summons a whirling tornado around you, causing (1+60 seconds/t1)*148187s1 damage every t1 sec to all enemies within 107270A1 yards.
+Define(rushing_jade_wind_talent 17) #20184
+# Summons a whirling tornado around you, causing (1+6 seconds/t1)*148187s1 damage over 6 seconds to enemies within 107270A1 yards.?s220357[ Applies Mark of the Crane to up to s2 nearby targets.][]
 Define(serenity_talent 21) #21191
 # Enter an elevated state of mental and physical serenity for ?s115069[s1 sec][12 seconds]. While in this state, you deal s2 increased damage and healing, and all Chi consumers are free and cool down s4 more quickly.
 Define(special_delivery_talent 16) #19819
@@ -404,7 +404,7 @@ SpellAddBuff(rising_sun_kick swift_roundhouse_buff=0)
 Define(roll 109132)
 	SpellInfo(roll cd=20 charges=2)
 	SpellInfo(roll charges=3 talent=celerity_talent)
-	SpellInfo(roll replace=chi_torpedo talent=chi_torpedo_talent)
+	SpellInfo(roll replaced_by=chi_torpedo talent=chi_torpedo_talent)
 
 SpellInfo(rushing_jade_wind chi=0 duration=9 cd_haste=melee haste=melee talent=rushing_jade_wind_talent)
 SpellAddBuff(rushing_jade_wind rushing_jade_wind=1)
@@ -430,7 +430,7 @@ SpellRequire(spinning_crane_kick chi_percent 0=buff,serenity)
 
 
 	SpellInfo(storm_earth_and_fire gcd=0 offgcd=1 charges=2 duration=15)
-	SpellInfo(storm_earth_and_fire replace=serenity talent=serenity_talent)
+	SpellInfo(storm_earth_and_fire replaced_by=serenity talent=serenity_talent)
 	
 
 	Define(summon_black_ox_statue 115315)

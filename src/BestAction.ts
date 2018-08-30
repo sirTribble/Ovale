@@ -161,8 +161,8 @@ function GetActionSpellInfo(element: Element, state: BaseState, atTime: number, 
     let spellId = <number>element.positionalParams[1];
     let si = OvaleData.spellInfo[spellId];
     let replacedSpellId = undefined;
-    if (si && si.replace) {
-        let replacement = OvaleData.GetSpellInfoProperty(spellId, atTime, "replace", targetGUID);
+    if (si && si.replaced_by) {
+        let replacement = OvaleData.GetSpellInfoProperty(spellId, atTime, "replaced_by", targetGUID);
         if (replacement) {
             replacedSpellId = spellId;
             spellId = replacement;
@@ -174,11 +174,13 @@ function GetActionSpellInfo(element: Element, state: BaseState, atTime: number, 
     if (!action && replacedSpellId) {
         OvaleBestAction.Log("Action not found for spell ID '%s'; checking for replaced spell ID '%s'.", spellId, replacedSpellId);
         action = OvaleActionBar.GetForSpell(replacedSpellId);
+        if (action) spellId = replacedSpellId;
     }
     let isKnownSpell = OvaleSpellBook.IsKnownSpell(spellId);
     if (!isKnownSpell && replacedSpellId) {
         OvaleBestAction.Log("Spell ID '%s' is not known; checking for replaced spell ID '%s'.", spellId, replacedSpellId);
         isKnownSpell = OvaleSpellBook.IsKnownSpell(replacedSpellId);
+        if (isKnownSpell) spellId = replacedSpellId;
     }
     if (!isKnownSpell && !action) {
         OvaleBestAction.Log("Unknown spell ID '%s'.", spellId);

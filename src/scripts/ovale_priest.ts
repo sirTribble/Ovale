@@ -88,8 +88,8 @@ AddFunction HolyDefaultShortCdActions
 
   unless Spell(divine_star)
   {
-   #halo
-   Spell(halo)
+   #halo,if=!dot.holy_fire.stack=2
+   if not target.DebuffStacks(holy_fire) == 2 Spell(halo)
   }
  }
 }
@@ -101,12 +101,22 @@ AddFunction HolyDefaultShortCdPostConditions
 
 AddFunction HolyDefaultCdActions
 {
- #use_item,slot=trinket2
+ #use_items
  HolyUseItemActions()
  #potion,if=buff.bloodlust.react|target.time_to_die<=80
  if { BuffPresent(burst_haste_buff any=1) or target.TimeToDie() <= 80 } and CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(battle_potion_of_intellect usable=1)
+ #blood_fury
+ Spell(blood_fury)
  #berserking
  Spell(berserking)
+ #arcane_torrent
+ Spell(arcane_torrent_holy)
+ #lights_judgment
+ Spell(lights_judgment)
+ #fireblood
+ Spell(fireblood)
+ #ancestral_call
+ Spell(ancestral_call)
 
  unless { target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 } and Spell(holy_fire) or Spell(holy_word_chastise)
  {
@@ -117,7 +127,7 @@ AddFunction HolyDefaultCdActions
 
 AddFunction HolyDefaultCdPostConditions
 {
- { target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 } and Spell(holy_fire) or Spell(holy_word_chastise) or Spell(divine_star) or Spell(halo) or Enemies() > 2 and Spell(holy_nova) or Spell(smite)
+ { target.Refreshable(holy_fire) and target.DebuffPresent(holy_fire) and target.DebuffStacks(holy_fire) > 1 or target.DebuffStacks(holy_fire) < 2 } and Spell(holy_fire) or Spell(holy_word_chastise) or Spell(divine_star) or not target.DebuffStacks(holy_fire) == 2 and Spell(halo) or Enemies() > 2 and Spell(holy_nova) or Spell(smite)
 }
 
 ### Holy icons.
@@ -179,14 +189,19 @@ AddIcon checkbox=opt_priest_holy_aoe help=cd specialization=holy
 }
 
 ### Required symbols
+# ancestral_call
 # apotheosis
+# arcane_torrent_holy
 # battle_potion_of_intellect
 # berserking
+# blood_fury
 # divine_star
+# fireblood
 # halo
 # holy_fire
 # holy_nova
 # holy_word_chastise
+# lights_judgment
 # smite
 `
 	OvaleScripts.RegisterScript("PRIEST", "holy", name, desc, code, "script")
@@ -212,7 +227,19 @@ AddFunction dots_up
  target.DebuffPresent(shadow_word_pain_debuff) and target.DebuffPresent(vampiric_touch_debuff)
 }
 
+AddCheckBox(opt_interrupt L(interrupt) default specialization=shadow)
 AddCheckBox(opt_use_consumables L(opt_use_consumables) default specialization=shadow)
+
+AddFunction ShadowInterruptActions
+{
+ if CheckBoxOn(opt_interrupt) and not target.IsFriend() and target.Casting()
+ {
+  if target.Distance(less 5) and not target.Classification(worldboss) Spell(war_stomp)
+  if target.InRange(quaking_palm) and not target.Classification(worldboss) Spell(quaking_palm)
+  if target.InRange(mind_bomb) and not target.Classification(worldboss) and target.RemainingCastTime() > 2 Spell(mind_bomb)
+  if target.InRange(silence) and target.IsInterruptible() Spell(silence)
+ }
+}
 
 AddFunction ShadowUseItemActions
 {
@@ -516,6 +543,7 @@ AddFunction ShadowDefaultShortCdPostConditions
 
 AddFunction ShadowDefaultCdActions
 {
+ ShadowInterruptActions()
  #use_item,slot=trinket2
  ShadowUseItemActions()
  #potion,if=buff.bloodlust.react|target.time_to_die<=80|target.health.pct<35
@@ -608,10 +636,12 @@ AddIcon checkbox=opt_priest_shadow_aoe help=cd specialization=shadow
 # dark_void
 # dark_void_talent
 # mind_blast
+# mind_bomb
 # mind_flay
 # mind_sear
 # mindbender
 # misery_talent
+# quaking_palm
 # rising_death
 # shadow_crash
 # shadow_word_death
@@ -620,6 +650,7 @@ AddIcon checkbox=opt_priest_shadow_aoe help=cd specialization=shadow
 # shadow_word_void
 # shadowform
 # shadowform_buff
+# silence
 # surrender_to_madness
 # vampiric_touch
 # vampiric_touch_debuff
@@ -627,6 +658,7 @@ AddIcon checkbox=opt_priest_shadow_aoe help=cd specialization=shadow
 # void_eruption
 # void_torrent
 # voidform_shadow
+# war_stomp
 `
 	OvaleScripts.RegisterScript("PRIEST", "shadow", name, desc, code, "script")
 }
