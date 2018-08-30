@@ -1,5 +1,10 @@
 import { test } from "ava";
+<<<<<<< HEAD:src/tests/utils/importspells.spec.ts
 import { parseDescription, SpellData, SpellEffectData, EffectSubtype, EffectType } from "../../utils/importspells";
+=======
+import { SpellData, SpellEffectData, EffectSubtype, EffectType } from "../../utils/importspells";
+import { parseDescription } from "../../utils/spellstringparser";
+>>>>>>> upstream/master:src/tests/utils/spellstringparser.spec.ts
 
 function createFakeSpell(options: {[k in keyof SpellData]?: SpellData[k]}): SpellData {
     return {
@@ -19,7 +24,11 @@ function createFakeSpell(options: {[k in keyof SpellData]?: SpellData[k]}): Spel
         class_flags_family: 0,
         class_mask: 0,
         cooldown: 0,
+<<<<<<< HEAD:src/tests/utils/importspells.spec.ts
         desc: "",
+=======
+        desc: options.desc || "",
+>>>>>>> upstream/master:src/tests/utils/spellstringparser.spec.ts
         desc_vars: "",
         duration: options.duration || 0,
         equipped_class: 0,
@@ -84,18 +93,50 @@ function createFakeSpellEffect(options: {[key in keyof SpellEffectData]?: SpellE
     }
 }
 
+<<<<<<< HEAD:src/tests/utils/importspells.spec.ts
 test.only("parseDescription with no placeholder", t => {
     t.is(parseDescription("Stunned.", createFakeSpell({}), new Map<number, SpellData>()), "Stunned.");
 });
 
 test.only("parseDescription with duration in same spell", t => {
+=======
+test("parseDescription with no placeholder", t => {
+    t.is(parseDescription("Stunned.", createFakeSpell({}), new Map<number, SpellData>()), "Stunned.");
+});
+
+test("parseDescription with duration in same spell", t => {
+>>>>>>> upstream/master:src/tests/utils/spellstringparser.spec.ts
     const spell = createFakeSpell({ duration: 18000 });
     t.is(parseDescription("Stuns target for $d.", spell, new Map<number, SpellData>()), "Stuns target for 18 seconds.");
 })
 
+<<<<<<< HEAD:src/tests/utils/importspells.spec.ts
 test.only("parseDescription with reference to a spell effect", t => {
     const spell = createFakeSpell({});
     spell.spellEffects = [createFakeSpellEffect({sp_coeff: 0.3})];
 
     t.is(parseDescription("Stuns target for $s1.", spell, new Map<number, SpellData>()), "Stuns target for 30%.");
+=======
+test("parseDescription with reference to a spell effect", t => {
+    const spell = createFakeSpell({});
+    spell.spellEffects = [createFakeSpellEffect({sp_coeff: 0.3})];
+
+    t.is(parseDescription("Stuns target for $s1.", spell, new Map<number, SpellData>()), "Stuns target for (30% of Spell Power).");
+})
+
+test("parseDescription with reference to another spell", t => {
+    const spell = createFakeSpell({ });
+    const otherSpell = createFakeSpell({ duration: 18000, id: 4998 });
+    const spells = new Map<number, SpellData>();
+    spells.set(otherSpell.id, otherSpell);
+    t.is(parseDescription("Stuns target for $4998d.", spell, spells), "Stuns target for 18 seconds.");
+})
+
+test("parseDescription where description is the description of another spell", t => {
+    const spell = createFakeSpell({ });
+    const otherSpell = createFakeSpell({ duration: 18000, id: 4998, desc: "Stuns target for $d." });
+    const spells = new Map<number, SpellData>();
+    spells.set(otherSpell.id, otherSpell);
+    t.is(parseDescription("$@spelldesc4998", spell, spells), "Stuns target for 18 seconds.");
+>>>>>>> upstream/master:src/tests/utils/spellstringparser.spec.ts
 })
