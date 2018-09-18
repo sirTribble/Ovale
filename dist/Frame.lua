@@ -426,8 +426,17 @@ local OvaleFrame = __class(AceGUI.WidgetContainerBase, {
                 if l > 1 then
                     scale = scale * profile.apparence.secondIconScale
                 end
+				local z = 0, CurHeight
+				local CurRes = ({GetScreenResolutions()})[GetCurrentResolution()]
+				for w in string.gmatch(CurRes, "%x+") do
+					z = z + 1
+					if z == 2 and not CurHeight then
+						CurHeight = w
+					end
+				end
+				local ScaleMrgin = (Ovale.db.profile.apparence.specialScale) and ((tonumber(CurHeight))/GetScreenHeight()) or 1
                 icon:SetPoint("TOPLEFT", self.frame, "TOPLEFT", (action.left + (l - 1) * action.dx) / scale, (action.top - (l - 1) * action.dy) / scale)
-                icon:SetScale(scale)
+                icon:SetScale(scale/ScaleMrgin)
                 icon:SetRemainsFont(profile.apparence.remainsFontColor)
                 icon:SetFontScale(profile.apparence.fontScale)
                 icon:SetParams(node.positionalParams, node.namedParams)

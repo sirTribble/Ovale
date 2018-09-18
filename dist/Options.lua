@@ -110,6 +110,7 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                     minFrameRefresh = 50,
                     maxFrameRefresh = 250,
                     fullAuraScan = false,
+					specialScale = false,
                     auraLag = 400,
                     moving = false,
                     spellFlash = {
@@ -337,30 +338,50 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                                     order = 50,
                                     type = "toggle",
                                     name = L["Raccourcis clavier"],
-                                    desc = L["Afficher les raccourcis clavier dans le coin inférieur gauche des icônes"]
+                                    desc = L["Afficher les raccourcis clavier dans le coin inférieur gauche des icônes"],
+									disabled = function()
+										Ovale.db.profile.apparence.raccourcis = false
+                                        return  Ovale.db.profile.apparence.specialScale
+                                    end
                                 },
                                 numeric = {
                                     order = 60,
                                     type = "toggle",
                                     name = L["Affichage numérique"],
-                                    desc = L["Affiche le temps de recharge sous forme numérique"]
+                                    desc = L["Affiche le temps de recharge sous forme numérique"],
+									disabled = function()
+										Ovale.db.profile.apparence.numeric = false
+                                        return  Ovale.db.profile.apparence.specialScale
+                                    end
                                 },
                                 highlightIcon = {
                                     order = 70,
                                     type = "toggle",
                                     name = L["Illuminer l'icône"],
-                                    desc = L["Illuminer l'icône quand la technique doit être spammée"]
+                                    desc = L["Illuminer l'icône quand la technique doit être spammée"],
+									disabled = function()
+										Ovale.db.profile.apparence.highlightIcon = false
+                                        return  Ovale.db.profile.apparence.specialScale
+                                    end
                                 },
                                 flashIcon = {
                                     order = 80,
                                     type = "toggle",
-                                    name = L["Illuminer l'icône quand le temps de recharge est écoulé"]
+                                    name = L["Illuminer l'icône quand le temps de recharge est écoulé"],
+									disabled = function()
+										Ovale.db.profile.apparence.flashIcon = false
+                                        return  Ovale.db.profile.apparence.specialScale
+                                    end
                                 },
                                 targetText = {
                                     order = 90,
                                     type = "input",
                                     name = L["Caractère de portée"],
-                                    desc = L["Ce caractère est affiché dans un coin de l'icône pour indiquer si la cible est à portée"]
+                                    desc = L["Ce caractère est affiché dans un coin de l'icône pour indiquer si la cible est à portée"],
+									disabled = function()
+										Ovale.db.profile.apparence.targetText = ""
+                                        return  Ovale.db.profile.apparence.specialScale
+                                    end
                                 }
                             }
                         },
@@ -462,6 +483,15 @@ local OvaleOptionsClass = __class(OvaleOptionsBase, {
                                     type = "toggle",
                                     name = L["Full buffs/debuffs scan"],
                                     desc = L["Scans also buffs/debuffs casted by other players\n\nWarning!: Very CPU intensive"]
+                                },
+								specialScale = {
+                                    order = 60,
+                                    width = "full",
+                                    type = "toggle",
+                                    name = L["AR Support"],
+                                    desc = L["Enable for AR support"],
+
+
                                 }
                             }
                         }
