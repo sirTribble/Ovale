@@ -27,10 +27,6 @@ Define(chaos_strike 162794)
 # Slice your target for 222031s1+199547s1 Chaos damage. Chaos Strike has a 197125h chance to refund 193840s1 Fury.
   SpellInfo(chaos_strike fury=40)
 
-Define(chaos_strike_havoc 197125)
-# Slice your target for 222031s1+199547s1 Chaos damage. Chaos Strike has a 197125h chance to refund 193840s1 Fury.
-  SpellInfo(chaos_strike_havoc channel=0 gcd=0 offgcd=1)
-  SpellAddBuff(chaos_strike_havoc chaos_strike_havoc=1)
 Define(consume_magic 278326)
 # Consume m1 beneficial Magic effect from the target, removing it and granting you ?c1[s2 Fury][s3/10 Pain].
   SpellInfo(consume_magic cd=10 fury=-20 pain=-20)
@@ -179,6 +175,7 @@ Define(spirit_bomb_talent 17) #22513
 # Consume up to s2 Soul Fragments within s1 yds and then explode, afflicting nearby enemies with Frailty for 20 seconds and damaging them for 247455s1 Fire per fragment.rnrnYou heal for 247456s1 of all damage you deal to enemies with Frailty.
 Define(trail_of_ruin_talent 7) #22909
 # The final slash of Blade Dance inflicts an additional 258883o1 Chaos damage over 4 seconds.
+Define(revolving_blades_trait 279581)
 Define(unbound_chaos_trait 275144)
     `;
 // END
@@ -404,6 +401,7 @@ Define(void_reaver_talent 20)
 # Tags
 SpellInfo(dark_slash tag=main)
 SpellInfo(demon_spikes tag=shortcd)
+SpellInfo(immolation_aura_havoc tag=main)
 SpellInfo(fel_barrage tag=main)
 SpellInfo(fel_eruption tag=main)
 SpellInfo(fel_rush tag=main)
