@@ -9,3 +9,4 @@ dist/**/*.js.map
 /sample.json
 /src/utils/override
 **/*.ts
+**/*.json
