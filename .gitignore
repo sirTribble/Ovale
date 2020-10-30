@@ -8,6 +8,8 @@ dist/**/*.js.map
 /package-lock.json
 /sample.json
 /src/utils/override
-**/*.ts
-**/*.json
-*.json
+*.bat
+/items-data.txt
+/spells-data.txt
+/.nyc_output
+/coverage

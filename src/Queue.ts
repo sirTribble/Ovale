@@ -1,7 +1,7 @@
-import { Ovale } from "./Ovale";
+import { format } from "@wowts/string";
 
 class BackToFrontIterator<T> {
-    public value:T;
+    public value!:T;
 	constructor(private invariant:OvaleDequeue<T>, public control: number) {
     }
 	Next() {
@@ -12,7 +12,7 @@ class BackToFrontIterator<T> {
 }
 
 class FrontToBackIterator<T> {
-	public value:T;
+	public value!:T;
 	constructor(private invariant:OvaleDequeue<T>, private control: number) {}
 	Next() {
 		this.control = this.control + 1;
@@ -46,7 +46,7 @@ export class OvaleDequeue<T> {
 		var first = this.first
 		var element = this[first]
 		if ( element ) {
-			this[first] = undefined
+			delete this[first];
 			this.first = first + 1
 		}
 		return element
@@ -56,7 +56,7 @@ export class OvaleDequeue<T> {
 		var last = this.last
 		var element = this[last]
 		if ( element ) {
-			this[last] = undefined
+			delete this[last];
 			this.last = last - 1
 		}
 		return element
@@ -99,7 +99,7 @@ export class OvaleDequeue<T> {
 	}
 
 	DebuggingInfo() {
-		Ovale.Print("Queue %s has %d item(s), first=%d, last=%d.", this.name, this.Size(), this.first, this.last)
+		return format("Queue %s has %d item(s), first=%d, last=%d.", this.name, this.Size(), this.first, this.last)
 	}
 }
 

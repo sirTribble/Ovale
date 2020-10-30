@@ -1,16 +1,15 @@
-import { Ovale } from "./Ovale";
 import { assert, tostring, wipe, LuaArray } from "@wowts/lua";
 import { insert, remove } from "@wowts/table";
+import { format } from "@wowts/string";
 
 export class OvalePool<T> {
-    pool:LuaArray<T> = undefined;
+    pool:LuaArray<T> = {};
     size = 0;
     unused = 0;
     name: string;
     
     constructor(name: string) {
         this.name = name || "OvalePool";
-        this.Drain();
     }
 
     Get() {
@@ -42,8 +41,8 @@ export class OvalePool<T> {
         this.unused = 0;
         //OvalePool.StopProfiling(this.name);
     }
-    DebuggingInfo():void {
-        Ovale.Print("Pool %s has size %d with %d item(s).", tostring(this.name), this.size, this.unused);
+    DebuggingInfo():string {
+        return format("Pool %s has size %d with %d item(s).", tostring(this.name), this.size, this.unused);
     }
     Clean(item: T): void {
     }

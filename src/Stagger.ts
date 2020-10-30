@@ -1,69 +1,91 @@
-import { OvaleState } from "./State";
-import { Ovale } from "./Ovale";
-import aceEvent from "@wowts/ace_event-3.0";
+import aceEvent, { AceEvent } from "@wowts/ace_event-3.0";
 import { CombatLogGetCurrentEventInfo } from "@wowts/wow-mock";
 import { LuaArray, lualength, pairs } from "@wowts/lua";
 import { insert, remove } from "@wowts/table";
-import { baseState } from "./BaseState";
-
-let OvaleStaggerBase = Ovale.NewModule("OvaleStagger", aceEvent);
-export let OvaleStagger: OvaleStaggerClass;
+import { AceModule } from "@wowts/tsaddon";
+import { OvaleClass } from "./Ovale";
+import { StateModule } from "./State";
+import { Combat } from "./combat";
 
 let self_serial = 1;
-let MAX_LENGTH = 30
-class OvaleStaggerClass extends OvaleStaggerBase {
-    staggerTicks: LuaArray<number> = {}
+let MAX_LENGTH = 30;
+export class OvaleStaggerClass implements StateModule {
+    staggerTicks: LuaArray<number> = {};
+    private module: AceModule & AceEvent;
 
-    OnInitialize() {
-        if (Ovale.playerClass == "MONK") {
-            this.RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
-        }
+    constructor(private ovale: OvaleClass, private combat: Combat) {
+        this.module = ovale.createModule(
+            "OvaleStagger",
+            this.OnInitialize,
+            this.OnDisable,
+            aceEvent
+        );
     }
-    OnDisable() {
-        if (Ovale.playerClass == "MONK") {
-            this.UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+
+    private OnInitialize = () => {
+        if (this.ovale.playerClass == "MONK") {
+            this.module.RegisterEvent(
+                "COMBAT_LOG_EVENT_UNFILTERED",
+                this.COMBAT_LOG_EVENT_UNFILTERED
+            );
         }
-    }
-    COMBAT_LOG_EVENT_UNFILTERED(event: string, ...__args: any[]) {
-        let [, cleuEvent, , sourceGUID, , , , , , , , spellId, , , amount] = CombatLogGetCurrentEventInfo();
-        if (sourceGUID != Ovale.playerGUID) {
+    };
+    private OnDisable = () => {
+        if (this.ovale.playerClass == "MONK") {
+            this.module.UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+        }
+    };
+    private COMBAT_LOG_EVENT_UNFILTERED = (event: string, ...__args: any[]) => {
+        let [
+            ,
+            cleuEvent,
+            ,
+            sourceGUID,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            spellId,
+            ,
+            ,
+            amount,
+        ] = CombatLogGetCurrentEventInfo();
+        if (sourceGUID != this.ovale.playerGUID) {
             return;
         }
         self_serial = self_serial + 1;
-        if(cleuEvent == "SPELL_PERIODIC_DAMAGE" && spellId == 124255){
+        if (cleuEvent == "SPELL_PERIODIC_DAMAGE" && spellId == 124255) {
             insert(this.staggerTicks, amount);
             if (lualength(this.staggerTicks) > MAX_LENGTH) {
                 remove(this.staggerTicks, 1);
             }
         }
-    }
+    };
 
-    CleanState(): void {
-    }
-    InitializeState(): void {
-    }
-    ResetState(): void {   
-        if(!baseState.current.inCombat){
+    CleanState(): void {}
+    InitializeState(): void {}
+    ResetState(): void {
+        if (!this.combat.isInCombat(undefined)) {
             for (const [k] of pairs(this.staggerTicks)) {
-                this.staggerTicks[k] = undefined;
+                delete this.staggerTicks[k];
             }
         }
     }
-    
-    LastTickDamage(countTicks: number): number{
-        if(!countTicks || countTicks == 0 || countTicks < 0) countTicks = 1;
-        
+
+    LastTickDamage(countTicks: number): number {
+        if (!countTicks || countTicks == 0 || countTicks < 0) countTicks = 1;
+
         let damage = 0;
-        let arrLen = lualength(this.staggerTicks)
-               
-        if(arrLen < 1) return 0;
-                
-        for(let i = arrLen; i > arrLen - (countTicks - 1); i += -1){
+        let arrLen = lualength(this.staggerTicks);
+
+        if (arrLen < 1) return 0;
+
+        for (let i = arrLen; i > arrLen - (countTicks - 1); i += -1) {
             damage += this.staggerTicks[i] || 0;
         }
         return damage;
     }
 }
-
-OvaleStagger = new OvaleStaggerClass();
-OvaleState.RegisterState(OvaleStagger);

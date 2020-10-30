@@ -1,32 +1,111 @@
 import AceConfig from "@wowts/ace_config-3.0";
 import AceConfigDialog from "@wowts/ace_config_dialog-3.0";
 import { L } from "./Localization";
-import AceDB from "@wowts/ace_db-3.0";
+import AceDB, { AceDatabase } from "@wowts/ace_db-3.0";
 import AceDBOptions from "@wowts/ace_db_options-3.0";
-import { OvaleDb, Ovale } from "./Ovale";
-import aceConsole from "@wowts/ace_console-3.0";
-import aceEvent from "@wowts/ace_event-3.0";
+import aceConsole, { AceConsole } from "@wowts/ace_console-3.0";
+import aceEvent, { AceEvent } from "@wowts/ace_event-3.0";
 import { InterfaceOptionsFrame_OpenToCategory } from "@wowts/wow-mock";
 import { ipairs, LuaObj, lualength, LuaArray } from "@wowts/lua";
 import { huge } from "@wowts/math";
-let OvaleOptionsBase = Ovale.NewModule("OvaleOptions", aceConsole, aceEvent);
+import { Color } from "./SpellFlash";
+import { OvaleClass } from "./Ovale";
+import { AceModule } from "@wowts/tsaddon";
+import { Print } from "./tools";
+
 interface OptionModule {
-    UpgradeSavedVariables():void;
+    UpgradeSavedVariables(): void;
 }
 
-let self_register:LuaObj<OptionModule> = {  }
+let self_register: LuaObj<OptionModule> = {};
 
-class OvaleOptionsClass extends OvaleOptionsBase {
-    defaultDB:OvaleDb = {
+export interface SpellFlashOptions {
+    enabled: boolean;
+    colorMain: Color;
+    colorCd: Color;
+    colorShortCd: Color;
+    colorInterrupt: Color;
+    inCombat?: boolean;
+    hideInVehicle?: boolean;
+    hasTarget?: boolean;
+    hasHostileTarget?: boolean;
+    threshold: number;
+    size: number;
+    brightness: number;
+}
+
+export interface OvaleDb {
+    profile: {
+        source: LuaObj<string>;
+        code: string;
+        check: LuaObj<boolean>;
+        list: LuaObj<string>;
+        standaloneOptions: boolean;
+        showHiddenScripts: boolean;
+        overrideCode?: string;
+        apparence: {
+            [k: string]: any;
+            avecCible: boolean;
+            clickThru: boolean;
+            enCombat: boolean;
+            enableIcons: boolean;
+            hideEmpty: boolean;
+            hideVehicule: boolean;
+            margin: number;
+            offsetX: number;
+            offsetY: number;
+            targetHostileOnly: boolean;
+            verrouille: boolean;
+            vertical: boolean;
+            alpha: number;
+            flashIcon: boolean;
+            remainsFontColor: {
+                r: number;
+                g: number;
+                b: number;
+            };
+            fontScale: number;
+            highlightIcon: true;
+            iconScale: number;
+            numeric: false;
+            raccourcis: true;
+            smallIconScale: number;
+            targetText: string;
+            iconShiftX: number;
+            iconShiftY: number;
+            optionsAlpha: number;
+            predictif: boolean;
+            secondIconScale: number;
+            taggedEnemies: boolean;
+            minFrameRefresh: number;
+            maxFrameRefresh: number;
+            fullAuraScan: false;
+            frequentHealthUpdates: true;
+            auraLag: number;
+            moving: boolean;
+            spellFlash: SpellFlashOptions;
+            minimap: {
+                hide: boolean;
+            };
+        };
+    };
+    global: {
+        debug: LuaObj<string>;
+        profiler: LuaObj<string>;
+    };
+}
+
+export class OvaleOptionsClass {
+    db!: AceDatabase & OvaleDb;
+
+    defaultDB: OvaleDb = {
         profile: {
-            source: undefined,
-            code: undefined,
+            source: {},
+            code: "",
             showHiddenScripts: false,
             overrideCode: undefined,
-            check: {
-            },
-            list: {
-            },
+            check: {},
+            list: {},
             standaloneOptions: false,
             apparence: {
                 avecCible: false,
@@ -46,7 +125,7 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                 remainsFontColor: {
                     r: 1,
                     g: 1,
-                    b: 1
+                    b: 1,
                 },
                 fontScale: 1,
                 highlightIcon: true,
@@ -64,44 +143,81 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                 minFrameRefresh: 50,
                 maxFrameRefresh: 250,
                 fullAuraScan: false,
+                frequentHealthUpdates: true,
                 auraLag: 400,
                 moving: false,
                 spellFlash: {
                     enabled: true,
+                    brightness: 1,
+                    hasHostileTarget: false,
+                    hasTarget: false,
+                    hideInVehicle: false,
+                    inCombat: false,
+                    size: 2.4,
+                    threshold: 500,
+                    colorMain: {
+                        r: 1,
+                        g: 1,
+                        b: 1,
+                    },
+                    colorShortCd: {
+                        r: 1,
+                        g: 1,
+                        b: 0,
+                    },
+                    colorCd: {
+                        r: 1,
+                        g: 1,
+                        b: 0,
+                    },
+                    colorInterrupt: {
+                        r: 0,
+                        g: 1,
+                        b: 1,
+                    },
                 },
-                minimap: { 
-                    hide: false
-                }
-            }
+                minimap: {
+                    hide: false,
+                },
+            },
         },
-        global:undefined
-    }
+        global: {
+            debug: {},
+            profiler: {},
+        },
+    };
 
     options: any = {
         type: "group",
         args: {
             apparence: {
-                name: Ovale.GetName(),
+                name: "Ovale Spell Priority",
                 type: "group",
                 get: (info: LuaArray<string>) => {
-                    return Ovale.db.profile.apparence[info[lualength(info)]];
+                    return this.db.profile.apparence[info[lualength(info)]];
                 },
                 set: (info: LuaArray<string>, value: string) => {
-                    Ovale.db.profile.apparence[info[lualength(info)]] = value;
-                    this.SendMessage("Ovale_OptionChanged", info[lualength(info) - 1]);
+                    this.db.profile.apparence[info[lualength(info)]] = value;
+                    this.module.SendMessage(
+                        "Ovale_OptionChanged",
+                        info[lualength(info) - 1]
+                    );
                 },
                 args: {
                     standaloneOptions: {
                         order: 30,
                         name: L["Standalone options"],
-                        desc: L["Open configuration panel in a separate, movable window."],
+                        desc:
+                            L[
+                                "Open configuration panel in a separate, movable window."
+                            ],
                         type: "toggle",
-                        get: function (info: LuaArray<string>) {
-                            return Ovale.db.profile.standaloneOptions;
+                        get: (info: LuaArray<string>) => {
+                            return this.db.profile.standaloneOptions;
                         },
-                        set: function (info: LuaArray<string>, value: boolean) {
-                            Ovale.db.profile.standaloneOptions = value;
-                        }
+                        set: (info: LuaArray<string>, value: boolean) => {
+                            this.db.profile.standaloneOptions = value;
+                        },
                     },
                     iconGroupAppearance: {
                         order: 40,
@@ -113,104 +229,123 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 type: "toggle",
                                 name: L["Enabled"],
                                 width: "full",
-                                set: (info: LuaArray<string>, value: boolean) => {
-                                    Ovale.db.profile.apparence.enableIcons = value;
-                                    this.SendMessage("Ovale_OptionChanged", "visibility");
-                                }
+                                set: (
+                                    info: LuaArray<string>,
+                                    value: boolean
+                                ) => {
+                                    this.db.profile.apparence.enableIcons = value;
+                                    this.module.SendMessage(
+                                        "Ovale_OptionChanged",
+                                        "visibility"
+                                    );
+                                },
                             },
                             verrouille: {
                                 order: 10,
                                 type: "toggle",
                                 name: L["Verrouiller position"],
                                 disabled: () => {
-                                    return !Ovale.db.profile.apparence.enableIcons;
-                                }
+                                    return !this.db.profile.apparence
+                                        .enableIcons;
+                                },
                             },
                             clickThru: {
                                 order: 20,
                                 type: "toggle",
                                 name: L["Ignorer les clics souris"],
                                 disabled: () => {
-                                    return !Ovale.db.profile.apparence.enableIcons;
-                                }
+                                    return !this.db.profile.apparence
+                                        .enableIcons;
+                                },
                             },
                             visibility: {
                                 order: 20,
                                 type: "group",
                                 name: L["Visibilité"],
                                 inline: true,
-                                disabled: function () {
-                                    return !Ovale.db.profile.apparence.enableIcons;
+                                disabled: () => {
+                                    return !this.db.profile.apparence
+                                        .enableIcons;
                                 },
                                 args: {
                                     enCombat: {
                                         order: 10,
                                         type: "toggle",
-                                        name: L["En combat uniquement"]
+                                        name: L["En combat uniquement"],
                                     },
                                     avecCible: {
                                         order: 20,
                                         type: "toggle",
-                                        name: L["Si cible uniquement"]
+                                        name: L["Si cible uniquement"],
                                     },
                                     targetHostileOnly: {
                                         order: 30,
                                         type: "toggle",
-                                        name: L["Cacher si cible amicale ou morte"]
+                                        name:
+                                            L[
+                                                "Cacher si cible amicale ou morte"
+                                            ],
                                     },
                                     hideVehicule: {
                                         order: 40,
                                         type: "toggle",
-                                        name: L["Cacher dans les véhicules"]
+                                        name: L["Cacher dans les véhicules"],
                                     },
                                     hideEmpty: {
                                         order: 50,
                                         type: "toggle",
-                                        name: L["Cacher bouton vide"]
-                                    }
-                                }
+                                        name: L["Cacher bouton vide"],
+                                    },
+                                },
                             },
                             layout: {
                                 order: 30,
                                 type: "group",
                                 name: L["Layout"],
                                 inline: true,
-                                disabled: function () {
-                                    return !Ovale.db.profile.apparence.enableIcons;
+                                disabled: () => {
+                                    return !this.db.profile.apparence
+                                        .enableIcons;
                                 },
                                 args: {
                                     moving: {
                                         order: 10,
                                         type: "toggle",
                                         name: L["Défilement"],
-                                        desc: L["Les icônes se déplacent"]
+                                        desc: L["Les icônes se déplacent"],
                                     },
                                     vertical: {
                                         order: 20,
                                         type: "toggle",
-                                        name: L["Vertical"]
+                                        name: L["Vertical"],
                                     },
                                     offsetX: {
                                         order: 30,
                                         type: "range",
                                         name: L["Horizontal offset"],
-                                        desc: L["Horizontal offset from the center of the screen."],
+                                        desc:
+                                            L[
+                                                "Horizontal offset from the center of the screen."
+                                            ],
                                         min: -1000,
                                         max: 1000,
                                         softMin: -500,
                                         softMax: 500,
-                                        bigStep: 1
+                                        bigStep: 1,
                                     },
                                     offsetY: {
                                         order: 40,
                                         type: "range",
                                         name: L["Vertical offset"],
-                                        desc: L["Vertical offset from the center of the screen."],
+                                        desc:
+                                            L[
+                                                "Vertical offset from the center of the screen."
+                                            ],
                                         min: -1000,
                                         max: 1000,
                                         softMin: -500,
                                         softMax: 500,
-                                        bigStep: 1
+                                        bigStep: 1,
                                     },
                                     margin: {
                                         order: 50,
@@ -218,11 +353,11 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                         name: L["Marge entre deux icônes"],
                                         min: -16,
                                         max: 64,
-                                        step: 1
-                                    }
-                                }
-                            }
-                        }
+                                        step: 1,
+                                    },
+                                },
+                            },
+                        },
                     },
                     iconAppearance: {
                         order: 50,
@@ -237,7 +372,7 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 min: 0.5,
                                 max: 3,
                                 bigStep: 0.01,
-                                isPercent: true
+                                isPercent: true,
                             },
                             smallIconScale: {
                                 order: 20,
@@ -247,21 +382,28 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 min: 0.5,
                                 max: 3,
                                 bigStep: 0.01,
-                                isPercent: true
+                                isPercent: true,
                             },
                             remainsFontColor: {
                                 type: "color",
                                 order: 25,
                                 name: L["Remaining time font color"],
-                                get: function (info: LuaArray<string>) {
-                                    const t = Ovale.db.profile.apparence.remainsFontColor;
+                                get: (info: LuaArray<string>) => {
+                                    const t = this.db.profile.apparence
+                                        .remainsFontColor;
                                     return [t.r, t.g, t.b];
                                 },
-                                set: function (info: LuaArray<string>, r: number, g: number, b: number) {
-                                    const t = Ovale.db.profile.apparence.remainsFontColor;
+                                set: (
+                                    info: LuaArray<string>,
+                                    r: number,
+                                    g: number,
+                                    b: number
+                                ) => {
+                                    const t = this.db.profile.apparence
+                                        .remainsFontColor;
                                     [t.r, t.g, t.b] = [r, g, b];
-                                    Ovale.db.profile.apparence.remainsFontColor = t;
-                                }
+                                    this.db.profile.apparence.remainsFontColor = t;
+                                },
                             },
                             fontScale: {
                                 order: 30,
@@ -271,7 +413,7 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 min: 0.2,
                                 max: 2,
                                 bigStep: 0.01,
-                                isPercent: true
+                                isPercent: true,
                             },
                             alpha: {
                                 order: 40,
@@ -280,38 +422,53 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 min: 0,
                                 max: 1,
                                 bigStep: 0.01,
-                                isPercent: true
+                                isPercent: true,
                             },
                             raccourcis: {
                                 order: 50,
                                 type: "toggle",
                                 name: L["Raccourcis clavier"],
-                                desc: L["Afficher les raccourcis clavier dans le coin inférieur gauche des icônes"]
+                                desc:
+                                    L[
+                                        "Afficher les raccourcis clavier dans le coin inférieur gauche des icônes"
+                                    ],
                             },
                             numeric: {
                                 order: 60,
                                 type: "toggle",
                                 name: L["Affichage numérique"],
-                                desc: L["Affiche le temps de recharge sous forme numérique"]
+                                desc:
+                                    L[
+                                        "Affiche le temps de recharge sous forme numérique"
+                                    ],
                             },
                             highlightIcon: {
                                 order: 70,
                                 type: "toggle",
                                 name: L["Illuminer l'icône"],
-                                desc: L["Illuminer l'icône quand la technique doit être spammée"]
+                                desc:
+                                    L[
+                                        "Illuminer l'icône quand la technique doit être spammée"
+                                    ],
                             },
                             flashIcon: {
                                 order: 80,
                                 type: "toggle",
-                                name: L["Illuminer l'icône quand le temps de recharge est écoulé"]
+                                name:
+                                    L[
+                                        "Illuminer l'icône quand le temps de recharge est écoulé"
+                                    ],
                             },
                             targetText: {
                                 order: 90,
                                 type: "input",
                                 name: L["Caractère de portée"],
-                                desc: L["Ce caractère est affiché dans un coin de l'icône pour indiquer si la cible est à portée"]
-                            }
-                        }
+                                desc:
+                                    L[
+                                        "Ce caractère est affiché dans un coin de l'icône pour indiquer si la cible est à portée"
+                                    ],
+                            },
+                        },
                     },
                     optionsAppearance: {
                         order: 60,
@@ -324,7 +481,7 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 name: L["Décalage horizontal des options"],
                                 min: -256,
                                 max: 256,
-                                step: 1
+                                step: 1,
                             },
                             iconShiftY: {
                                 order: 20,
@@ -332,7 +489,7 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 name: L["Décalage vertical des options"],
                                 min: -256,
                                 max: 256,
-                                step: 1
+                                step: 1,
                             },
                             optionsAlpha: {
                                 order: 30,
@@ -341,9 +498,9 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 min: 0,
                                 max: 1,
                                 bigStep: 0.01,
-                                isPercent: true
-                            }
-                        }
+                                isPercent: true,
+                            },
+                        },
                     },
                     predictiveIcon: {
                         order: 70,
@@ -354,7 +511,10 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 order: 10,
                                 type: "toggle",
                                 name: L["Prédictif"],
-                                desc: L["Affiche les deux prochains sorts et pas uniquement le suivant"]
+                                desc:
+                                    L[
+                                        "Affiche les deux prochains sorts et pas uniquement le suivant"
+                                    ],
                             },
                             secondIconScale: {
                                 order: 20,
@@ -363,9 +523,9 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 min: 0.2,
                                 max: 1,
                                 bigStep: 0.01,
-                                isPercent: true
-                            }
-                        }
+                                isPercent: true,
+                            },
+                        },
                     },
                     advanced: {
                         order: 80,
@@ -376,45 +536,70 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                                 order: 10,
                                 type: "toggle",
                                 name: L["Only count tagged enemies"],
-                                desc: L["Only count a mob as an enemy if it is directly affected by a player's spells."]
+                                desc:
+                                    L[
+                                        "Only count a mob as an enemy if it is directly affected by a player's spells."
+                                    ],
                             },
                             auraLag: {
                                 order: 20,
                                 type: "range",
                                 name: L["Aura lag"],
-                                desc: L["Lag (in milliseconds) between when an spell is cast and when the affected aura is applied or removed"],
+                                desc:
+                                    L[
+                                        "Lag (in milliseconds) between when an spell is cast and when the affected aura is applied or removed"
+                                    ],
                                 min: 100,
                                 max: 700,
-                                step: 10
+                                step: 10,
                             },
                             minFrameRefresh: {
                                 order: 30,
                                 type: "range",
                                 name: L["Min Refresh"],
-                                desc: L["Minimum time (in milliseconds) between updates; lower values may reduce FPS."],
+                                desc:
+                                    L[
+                                        "Minimum time (in milliseconds) between updates; lower values may reduce FPS."
+                                    ],
                                 min: 50,
                                 max: 100,
-                                step: 5
+                                step: 5,
                             },
                             maxFrameRefresh: {
                                 order: 40,
                                 type: "range",
                                 name: L["Max Refresh"],
-                                desc: L["Minimum time (in milliseconds) between updates; lower values may reduce FPS."],
+                                desc:
+                                    L[
+                                        "Minimum time (in milliseconds) between updates; lower values may reduce FPS."
+                                    ],
                                 min: 100,
                                 max: 400,
-                                step: 10
+                                step: 10,
                             },
                             fullAuraScan: {
                                 order: 50,
                                 width: "full",
                                 type: "toggle",
-                                name: L['Full buffs/debuffs scan'],
-                                desc: L['Scans also buffs/debuffs casted by other players\n\nWarning!: Very CPU intensive'],
-                            }
-                        }
-                    }
-                }
+                                name: L["Full buffs/debuffs scan"],
+                                desc:
+                                    L[
+                                        "Scans also buffs/debuffs casted by other players or NPCs.\n\nWarning!: Very CPU intensive"
+                                    ],
+                            },
+                            frequentHealthUpdates: {
+                                order: 60,
+                                width: "full",
+                                type: "toggle",
+                                name: L["Frequent health updates"],
+                                desc:
+                                    L[
+                                        "Updates health of units more frquently; enabling this may reduce FPS."
+                                    ],
+                            },
+                        },
+                    },
+                },
             },
             actions: {
                 name: "Actions",
@@ -425,65 +610,117 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                         name: L["Afficher la fenêtre"],
                         guiHidden: true,
                         func: () => {
-                            Ovale.db.profile.apparence.enableIcons = true;
-                            this.SendMessage("Ovale_OptionChanged", "visibility");
-                        }
+                            this.db.profile.apparence.enableIcons = true;
+                            this.module.SendMessage(
+                                "Ovale_OptionChanged",
+                                "visibility"
+                            );
+                        },
                     },
                     hide: {
                         type: "execute",
                         name: L["Cacher la fenêtre"],
                         guiHidden: true,
                         func: () => {
-                            Ovale.db.profile.apparence.enableIcons = false;
-                            this.SendMessage("Ovale_OptionChanged", "visibility");
-                        }
+                            this.db.profile.apparence.enableIcons = false;
+                            this.module.SendMessage(
+                                "Ovale_OptionChanged",
+                                "visibility"
+                            );
+                        },
                     },
                     config: {
                         name: "Configuration",
                         type: "execute",
                         func: () => {
                             this.ToggleConfig();
-                        }
+                        },
                     },
                     refresh: {
                         name: L["Display refresh statistics"],
                         type: "execute",
                         func: () => {
-                            let [avgRefresh, minRefresh, maxRefresh, count] = Ovale.GetRefreshIntervalStatistics();
-                            if(minRefresh == huge){
-                                [avgRefresh, minRefresh, maxRefresh, count] = [0,0,0,0]
+                            let [
+                                avgRefresh,
+                                minRefresh,
+                                maxRefresh,
+                                count,
+                            ] = this.ovale.GetRefreshIntervalStatistics();
+                            if (minRefresh == huge) {
+                                [avgRefresh, minRefresh, maxRefresh, count] = [
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                ];
                             }
-                            Ovale.Print("Refresh intervals: count = %d, avg = %d, min = %d, max = %d (ms)", count, avgRefresh, minRefresh, maxRefresh);
-                        }
-                    }
-                }
+                            Print(
+                                "Refresh intervals: count = %d, avg = %d, min = %d, max = %d (ms)",
+                                count,
+                                avgRefresh,
+                                minRefresh,
+                                maxRefresh
+                            );
+                        },
+                    },
+                },
             },
-            profile: {}
-        }
+            profile: {},
+        },
+    };
+
+    module: AceModule & AceConsole & AceEvent;
+
+    constructor(private ovale: OvaleClass) {
+        this.module = ovale.createModule(
+            "OvaleOptions",
+            this.OnInitialize,
+            this.handleDisable,
+            aceConsole,
+            aceEvent
+        );
     }
 
-    OnInitialize() {
-        const ovale = Ovale.GetName();
-        const db = AceDB.New("OvaleDB", this.defaultDB);
+    private OnInitialize = () => {
+        const ovale = this.ovale.GetName();
+        this.db = AceDB.New("OvaleDB", this.defaultDB);
+        const db = this.db;
         this.options.args.profile = AceDBOptions.GetOptionsTable(db);
         // let LibDualSpec = LibStub("LibDualSpec-1.0", true);
         // if (LibDualSpec) {
         //     LibDualSpec.EnhanceDatabase(db, "Ovale");
         //     LibDualSpec.EnhanceOptions(this.options.args.profile, db);
         // }
-        db.RegisterCallback(this, "OnNewProfile", "HandleProfileChanges");
-        db.RegisterCallback(this, "OnProfileReset", "HandleProfileChanges");
-        db.RegisterCallback(this, "OnProfileChanged", "HandleProfileChanges");
-        db.RegisterCallback(this, "OnProfileCopied", "HandleProfileChanges");
-        Ovale.db = db;
+        db.RegisterCallback(this, "OnNewProfile", this.HandleProfileChanges);
+        db.RegisterCallback(this, "OnProfileReset", this.HandleProfileChanges);
+        db.RegisterCallback(
+            this,
+            "OnProfileChanged",
+            this.HandleProfileChanges
+        );
+        db.RegisterCallback(this, "OnProfileCopied", this.HandleProfileChanges);
         this.UpgradeSavedVariables();
         AceConfig.RegisterOptionsTable(ovale, this.options.args.apparence);
-        AceConfig.RegisterOptionsTable(`${ovale} Profiles`, this.options.args.profile);
-        AceConfig.RegisterOptionsTable(`${ovale} Actions`, this.options.args.actions, "Ovale");
+        AceConfig.RegisterOptionsTable(
+            `${ovale} Profiles`,
+            this.options.args.profile
+        );
+        AceConfig.RegisterOptionsTable(
+            `${ovale} Actions`,
+            this.options.args.actions,
+            "Ovale"
+        );
         AceConfigDialog.AddToBlizOptions(ovale);
-        AceConfigDialog.AddToBlizOptions(`${ovale} Profiles`, "Profiles", ovale);
+        AceConfigDialog.AddToBlizOptions(
+            `${ovale} Profiles`,
+            "Profiles",
+            ovale
+        );
         this.HandleProfileChanges();
-    }
+    };
+
+    private handleDisable = () => {};
+
     RegisterOptions(addon: {}) {
         // tinsert(self_register, addon);
     }
@@ -503,17 +740,17 @@ class OvaleOptionsClass extends OvaleOptionsBase {
                 addon.UpgradeSavedVariables();
             }
         }
-        Ovale.db.RegisterDefaults(this.defaultDB);
+        this.db.RegisterDefaults(this.defaultDB);
     }
-    HandleProfileChanges() {
-        this.SendMessage("Ovale_ProfileChanged");
-        this.SendMessage("Ovale_ScriptChanged");
-        this.SendMessage("Ovale_OptionChanged", "layout");
-        this.SendMessage("Ovale_OptionChanged", "visibility");
-    }
+    private HandleProfileChanges = () => {
+        this.module.SendMessage("Ovale_ProfileChanged");
+        this.module.SendMessage("Ovale_ScriptChanged");
+        this.module.SendMessage("Ovale_OptionChanged", "layout");
+        this.module.SendMessage("Ovale_OptionChanged", "visibility");
+    };
     ToggleConfig() {
-        let appName = Ovale.GetName();
-        if (Ovale.db.profile.standaloneOptions) {
+        let appName = this.ovale.GetName();
+        if (this.db.profile.standaloneOptions) {
             if (AceConfigDialog.OpenFrames[appName]) {
                 AceConfigDialog.Close(appName);
             } else {
@@ -525,5 +762,3 @@ class OvaleOptionsClass extends OvaleOptionsBase {
         }
     }
 }
-
-export const OvaleOptions = new OvaleOptionsClass();

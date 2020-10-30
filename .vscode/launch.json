@@ -8,14 +8,10 @@
             "type": "node",
             "request": "launch",
             "name": "SimulationCraft",
-            "program": "${workspaceFolder}/dist/utils/importsimc.js",
+            "program": "${workspaceFolder}/dist/src/utils/importsimc.js",
             "protocol": "inspector",
-            "args": [
-                "../../simc/"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
+            "args": ["../../simc/", "T25_Druid_Balance.simc"],
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"]
         },
         {
             "type": "node",
@@ -23,20 +19,21 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/src\\Options.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"]
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Debug tests",
-            "program": "${workspaceRoot}/node_modules/ava/profile.js",
-            "args": ["${workspaceRoot}/dist/tests/utils/spellstringparser.spec.js"],
-            "outFiles": [
-                "${workspaceRoot}/dist/**/*.js"
+            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava.cmd",
+            "runtimeArgs": [
+                "--serial",
+                "${workspaceFolder}/dist/${relativeFileDirname}/${fileBasenameNoExtension}.js"
             ],
-            "protocol": "inspector"
-        },
+            "outputCapture": "std",
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+            "protocol": "inspector",
+            "skipFiles": ["<node_internals>/**/*.js"]
+        }
     ]
 }

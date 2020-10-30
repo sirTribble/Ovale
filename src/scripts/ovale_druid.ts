@@ -1,1443 +1,905 @@
-import { OvaleScripts } from "../Scripts";
-// {
-//     const name = "shmoodude_druid_feral";
-// 	const desc = "[7.3.5] ShmooDude: Druid Feral";
-// 	const code = `# ShmooDude Feral and Guardian script
-//     ###
-//     ### Options:
-//     # Interrupt - Suggests use of interuptting abilities, including stuns/knockbacks on non-boss targets.
-//     #
-//     #
-//     # Not in Melee Range - Suggests movement abilities if available or a forward arrow if you're out of range.
-//     #
-//     #
-//     # Multiple-targets rotation - If this is disabled, the AoE icon is removed
-//     #
-//     #
-//     # Ashamane's Frenzy as main action - Puts the Ashamane's Frenzy suggestion in the main action box.
-//     #       Requires TimeToDie of 20 seconds or more
-//     #       If this is off, Ovale will suggest 2 CP Regrowths in the Short CD box.
-//     # Shadowmeld as main action - Puts the Shadowmeld suggestion in the main action box.
-//     #       Requires TimeToDie of 20 seconds or more
-//     #       Suggested off except on (raid) bosses.
-//     # Tiger's Fury multiplier prediction - Applies the Tiger's Fury multiplier if Tiger's Fury is ready.
-//     #       e.g. If TF is being suggested, any Rip suggestions will assume you use TF first.
-//     #
-//     # Prevent capping BrS charges - Will suggest Brutal Slash if you are about to reach max charges.
-//     #       Advantage: Helps not waste charges.  
-//     #       Disadvantage: Will probably not have 3 charges when AoE for the encounter shows up.
-//     # BrS at X targets - Minimum number of targets to suggest using Brutal Slash.
-//     #       This will use all available Brutal Slash charges.
-//     #       
-//     # Only suggest BrS when TF is up
-//     #       Good for Mythic+ to get the most out of your Brutal Slash charges
-//     #       Too much haste makes this sub-optimal
-//     # Rip - At how many seconds to overwrite a Rip
-//     #       Default Pandemic
-//     #
-//     # Rake - At how many seconds to overwrite a Rake
-//     #       Default 7 or
-//     #               Pandemic with Ailuro Pouncers Legendary or you are not speced into Bloodtalons
-//     # Savage Roar - At how many seconds to overwrite Savage Roar
-//     #       Default Pandemic
-//     #
-    
-//     Include(ovale_common)
-//     Include(ovale_trinkets_mop)
-//     Include(ovale_trinkets_wod)
-//     Include(ovale_druid_spells)
-    
-//     AddCheckBox(opt_melee_range L(not_in_melee_range) specialization=feral)
-//     AddCheckBox(opt_use_consumables "Suggest Prolonged Power Potion" default specialization=feral)
-//     AddCheckBox(opt_interrupt L(interrupt) default specialization=feral)
-    
-//     AddCheckBox(opt_ashamanes_frenzy_main_action "Ashamane's Frenzy as a main action" default specialization=feral)
-//     AddCheckBox(opt_shadowmeld_main_action "Shadowmeld as a main action" specialization=feral)
-    
-//     AddCheckBox(opt_tigers_fury_multiplier_predict "Tiger's Fury multiplier prediction" default specialization=feral)
-//     AddCheckBox(opt_brutal_slash_use_at_three_always "Prevent capping BrS charges" specialization=feral)
-//     AddCheckBox(opt_brutal_slash_use_with_tigers_fury "Only suggest BrS when TF is up" specialization=feral)
-//     # AddCheckBox(opt_sync_af_tf "Try to sync Ashamane's with TF" specialization=feral)
-    
-//     AddListItem(opt_10_rake_refresh rake_00_default "Rake: Default (7 w/ BT)" specialization=feral default)
-//     AddListItem(opt_10_rake_refresh rake_01_pandemic "Rake at Pandemic (duration*0.3)" specialization=feral)
-//     AddListItem(opt_10_rake_refresh rake_05 "Rake at 5 seconds" specialization=feral)
-//     AddListItem(opt_10_rake_refresh rake_06 "Rake at 6 seconds" specialization=feral)
-//     AddListItem(opt_10_rake_refresh rake_07 "Rake at 7 seconds" specialization=feral)
-//     AddListItem(opt_10_rake_refresh rake_08 "Rake at 8 seconds" specialization=feral)
-//     AddListItem(opt_10_rake_refresh rake_09 "Rake at 9 seconds" specialization=feral)
-    
-//     AddListItem(opt_11_rip_refresh rip_00_default "Rip: Default (Pandemic)" specialization=feral default)
-//     AddListItem(opt_11_rip_refresh rip_01_pandemic "Rip at Pandemic (duration*0.3)" specialization=feral)
-//     AddListItem(opt_11_rip_refresh rip_07 "Rip at 7 seconds" specialization=feral)
-//     AddListItem(opt_11_rip_refresh rip_08 "Rip at 8 seconds" specialization=feral)
-//     AddListItem(opt_11_rip_refresh rip_09 "Rip at 9 seconds" specialization=feral)
-//     AddListItem(opt_11_rip_refresh rip_10 "Rip at 10 seconds" specialization=feral)
-//     AddListItem(opt_11_rip_refresh rip_11 "Rip at 11 seconds" specialization=feral)
-    
-//     AddListItem(opt_12_savage_roar_refresh savage_roar_00_default "Savage Roar: Default (Pandemic)" specialization=feral default)
-//     AddListItem(opt_12_savage_roar_refresh savage_roar_01_pandemic "Savage Roar Pandemic (duration*0.3)" specialization=feral)
-//     AddListItem(opt_12_savage_roar_refresh savage_roar_12 "Savage Roar at 12 seconds" specialization=feral)
-//     AddListItem(opt_12_savage_roar_refresh savage_roar_13 "Savage Roar at 13 seconds" specialization=feral)
-//     AddListItem(opt_12_savage_roar_refresh savage_roar_14 "Savage Roar at 14 seconds" specialization=feral)
-//     AddListItem(opt_12_savage_roar_refresh savage_roar_15 "Savage Roar at 15 seconds" specialization=feral)
-//     AddListItem(opt_12_savage_roar_refresh savage_roar_16 "Savage Roar at 16 seconds" specialization=feral)
-    
-//     AddListItem(opt_09_desired_targets desired_targets_01 "BrS at 1 target" specialization=feral)
-//     AddListItem(opt_09_desired_targets desired_targets_02 "BrS at 2 targets" specialization=feral)
-//     AddListItem(opt_09_desired_targets desired_targets_03 "BrS at 3 targets" specialization=feral default)
-//     AddListItem(opt_09_desired_targets desired_targets_04 "BrS at 4 targets" specialization=feral)
-//     AddListItem(opt_09_desired_targets desired_targets_05 "BrS at 5 targets" specialization=feral)
-//     AddListItem(opt_09_desired_targets desired_targets_06 "BrS at 6 targets" specialization=feral)
-//     AddListItem(opt_09_desired_targets desired_targets_07 "BrS at 7 targets" specialization=feral)
-//     AddListItem(opt_09_desired_targets desired_targets_08 "BrS at 8 targets" specialization=feral)
-//     AddListItem(opt_09_desired_targets desired_targets_09 "BrS at 9 targets" specialization=feral)
-    
-    
-    
-//     ########################################
-//     ### Helper Variables (Functions)     ###
-//     ########################################
-    
-//     #variable,name=rake_refresh,value=4.5
-//     #variable,name=rake_refresh,op=mul,value=0.8,if=talent.jagged_wounds.enabled
-//     #variable,name=rake_refresh,value=7,if=talent.bloodtalons.enabled&!equipped.ailuro_pouncers
-//     AddFunction rake_refresh
-//     {
-//         unless List(opt_10_rake_refresh rake_00_default)
-//         {
-//             if List(opt_10_rake_refresh rake_01_pandemic) target.DebuffDuration(rake_debuff) * 0.3
-//             if List(opt_10_rake_refresh rake_05) 5
-//             if List(opt_10_rake_refresh rake_06) 6
-//             if List(opt_10_rake_refresh rake_07) 7
-//             if List(opt_10_rake_refresh rake_08) 8
-//             if List(opt_10_rake_refresh rake_09) 9
-//         }
-//         if HasEquippedItem(ailuro_pouncers) or not Talent(bloodtalons_talent) target.DebuffDuration(rake_debuff) * 0.3
-//         7
-//     }
-    
-//     #variable,name=savage_roar_refresh,value=10.8
-//     AddFunction savage_roar_refresh
-//     {
-//         unless List(opt_12_savage_roar_refresh savage_roar_00_default)
-//         {
-//             if List(opt_12_savage_roar_refresh savage_roar_01_pandemic) BaseDuration(savage_roar_buff) * 0.3
-//             if List(opt_12_savage_roar_refresh savage_roar_12) 12
-//             if List(opt_12_savage_roar_refresh savage_roar_13) 13
-//             if List(opt_12_savage_roar_refresh savage_roar_14) 14
-//             if List(opt_12_savage_roar_refresh savage_roar_15) 15
-//             if List(opt_12_savage_roar_refresh savage_roar_16) 16
-//         }
-//         BaseDuration(savage_roar_buff) * 0.3
-//     }
-    
-//     #variable,name=rip_refresh,value=7.2
-//     #variable,name=rip_refresh,op=add,value=1.2,if=set_bonus.tier20_4pc
-//     #variable,name=rip_refresh,op=mul,value=0.8,if=talent.jagged_wounds.enabled
-//     AddFunction rip_refresh
-//     {
-//         unless List(opt_11_rip_refresh rip_00_default)
-//         {
-//             if List(opt_11_rip_refresh rip_01_pandemic) target.DebuffDuration(rip_debuff) * 0.3
-//             if List(opt_11_rip_refresh rip_07) 7
-//             if List(opt_11_rip_refresh rip_08) 8
-//             if List(opt_11_rip_refresh rip_09) 9
-//             if List(opt_11_rip_refresh rip_10) 10
-//             if List(opt_11_rip_refresh rip_11) 11
-//         }
-//         target.DebuffDuration(rip_debuff) * 0.3
-//     }
-    
-//     #variable,name=execute_range,value=25
-//     #variable,name=execute_range,value=100,if=talent.sabertooth.enabled
-//     AddFunction execute_range
-//     {
-//         if Talent(sabertooth_talent) 100
-//         25
-//     }
-    
-//     #variable,name=use_thrash,value=0
-//     #variable,name=use_thrash,value=1,if=equipped.luffa_wrappings
-//     AddFunction use_thrash
-//     {
-//         if HasEquippedItem(luffa_wrappings) 1
-//         0
-//     }
-    
-//     #variable,name=bt_stack,value=2
-//     #variable,name=bt_stack,value=1,if=equipped.ailuro_pouncers
-//     AddFunction bt_stack
-//     {
-//         if HasEquippedItem(ailuro_pouncers) 1
-//         2
-//     }
-    
-//     #desired_targets
-//     AddFunction BrutalSlashDesiredTargets asvalue=1
-//     {
-//         if List(opt_09_desired_targets desired_targets_02) 2
-//         if List(opt_09_desired_targets desired_targets_03) 3
-//         if List(opt_09_desired_targets desired_targets_04) 4
-//         if List(opt_09_desired_targets desired_targets_05) 5
-//         if List(opt_09_desired_targets desired_targets_06) 6
-//         if List(opt_09_desired_targets desired_targets_07) 7
-//         if List(opt_09_desired_targets desired_targets_08) 8
-//         if List(opt_09_desired_targets desired_targets_09) 9
-//     }
-    
-//     #trinket
-//     AddFunction FeralUseItemActions
-//     {
-//         Item(Trinket0Slot text=13 usable=1)
-//         Item(Trinket1Slot text=14 usable=1)
-//     }
-    
-//     #melee_range
-//     AddFunction FeralGetInMeleeRange
-//     {
-//         if CheckBoxOn(opt_melee_range) and target.InRange(shred no)
-//         {
-//             #wild_charge
-//             if target.InRange(wild_charge) Spell(wild_charge)
-//             #displacer_beast,if=movement.distance>25
-//             if target.distance() > 25 Spell(displacer_beast)
-//             #dash,if=movement.distance>25&buff.displacer_beast.down&buff.wild_charge_movement.down
-//             if target.distance() > 25 and BuffExpires(displacer_beast_buff) Spell(dash)
-//             Texture(misc_arrowlup help=L(not_in_melee_range))
-//         }
-//     }
-    
-//     #interrupt
-//     AddFunction FeralInterruptActions
-//     {
-//         if CheckBoxOn(opt_interrupt) and not target.IsFriend() and target.IsInterruptible()
-//         {
-//             if target.InRange(skull_bash) Spell(skull_bash)
-//             if not target.Classification(worldboss)
-//             {
-//                 if target.InRange(mighty_bash) Spell(mighty_bash)
-//                 if target.distance() < 20 Spell(typhoon)
-//                 if target.InRange(maim) Spell(maim)
-//                 if target.distance() < 8 Spell(war_stomp)
-//             }
-//         }
-//     }
-    
-//     #Tiger's Fury multiplier prediction 
-//     AddFunction TFMultPred asvalue=1
-//     {
-//         if CheckBoxOn(opt_tigers_fury_multiplier_predict) 
-//             and BuffExpires(tigers_fury_buff)
-//             and SpellCooldown(tigers_fury) <= 0
-//             and ShortCd_TigersFury() 1.15
-//         1
-//     }
-    
-    
-    
-//     ########################################
-//     ### Main Action List                 ###
-//     ########################################
-    
-//     #rake,if=buff.prowl.up|buff.shadowmeld.up
-//     AddFunction Main_Rake_Prowl
-//     {
-//         BuffPresent(prowl_buff) 
-//             or BuffPresent(shadowmeld_buff)
-//     }
-    
-//     #dash,if=buff.cat_form.down
-//     #AddFunction Main_Dash_CatForm #### Unused
-//     #{
-//     #   BuffExpires(cat_form_buff)
-//     #}
-    
-//     #cat_form,if=buff.cat_form.down
-//     #AddFunction Main_CatForm #### Unused
-//     #{
-//     #   BuffExpires(cat_form_buff)
-//     #}
-    
-    
-//     #######call_action_list,name=opener,if=!dot.rip.ticking&time<8
-//     # MODIFICATION: Add target.Classification(worldboss)
-//     # REASON: Only use opener on bosses.
-//     AddFunction Main_Opener_Conditions
-//     {
-//         target.DebuffExpires(rip_debuff) 
-//             and TimeInCombat() < 8
-//             and target.Classification(worldboss)
-//     }
-    
-    
-//     #######call_action_list,name=cooldowns
-//     #AddFunction Main_Cooldowns_Conditions #### Unused
-//     #{
-//     #
-//     #}
-    
-//     #tigers_fury,if=energy.deficit>=60
-//     AddFunction ShortCd_TigersFury
-//     {
-//         EnergyDeficit() >= 60
-//     }
-    
-//     # MODIFICATION: Predator TF
-//     # REASON: Suggest TF anytime its ready if TF is already up to maximize buff uptime.
-//     AddFunction ShortCd_TigersFury_Predator
-//     {
-//         UnitInRaid() 
-//             and Talent(predator_talent) 
-//             and BuffPresent(tigers_fury_buff)
-//     }
-    
-//     #berserk,if=energy>=30&(cooldown.tigers_fury.remains>5|buff.tigers_fury.up)
-//     # MODIFICATION: SpellCooldown(tigers_fury) <= 0 and ShortCd_TigersFury()
-//     # REASON: Make Berserk show up if Tiger's Fury conditions are met
-//     AddFunction Cd_Berserk
-//     {
-//         Energy() >= 30 
-//             and { SpellCooldown(tigers_fury) > 5 
-//                 or BuffPresent(tigers_fury_buff) or TFMultPred() > 1 }
-//     }
-    
-//     #incarnation,if=energy>=30&(cooldown.tigers_fury.remains>15|buff.tigers_fury.up)
-//     # MODIFICATION: SpellCooldown(tigers_fury) <= 0 and ShortCd_TigersFury()
-//     # REASON: Make Incarnation show up if Tiger's Fury conditions are met
-//     AddFunction Cd_Incarnation
-//     {
-//         Energy() >= 30 
-//             and { SpellCooldown(tigers_fury) > 15 
-//                 or BuffPresent(tigers_fury_buff) or TFMultPred() > 1 }
-//     }
-    
-//     #elunes_guidance,if=combo_points=0&energy>=50
-//     AddFunction ShortCd_ElunesGuidance
-//     {
-//         ComboPoints() == 0 
-//             and Energy() >= 50
-//     }
-    
-//     #potion,name=prolonged_power,if=target.time_to_die<65|(time_to_die<180&(buff.berserk.up|buff.incarnation.up))
-//     AddFunction Cd_Potion
-//     {
-//         { target.TimeToDie() < 65 
-//                 or target.TimeToDie() < 180 
-//                 and { BuffPresent(incarnation_king_of_the_jungle_buff) } } # BuffPresent(berserk_cat_buff)
-//             and CheckBoxOn(opt_use_consumables) 
-//             and target.Classification(worldboss)
-//     }
-    
-//     #ashamanes_frenzy,if=combo_points<=2&(!talent.bloodtalons.enabled|buff.bloodtalons.up)
-//     # MODIFICATION: AshamanesFrenzy_Main for CheckBoxOn(opt_ashamanes_frenzy_main_action)
-//     # REASON: Allows player to choose via checkbox whether to add Azshamane's Frenzy to the Main Icon
-//     # MODIFICATION: target.TimeToDie() > 20
-//     # REASON: Does not use Regrowth for Ashamane's Frenzy on targets with less than 20 seconds to live
-//     AddFunction Cooldowns_AshamanesFrenzy
-//     {
-//         CheckBoxOn(opt_ashamanes_frenzy_main_action)
-//             and ComboPoints() <= 2 
-//             and { not Talent(bloodtalons_talent) or BuffPresent(bloodtalons_buff) }
-//             and target.TimeToDie() > 20
-//     }
-    
-//     # MODIFICATION: ShortCd_AshamanesFrenzy for CheckBoxOff(opt_ashamanes_frenzy_main_action)
-//     # REASON: Allows player to choose via checkbox whether to add Azshamane's Frenzy to the Main Icon
-//     AddFunction ShortCd_AshamanesFrenzy
-//     {
-//         CheckBoxOff(opt_ashamanes_frenzy_main_action)
-//             and ComboPoints() <= 2 
-//             and { not Talent(bloodtalons_talent) or BuffPresent(bloodtalons_buff) }
-//     }
-    
-//     #shadowmeld,if=combo_points<5&energy>=action.rake.cost&dot.rake.pmultiplier<2.1&buff.tigers_fury.up&(!talent.bloodtalons.enabled|buff.bloodtalons.up)&(!talent.incarnation.enabled|cooldown.incarnation.remains>18)&!buff.incarnation.up
-//     # MODIFICATION: Cooldowns_Shadowmeld for CheckBoxOn(opt_shadowmeld_main_action)
-//     # REASON: Allows player to choose via checkbox whether to add Shadowmeld to the Main Icon
-//     # MODIFICATION: target.TimeToDie() > BaseDuration(rake_debuff) + 5
-//     # REASON: Does not use Shadowmeld on targets with less than BaseDuration(rake_debuff) + 5 seconds to live
-//     # MODIFICATION: target.InRange(rake)
-//     # REASON: Cannot move after Shadowmeld so add range check before suggesting
-//     AddFunction Cooldowns_Shadowmeld
-//     {
-//         CheckBoxOn(opt_shadowmeld_main_action)
-//             and ComboPoints() < 5 
-//             and Energy() >= PowerCost(rake) 
-//             and target.DebuffPersistentMultiplier(rake_debuff) < 2.1 
-//             and { BuffPresent(tigers_fury_buff) or TFMultPred() > 1 }
-//             and { not Talent(bloodtalons_talent) or BuffPresent(bloodtalons_buff) } 
-//             and { not Talent(incarnation_talent) or SpellCooldown(incarnation_king_of_the_jungle) > 18 } 
-//             and BuffExpires(incarnation_king_of_the_jungle_buff)
-//             and target.TimeToDie() > BaseDuration(rake_debuff) + 5
-//             and target.InRange(rake)
-//     }
-    
-//     # MODIFICATION: Cd_Shadowmeld for CheckBoxOff(opt_shadowmeld_main_action)
-//     # REASON: Allows player to choose via checkbox whether to add Shadowmeld to the Main Icon
-//     AddFunction Cd_Shadowmeld
-//     {
-//         CheckBoxOff(opt_shadowmeld_main_action) 
-//             and ComboPoints() < 5 
-//             and Energy() >= PowerCost(rake) 
-//             and target.DebuffPersistentMultiplier(rake_debuff) < 2.1 
-//             and { BuffPresent(tigers_fury_buff) or TFMultPred() > 1 }
-//             and { not Talent(bloodtalons_talent) or BuffPresent(bloodtalons_buff) } 
-//             and { not Talent(incarnation_talent) or SpellCooldown(incarnation_king_of_the_jungle) > 18 } 
-//             and BuffExpires(incarnation_king_of_the_jungle_buff)
-//             and target.TimeToDie() > BaseDuration(rake_debuff) + 5
-//             and target.InRange(rake)
-//     }
-    
-//     #use_items
-//     #AddFunction Cooldowns_Trinket #### Unused
-//     #{
-//     #
-//     #}
-    
-    
-//     #regrowth,if=talent.bloodtalons.enabled&buff.predatory_swiftness.up&buff.bloodtalons.stack<variable.bt_stack&(buff.predatory_swiftness.remains<1.5|(combo_points=5&(!buff.incarnation.up|dot.rip.remains<8|dot.rake.remains<5)))
-//     AddFunction Main_Regrowth_Expires_or_5CP
-//     {
-//         Talent(bloodtalons_talent) 
-//             and BuffPresent(predatory_swiftness_buff) 
-//             and BuffStacks(bloodtalons_buff) < bt_stack() 
-//             and { BuffRemaining(predatory_swiftness_buff) < 1.5 
-//                 or ComboPoints() == 5 
-//                     and { BuffExpires(incarnation_king_of_the_jungle_buff) 
-//                         or target.DebuffRemaining(rip_debuff) < 8 
-//                         or target.DebuffRemaining(rake_debuff) < 5 } }
-//     }
-    
-//     #ferocious_bite,cycle_targets=1,if=dot.rip.ticking&dot.rip.remains<3&target.time_to_die>10&target.health.pct<variable.execute_range
-//     AddFunction Main_FerociousBite_3SecondRefresh
-//     {
-//         target.DebuffPresent(rip_debuff) 
-//             and target.DebuffRemaining(rip_debuff) < 3 
-//             and target.TimeToDie() > 10 
-//             and target.HealthPercent() < execute_range()
-//     }
-    
-    
-//     #######run_action_list,name=finishers,if=combo_points>4
-//     AddFunction Main_Finishers_Conditions
-//     {
-//         ComboPoints() > 4
-//     }
-    
-//     #savage_roar,if=buff.savage_roar.down
-//     AddFunction Finishers_SavageRoarExpires
-//     {
-//         BuffExpires(savage_roar_buff)
-//     }
-    
-//     #rip,target_if=(!ticking|remains<=variable.rip_refresh&target.health.pct>variable.execute_range|(remains<=duration*0.8&persistent_multiplier>dot.rip.pmultiplier))&target.time_to_die>6+2*active_enemies+remains
-//     # MODIFICATION: TFMultPred when CheckBoxOn(opt_tigers_fury_multiplier_predict)
-//     # REASON: When Tiger's Fury is suggested, treat Rip as if it is already up even if it hasn't been cast yet.
-//     AddFunction Finishers_Rip
-//     {
-//         { target.DebuffExpires(rip_debuff) 
-//                 or target.DebuffRemaining(rip_debuff) <= rip_refresh() 
-//                     and target.HealthPercent() > execute_range() 
-//                 or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 
-//                     and TFMultPred() * PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) } 
-//             and target.TimeToDie() > 6 + 2 * Enemies() + target.DebuffRemaining(rip_debuff)
-//     }
-    
-//     #savage_roar,if=buff.savage_roar.remains<variable.savage_roar_refresh
-//     AddFunction Finishers_SavageRoarRefresh
-//     {
-//         BuffRemaining(savage_roar_buff) < savage_roar_refresh()
-//     }
-    
-//     #maim,if=buff.fiery_red_maimers.up
-//     AddFunction Finishers_Maimers
-//     {
-//         BuffPresent(fiery_red_maimers_buff)
-//     }
-    
-//     #regrowth,if=talent.bloodtalons.enabled&buff.predatory_swiftness.up&buff.bloodtalons.down&((combo_points=2&&cooldown.ashamanes_frenzy.remains<gcd)|(combo_points=4&dot.rake.remains<4))
-//     # MODIFICATION: CheckBoxOn(opt_ashamanes_frenzy_main_action) in Main_Regrowth_AshamanesFrenzy
-//     # REASON: Allows player to choose via checkbox whether to add Ashamane's Frenzy to the Main Icon
-//     # MODIFICATION: target.TimeToDie() > 21
-//     # REASON: Does not use Regrowth for Ashamane's Frenzy on targets with less than 21 seconds to live
-//     AddFunction Main_Regrowth_AshamanesFrenzy
-//     {
-//         CheckBoxOn(opt_ashamanes_frenzy_main_action) 
-//             and Talent(bloodtalons_talent) 
-//             and BuffPresent(predatory_swiftness_buff) 
-//             and BuffExpires(bloodtalons_buff) 
-//             and ComboPoints() == 2 
-//             and SpellCooldown(ashamanes_frenzy) < 0.75 
-//             and target.TimeToDie() > 21
-//     }
-    
-//     # MODIFICATION: ShortCd_Regrowth_AshamanesFrenzy for CheckBoxOff(opt_ashamanes_frenzy_main_action)
-//     # REASON: Allows player to choose via checkbox whether to add Ashamane's Frenzy to the Main Icon
-//     AddFunction ShortCd_Regrowth_AshamanesFrenzy
-//     {
-//         CheckBoxOff(opt_ashamanes_frenzy_main_action) 
-//             and Talent(bloodtalons_talent) 
-//             and BuffPresent(predatory_swiftness_buff) 
-//             and BuffExpires(bloodtalons_buff) 
-//             and ComboPoints() == 2 
-//             and SpellCooldown(ashamanes_frenzy) < 0.75 
-//     }
-    
-//     #regrowth,if=equipped.ailuro_pouncers&talent.bloodtalons.enabled&buff.bloodtalons.down&(buff.predatory_swiftness.stack>2|(buff.predatory_swiftness.stack>1&dot.rake.remains<3))
-//     AddFunction Main_Regrowth_Pouncers
-//     {
-//         HasEquippedItem(ailuro_pouncers) 
-//             and Talent(bloodtalons_talent) 
-//             and BuffExpires(bloodtalons_buff) 
-//             and { BuffStacks(predatory_swiftness_buff) > 2 
-//                 or BuffStacks(predatory_swiftness_buff) > 1 and target.DebuffRemaining(rake_debuff) < 3 }
-//     }
-    
-    
-//     #######run_action_list,name=generators
-//     #AddFunction Main_Generators_Conditions
-//     #{
-//     #
-//     #}
-    
-//     #brutal_slash,if=spell_targets.brutal_slash>desired_targets
-//     AddFunction Generators_BrutalSlash_DesiredTargets
-//     {
-//         Enemies() >= BrutalSlashDesiredTargets()
-//             and { BuffPresent(tigers_fury_buff) or TFMultPred() > 1 or CheckBoxOff(opt_brutal_slash_use_with_tigers_fury) }
-//     }
-    
-//     #pool_resource,for_next=1
-//     #thrash_cat,if=refreshable&spell_targets.thrash_cat>2
-//     AddFunction Generators_ThrashCat_3Targets
-//     {
-//         target.Refreshable(thrash_cat_debuff) 
-//             and Enemies() > 2
-//     }
-    
-//     #rake,target_if=(!ticking|(!talent.bloodtalons.enabled|buff.bloodtalons.up)&remains<=variable.rake_refresh&persistent_multiplier>dot.rake.pmultiplier*0.85)&target.time_to_die>6+remains
-//     AddFunction Generators_Rake
-//     {
-//         { not target.DebuffPresent(rake_debuff) 
-//                 or { not Talent(bloodtalons_talent) or BuffPresent(bloodtalons_buff) } 
-//                     and target.DebuffRemaining(rake_debuff) <= rake_refresh() 
-//                     and PersistentMultiplier(rake_debuff) > target.DebuffPersistentMultiplier(rake_debuff) * 0.85 } 
-//             and target.TimeToDie() > 6 + target.DebuffRemaining(rake_debuff)
-//     }
-    
-//     #brutal_slash,if=(buff.tigers_fury.up&(raid_event.adds.in>(1+max_charges-charges_fractional)*recharge_time))
-//     AddFunction Generators_BrutalSlash_3Charges
-//     {
-//         CheckBoxOn(opt_brutal_slash_use_at_three_always)
-//             and Charges(brutal_slash count=0) > 2.66 
-//     }
-    
-//     #moonfire_cat,target_if=refreshable&target.time_to_die>4+remains
-//     AddFunction Generators_MoonfireCat
-//     {
-//         target.Refreshable(moonfire_cat_debuff) 
-//             and target.TimeToDie() > 4 + target.DebuffRemaining(moonfire_cat_debuff)
-//     }
-    
-//     #pool_resource,for_next=1
-//     #thrash_cat,if=refreshable&(variable.use_thrash=1|spell_targets.thrash_cat>1)
-//     AddFunction Generators_ThrashCat_Luffa_or_2Targets
-//     {
-//         target.Refreshable(thrash_cat_debuff) 
-//             and { use_thrash() == 1 or Enemies() > 1 }
-//     }
-    
-//     #pool_resource,for_next=1
-//     #swipe_cat,if=spell_targets.swipe_cat>1
-//     AddFunction Generators_SwipeCat
-//     {
-//         Enemies() > 1
-//     }
-    
-//     #shred,if=dot.rake.remains>(action.shred.cost+action.rake.cost-energy)%energy.regen|buff.clearcasting.react
-//     # MODIFICATION: or target.TimeToDie() <= 6 + target.DebuffRemaining(rake_debuff)
-//     # REASON: To make shred show up if Rake is not on a target about to die.
-//     AddFunction Generators_Shred
-//     {
-//         EnergyRegenRate() > 0 and target.DebuffRemaining(rake_debuff) > { PowerCost(shred) + PowerCost(rake) - Energy() } / EnergyRegenRate()
-//             or BuffPresent(clearcasting_buff)
-//             or target.TimeToDie() <= 6 + target.DebuffRemaining(rake_debuff)
-//     }
-    
-    
-//     ### actions.default
-    
-//     AddFunction FeralDefaultMainActions
-//     {
-//         #rake,if=buff.prowl.up|buff.shadowmeld.up
-//         if Main_Rake_Prowl() Spell(rake)
-        
-//         #dash,if=buff.cat_form.down
-//         if BuffExpires(cat_form_buff) Spell(dash)
-        
-//         #cat_form,if=buff.cat_form.down
-//         if BuffExpires(cat_form_buff) Spell(cat_form)
-        
-//         #call_action_list,name=opener,if=!dot.rip.ticking&time<8
-//         if Main_Opener_Conditions() FeralOpenerMainActions()
-        
-//         #call_action_list,name=cooldowns
-//         FeralCooldownsMainActions()
-        
-//         #regrowth,if=talent.bloodtalons.enabled&buff.predatory_swiftness.up&buff.bloodtalons.stack<variable.bt_stack&(buff.predatory_swiftness.remains<1.5|(combo_points=5&(!buff.incarnation.up|dot.rip.remains<8|dot.rake.remains<5)))
-//         if Main_Regrowth_Expires_or_5CP() Spell(regrowth)
-        
-//         #ferocious_bite,cycle_targets=1,if=dot.rip.ticking&dot.rip.remains<3&target.time_to_die>10&target.health.pct<variable.execute_range
-//         if Main_FerociousBite_3SecondRefresh() Spell(ferocious_bite text=Refresh)
-        
-//         #run_action_list,name=finishers,if=combo_points>4
-//         if Main_Finishers_Conditions() FeralFinishersMainActions()
-//         unless Main_Finishers_Conditions()
-//         {
-//             #regrowth,if=talent.bloodtalons.enabled&buff.predatory_swiftness.up&buff.bloodtalons.down&((combo_points=2&&cooldown.ashamanes_frenzy.remains<gcd)|(combo_points=4&dot.rake.remains<4&buff.bloodtalons.down))
-//             # MODIFICATION: CheckBoxOn(opt_ashamanes_frenzy_main_action) in Main_Regrowth_AshamanesFrenzy
-//             # REASON: Allows player to choose via checkbox whether to add Ashamane's Frenzy to the Main Icon
-//             if Main_Regrowth_AshamanesFrenzy() Spell(regrowth text=AF)
-    
-//             #regrowth,if=equipped.ailuro_pouncers&talent.bloodtalons.enabled&buff.bloodtalons.down&(buff.predatory_swiftness.stack>2|(buff.predatory_swiftness.stack>1&dot.rake.remains<3))
-//             if Main_Regrowth_Pouncers() Spell(regrowth text=Pouncers)
-            
-//             #run_action_list,name=generators
-//             FeralGeneratorsMainActions()
-//         }
-//     }
-    
-//     AddFunction FeralDefaultShortCdActions
-//     {
-//         unless Main_Rake_Prowl() and Spell(rake) or BuffExpires(cat_form_buff) and Spell(cat_form)
-//         {
-//             #auto_attack
-//             FeralGetInMeleeRange()
-            
-//             #call_action_list,name=opener,if=!dot.rip.ticking&time<8
-//             #if Main_Opener_Conditions() FeralOpenerShortCdActions()
-//             unless Main_Opener_Conditions() and FeralOpenerShortCdPostConditions()
-//             {
-//                 #call_action_list,name=cooldowns
-//                 FeralCooldownsShortCdActions()
-                
-//                 unless Main_Finishers_Conditions()
-//                 {
-//                     # MODIFICATION: ShortCd_Regrowth_AshamanesFrenzy for CheckBoxOff(opt_ashamanes_frenzy_main_action)
-//                     # REASON: Allows player to choose via checkbox whether to add Ashamane's Frenzy to the Main Icon
-//                     #regrowth,if=talent.bloodtalons.enabled&buff.predatory_swiftness.up&buff.bloodtalons.down&((combo_points=2&&cooldown.ashamanes_frenzy.remains<gcd)|(combo_points=4&dot.rake.remains<4&buff.bloodtalons.down))
-//                     if ShortCd_Regrowth_AshamanesFrenzy() Spell(regrowth text=AF)
-//                 }
-//             }
-//         }
-//     }
-    
-//     AddFunction FeralDefaultCdActions
-//     {
-//         unless Main_Rake_Prowl() and Spell(rake) or BuffExpires(cat_form_buff) and Spell(cat_form)
-//         {
-//             #skull_bash
-//             FeralInterruptActions()
-            
-//             #call_action_list,name=opener,if=!dot.rip.ticking&time<8
-//             if Main_Opener_Conditions() FeralOpenerCdActions()
-//             unless Main_Opener_Conditions() and FeralOpenerCdPostConditions()
-//             {
-//                 #call_action_list,name=cooldowns
-//                 FeralCooldownsCdActions()
-//             }
-//         }
-//     }
-    
-//     ### actions.cooldowns
-    
-//     AddFunction FeralCooldownsMainActions
-//     {
-//         #ashamanes_frenzy,if=combo_points<=2&(!talent.bloodtalons.enabled|buff.bloodtalons.up)
-//         # MODIFICATION: Cooldowns_AshamanesFrenzy for CheckBoxOn(opt_ashamanes_frenzy_main_action)
-//         # REASON: Allows player to choose via checkbox whether to add Azshamane's Frenzy to the Main Icon
-//         if Cooldowns_AshamanesFrenzy() Spell(ashamanes_frenzy)
-        
-//         #shadowmeld,if=combo_points<5&energy>=action.rake.cost&dot.rake.pmultiplier<2.1&buff.tigers_fury.up&(!talent.bloodtalons.enabled|buff.bloodtalons.up)&(!talent.incarnation.enabled|cooldown.incarnation.remains>18)&!buff.incarnation.up
-//         # MODIFICATION: Cooldowns_Shadowmeld for CheckBoxOn(opt_shadowmeld_main_action)
-//         # REASON: Allows player to choose via checkbox whether to add Shadowmeld to the Main Icon
-//         if Cooldowns_Shadowmeld() Spell(shadowmeld)
-//     }
-    
-//     AddFunction FeralCooldownsShortCdActions
-//     {
-//         #elunes_guidance,if=combo_points=0&energy>=50
-//         if ShortCd_ElunesGuidance() Spell(elunes_guidance)
-        
-//         # MODIFICATION: Show "+TF" text on AF if you should also cast TF
-//         # REASON: Instead of TF blocking AF suggestion.
-//         #ashamanes_frenzy,if=combo_points<=2&(!talent.bloodtalons.enabled|buff.bloodtalons.up)
-//         #if ShortCd_AshamanesFrenzy() 
-//         #{
-//         #    if SpellCooldown(tigers_fury) <= 0 and ShortCd_TigersFury() Spell(ashamanes_frenzy text="+TF")
-//         #    Spell(ashamanes_frenzy)
-//         #}
-        
-//         # MODIFICATION: Moved both tigers_fury to below ashamanes_frenzy
-//         # REASON: Instead show AF with "+TF" text.
-//         #tigers_fury,if=energy.deficit>=60
-//         if ShortCd_TigersFury() Spell(tigers_fury)
-        
-//         # MODIFICATION: ShortCd_TigersFury_Predator
-//         # REASON: Spam Tiger's Fury with predator in raid to maximize raid uptime of versatility buff
-//         if ShortCd_TigersFury_Predator() Spell(tigers_fury text=Pred)
-//     }
-    
-//     AddFunction FeralCooldownsCdActions
-//     {
-//         #berserk,if=energy>=30&(cooldown.tigers_fury.remains>5|buff.tigers_fury.up)
-//         # MODIFICATION: Display potion if it is time to use your DPS potion with your cooldowns
-//         # REASON: Potion won't show up till after Berserk is cast normally
-//         # if Cd_Berserk() 
-//         # {
-//         #     if Cd_Potion() and Item(prolonged_power_potion usable=1) Spell(berserk_cat text=potion)
-//         #     Spell(berserk_cat)
-//         # }
-        
-//         #incarnation,if=energy>=30&(cooldown.tigers_fury.remains>15|buff.tigers_fury.up)
-//         # MODIFICATION: Display potion if it is time to use your DPS potion with your cooldowns
-//         # REASON: Potion won't show up till after Incarnation is cast normally
-//         if Cd_Incarnation() 
-//         {
-//             if Cd_Potion() and Item(prolonged_power_potion usable=1) Spell(incarnation_king_of_the_jungle text=potion)
-//             Spell(incarnation_king_of_the_jungle)
-//         }
-    
-//         unless ShortCd_ElunesGuidance() and Spell(elunes_guidance)
-//         {
-//             #potion,name=prolonged_power,if=target.time_to_die<65|(time_to_die<180&(buff.berserk.up|buff.incarnation.up))
-//             if Cd_Potion() Item(prolonged_power_potion usable=1)
-    
-//             unless Cooldowns_AshamanesFrenzy() and Spell(ashamanes_frenzy)
-//             {
-//                 #shadowmeld,if=combo_points<5&energy>=action.rake.cost&dot.rake.pmultiplier<2.1&buff.tigers_fury.up&(!talent.bloodtalons.enabled|buff.bloodtalons.up)&(!talent.incarnation.enabled|cooldown.incarnation.remains>18)&!buff.incarnation.up
-//                 # MODIFICATION: Cd_Shadowmeld for CheckBoxOff(opt_shadowmeld_main_action)
-//                 # REASON: Allows player to choose via checkbox whether to add Shadowmeld to the Main Icon
-//                 if Cd_Shadowmeld() Spell(shadowmeld)
-                
-//                 #use_items
-//                 FeralUseItemActions()
-//             }
-//         }
-//     }
-    
-//     ### actions.finishers
-    
-//     AddFunction FeralFinishersMainActions
-//     {
-//         #pool_resource,for_next=1
-//         #savage_roar,if=buff.savage_roar.down
-//         if Finishers_SavageRoarExpires() Spell(savage_roar)
-//         unless Finishers_SavageRoarExpires() and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar)
-//         {
-//             #pool_resource,for_next=1
-//             #rip,target_if=(!ticking|remains<=variable.rip_refresh&target.health.pct>variable.execute_range|(remains<=duration*0.8&persistent_multiplier>dot.rip.pmultiplier))&target.time_to_die>6+2*active_enemies+remains
-//             if Finishers_Rip() Spell(rip)
-//             unless Finishers_Rip() and SpellUsable(rip) and SpellCooldown(rip) < TimeToEnergyFor(rip)
-//             {
-//                 #pool_resource,for_next=1
-//                 #savage_roar,if=buff.savage_roar.remains<variable.savage_roar_refresh
-//                 if Finishers_SavageRoarRefresh() Spell(savage_roar)
-//                 unless Finishers_SavageRoarRefresh() and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar)
-//                 {
-//                     #maim,if=buff.fiery_red_maimers.up
-//                     if Finishers_Maimers() Spell(maim)
-                    
-//                     #ferocious_bite,max_energy=1
-//                     if Energy() >= EnergyCost(ferocious_bite max=1) Spell(ferocious_bite)
-//                 }
-//             }
-//         }
-//     }
-    
-//     ### actions.generators
-    
-//     AddFunction FeralGeneratorsMainActions
-//     {
-//         #brutal_slash,if=spell_targets.brutal_slash>desired_targets
-//         if Generators_BrutalSlash_DesiredTargets() Spell(brutal_slash)
-        
-//         #pool_resource,for_next=1
-//         #thrash_cat,if=refreshable&spell_targets.thrash_cat>2
-//         if Generators_ThrashCat_3Targets() Spell(thrash_cat)
-//         unless Generators_ThrashCat_3Targets() and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat)
-//         {
-//             #pool_resource,for_next=1
-//             #rake,target_if=(!ticking|(!talent.bloodtalons.enabled|buff.bloodtalons.up)&remains<=variable.rake_refresh&persistent_multiplier>dot.rake.pmultiplier*0.85)&target.time_to_die>6+remains
-//             if Generators_Rake() Spell(rake)
-//             unless Generators_Rake() and SpellUsable(rake) and SpellCooldown(rake) < TimeToEnergyFor(rake)
-//             {
-//                 #brutal_slash,if=(buff.tigers_fury.up&(raid_event.adds.in>(1+max_charges-charges_fractional)*recharge_time))
-//                 if Generators_BrutalSlash_3Charges() Spell(brutal_slash)
-                
-//                 #moonfire_cat,target_if=refreshable&target.time_to_die>4+remains
-//                 if Generators_MoonfireCat() Spell(moonfire_cat)
-                
-//                 #pool_resource,for_next=1
-//                 #thrash_cat,if=refreshable&(variable.use_thrash=1|spell_targets.thrash_cat>1)
-//                 if Generators_ThrashCat_Luffa_or_2Targets() Spell(thrash_cat)
-//                 unless Generators_ThrashCat_Luffa_or_2Targets() and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat)
-//                 {
-//                     #pool_resource,for_next=1
-//                     #swipe_cat,if=spell_targets.swipe_cat>1
-//                     if Generators_SwipeCat() Spell(swipe_cat)
-//                     unless Generators_SwipeCat() and SpellUsable(swipe_cat) and SpellCooldown(swipe_cat) < TimeToEnergyFor(swipe_cat)
-//                     {
-//                         #shred,if=dot.rake.remains>(action.shred.cost+action.rake.cost-energy)%energy.regen|buff.clearcasting.react
-//                         if Generators_Shred() Spell(shred)
-//                     }
-//                 }
-//             }
-//         }
-//     }
-    
-//     ### actions.opener
-    
-//     AddFunction FeralOpenerMainActions
-//     {
-//         #moonfire_cat,if=talent.lunar_inspiration.enabled&!ticking
-//         if Talent(lunar_inspiration_talent) and not target.DebuffPresent(moonfire_cat_debuff) Spell(moonfire_cat)
-        
-//         #savage_roar,if=buff.savage_roar.down
-//         if BuffExpires(savage_roar_buff) Spell(savage_roar)
-        
-//         #regrowth,if=talent.sabertooth.enabled&talent.bloodtalons.enabled&buff.bloodtalons.down&combo_points=5
-//         if Talent(sabertooth_talent) and Talent(bloodtalons_talent) and BuffExpires(predatory_swiftness_buff) and BuffExpires(bloodtalons_buff) and ComboPoints() == 5 Spell(regrowth text=hardcast)
-//     }
-    
-//     AddFunction FeralOpenerShortCdActions
-//     {
-//         unless Talent(lunar_inspiration_talent) and not target.DebuffPresent(moonfire_cat_debuff) and Spell(moonfire_cat) 
-//             or Finishers_SavageRoarExpires() and Spell(savage_roar)
-//         {
-//             # MODIFICATION: Remove TF display from the opener
-//             # REASON: Shows AF instead.
-//             #tigers_fury,if=buff.savage_roar.up
-//             #if BuffPresent(savage_roar_buff) Spell(tigers_fury)
-//         }
-//     }
-    
-//     AddFunction FeralOpenerShortCdPostConditions
-//     {
-//         Talent(lunar_inspiration_talent) and not target.DebuffPresent(moonfire_cat_debuff) and Spell(moonfire_cat) 
-//             or Finishers_SavageRoarExpires() and Spell(savage_roar) 
-//             or Talent(sabertooth_talent) and Talent(bloodtalons_talent) and BuffExpires(bloodtalons_buff) and ComboPoints() == 5 and Spell(regrowth)
-//     }
-    
-//     AddFunction FeralOpenerCdActions
-//     {
-//         unless Talent(lunar_inspiration_talent) and not target.DebuffPresent(moonfire_cat_debuff) and Spell(moonfire_cat) 
-//             or Finishers_SavageRoarExpires() and Spell(savage_roar)
-//         {
-//             # MODIFICATION: if BuffPresent(savage_roar_buff)
-//             # REASON: Make Berserk/Incarnation show up for the opener
-//             #berserk,if=buff.savage_roar.up
-//             # if BuffPresent(savage_roar_buff) Spell(berserk_cat text="+TF")
-            
-//             #incarnation,if=buff.savage_roar.up
-//             if BuffPresent(savage_roar_buff) Spell(incarnation_king_of_the_jungle text="+TF")
-//         }
-//     }
-    
-//     AddFunction FeralOpenerCdPostConditions
-//     {
-//         Talent(lunar_inspiration_talent) and not target.DebuffPresent(moonfire_cat_debuff) and Spell(moonfire_cat) 
-//             or Finishers_SavageRoarExpires() and Spell(savage_roar) 
-//             or Talent(sabertooth_talent) and Talent(bloodtalons_talent) and BuffExpires(bloodtalons_buff) and ComboPoints() == 5 and Spell(regrowth)
-//     }
-    
-//     ### actions.precombat
-    
-//     AddFunction FeralPrecombatMainActions
-//     {
-//         #flask
-//         #food
-//         #augmentation
-    
-//         #regrowth,if=talent.bloodtalons.enabled
-//         # MODIFICATION: Talent(bloodtalons_talent) to Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff)
-//         # REASON: Only suggest Regrowth out of stealth and if there's <15 seconds remaining
-//         if Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff) Spell(regrowth)
-        
-//         #cat_form
-//         Spell(cat_form)
-        
-//         #savage_roar
-//         if BuffRefreshable(savage_roar_buff) Spell(savage_roar)
-//     }
-    
-//     AddFunction FeralPrecombatMainPostConditions
-//     {
-//     }
-    
-//     AddFunction FeralPrecombatShortCdActions
-//     {
-//         # MODIFICATION: Talent(bloodtalons_talent) to Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff)
-//         # REASON: Only suggest Regrowth out of stealth and if there's <15 seconds remaining
-//         # MODIFICATION: Remove "or Spell(cat_form)"
-//         # REASON: Blocks Prowl from showing up
-//         unless Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff) and Spell(regrowth)
-//         {
-//             #prowl
-//             Spell(prowl)
-//         }
-//     }
-    
-//     AddFunction FeralPrecombatShortCdPostConditions
-//     {
-//         # MODIFICATION: Talent(bloodtalons_talent) to Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff)
-//         # REASON: Only suggest Regrowth out of stealth and if there's <15 seconds remaining
-//         # MODIFICATION: Remove "or Spell(cat_form)"
-//         # REASON: Blocks Prowl from showing up
-//         Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff) and Spell(regrowth)
-//     }
-    
-//     AddFunction FeralPrecombatCdActions
-//     {
-//         unless Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff) and Spell(regrowth)
-//         {
-//             #snapshot_stats
-//             #potion
-//             if CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(prolonged_power_potion usable=1)
-//         }
-//     }
-    
-//     AddFunction FeralPrecombatCdPostConditions
-//     {
-//         # MODIFICATION: Talent(bloodtalons_talent) to Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff)
-//         # REASON: Only suggest Regrowth out of stealth and if there's <15 seconds remaining
-//         # MODIFICATION: Remove "or Spell(cat_form)"
-//         # REASON: Blocks Prowl from showing up
-//         Talent(bloodtalons_talent) and BuffRemaining(bloodtalons_buff) < 15 and BuffExpires(prowl_buff) and Spell(regrowth)
-//     }
-    
-//     ### Feral icons.
-    
-//     AddCheckBox(opt_druid_feral_aoe L(AOE) default specialization=feral)
-    
-//     AddIcon checkbox=!opt_druid_feral_aoe enemies=1 help=shortcd specialization=feral
-//     {
-//         if not InCombat() FeralPrecombatShortCdActions()
-//         unless not InCombat() and FeralPrecombatShortCdPostConditions()
-//         {
-//             FeralDefaultShortCdActions()
-//         }
-//     }
-    
-//     AddIcon checkbox=opt_druid_feral_aoe help=shortcd specialization=feral
-//     {
-//         if not InCombat() FeralPrecombatShortCdActions()
-//         unless not InCombat() and FeralPrecombatShortCdPostConditions()
-//         {
-//             FeralDefaultShortCdActions()
-//         }
-//     }
-    
-//     AddIcon enemies=1 help=main specialization=feral
-//     {
-//         if not InCombat() FeralPrecombatMainActions()
-//         unless not InCombat() and FeralPrecombatMainPostConditions()
-//         {
-//             FeralDefaultMainActions()
-//         }
-//     }
-    
-//     AddIcon checkbox=opt_druid_feral_aoe help=aoe specialization=feral
-//     {
-//         if not InCombat() FeralPrecombatMainActions()
-//         unless not InCombat() and FeralPrecombatMainPostConditions()
-//         {
-//             FeralDefaultMainActions()
-//         }
-//     }
-    
-//     AddIcon checkbox=!opt_druid_feral_aoe enemies=1 help=cd specialization=feral
-//     {
-//         if not InCombat() FeralPrecombatCdActions()
-//         unless not InCombat() and FeralPrecombatCdPostConditions()
-//         {
-//             FeralDefaultCdActions()
-//         }
-//     }
-    
-//     AddIcon checkbox=opt_druid_feral_aoe help=cd specialization=feral
-//     {
-//         if not InCombat() FeralPrecombatCdActions()
-//         unless not InCombat() and FeralPrecombatCdPostConditions()
-//         {
-//             FeralDefaultCdActions()
-//         }
-//     }
-    
-//     ### Required symbols
-//     # ailuro_pouncers
-//     # ashamanes_frenzy
-//     # berserk_cat
-//     # berserk_cat_buff
-//     # bloodtalons_buff
-//     # bloodtalons_talent
-//     # brutal_slash
-//     # cat_form
-//     # cat_form_buff
-//     # clearcasting_buff
-//     # dash
-//     # elunes_guidance
-//     # ferocious_bite
-//     # fiery_red_maimers_buff
-//     # incarnation_king_of_the_jungle
-//     # incarnation_king_of_the_jungle_buff
-//     # incarnation_talent
-//     # luffa_wrappings
-//     # lunar_inspiration_talent
-//     # maim
-//     # mangle
-//     # moonfire_cat
-//     # moonfire_cat_debuff
-//     # predatory_swiftness_buff
-//     # prolonged_power_potion
-//     # prowl
-//     # prowl_buff
-//     # rake
-//     # rake_debuff
-//     # regrowth
-//     # rip
-//     # rip_debuff
-//     # sabertooth_talent
-//     # savage_roar
-//     # savage_roar_buff
-//     # shadowmeld
-//     # shadowmeld_buff
-//     # shred
-//     # swipe_cat
-//     # thrash_cat
-//     # thrash_cat_debuff
-//     # tigers_fury
-//     # tigers_fury_buff
-//     # wild_charge
-//     # wild_charge_bear
-//     # wild_charge_cat
-// `;
-//     OvaleScripts.RegisterScript("DRUID", "feral", name, desc, code, "script");
-// }
+import { OvaleScriptsClass } from "../Scripts";
 
+export function registerDruid(OvaleScripts: OvaleScriptsClass) {
 // THE REST OF THIS FILE IS AUTOMATICALLY GENERATED
 // ANY CHANGES MADE BELOW THIS POINT WILL BE LOST
 
 {
-	const name = "sc_pr_druid_balance"
-	const desc = "[8.0] Simulationcraft: PR_Druid_Balance"
+	const name = "sc_t25_druid_balance"
+	const desc = "[9.0] Simulationcraft: T25_Druid_Balance"
 	const code = `
-# Based on SimulationCraft profile "PR_Druid_Balance".
+# Based on SimulationCraft profile "T25_Druid_Balance".
 #	class=druid
 #	spec=balance
-#	talents=2000231
+#	talents=1000231
 
 Include(ovale_common)
-Include(ovale_trinkets_mop)
-Include(ovale_trinkets_wod)
 Include(ovale_druid_spells)
 
 
-AddFunction az_potm
+AddFunction is_cleave
 {
- if Talent(twin_moons_talent) AzeriteTraitRank(power_of_the_moon_trait)
+ enemies() > 1
 }
 
-AddFunction az_sb
+AddFunction is_aoe
 {
- AzeriteTraitRank(sunblaze_trait)
+ enemies() > 1 and { not hastalent(starlord_talent) or hastalent(stellar_drift_talent) } or enemies() > 2
 }
 
-AddFunction az_ds
+AddFunction starfire_in_solar
 {
- AzeriteTraitRank(dawning_sun_trait)
+ enemies() > 8 + masteryeffect() / 100 / 20 + buffstacks(starsurge_empowerment_buff) / 4
 }
 
-AddFunction az_streak
+AddFunction starfall_wont_fall_off
 {
- AzeriteTraitRank(streaking_stars_trait)
+ astralpower() > 80 - buffremaining(starfall) * 3 / { 100 / { 100 + spellcastspeedpercent() } } - target.debuffremaining(fury_of_elune) * 5 and buffpresent(starfall)
 }
 
-AddCheckBox(opt_interrupt L(interrupt) default specialization=balance)
-AddCheckBox(opt_use_consumables L(opt_use_consumables) default specialization=balance)
-
-AddFunction BalanceInterruptActions
+AddFunction convoke_condition
 {
- if CheckBoxOn(opt_interrupt) and not target.IsFriend() and target.Casting()
+ buffamount(primordial_arcanic_pulsar) < 250 - astralpower() and { spellcooldown(ca_inc) + 10 > message("interpolated_fight_remains is not implemented") or spellcooldown(ca_inc) + 30 < message("interpolated_fight_remains is not implemented") and message("interpolated_fight_remains is not implemented") > 130 or buffremaining(ca_inc_buff) > 7 } and message("eclipse.in_any is not implemented") or message("interpolated_fight_remains is not implemented") % 120 < 15
+}
+
+AddFunction convoke_desync
+{
+ { message("interpolated_fight_remains is not implemented") - 20 } / 120 > { message("interpolated_fight_remains is not implemented") - 25 - 10 * talentpoints(incarnation_talent) - 4 * message("conduit.precise_alignment.enabled is not implemented") } / 180
+}
+
+AddCheckBox(opt_interrupt l(interrupt) default specialization=balance)
+
+AddFunction balanceinterruptactions
+{
+ if checkboxon(opt_interrupt) and not target.isfriend() and target.casting()
  {
-  if target.Distance(less 15) and not target.Classification(worldboss) Spell(typhoon)
-  if target.Distance(less 5) and not target.Classification(worldboss) Spell(war_stomp)
-  if target.InRange(mighty_bash) and not target.Classification(worldboss) Spell(mighty_bash)
-  if target.InRange(solar_beam) and target.IsInterruptible() Spell(solar_beam)
+  if target.inrange(solar_beam) and target.isinterruptible() spell(solar_beam)
+  if target.inrange(mighty_bash) and not target.classification(worldboss) spell(mighty_bash)
+  if target.distance(less 5) and not target.classification(worldboss) spell(war_stomp)
+  if target.distance(less 15) and not target.classification(worldboss) spell(typhoon)
  }
 }
 
-AddFunction BalanceUseItemActions
+AddFunction balanceuseheartessence
 {
- Item(Trinket0Slot text=13 usable=1)
- Item(Trinket1Slot text=14 usable=1)
+ spell(concentrated_flame_essence)
+}
+
+AddFunction balanceuseitemactions
+{
+ item(trinket0slot text=13 usable=1)
+ item(trinket1slot text=14 usable=1)
 }
 
 ### actions.precombat
 
-AddFunction BalancePrecombatMainActions
+AddFunction balanceprecombatmainactions
 {
  #flask
  #food
  #augmentation
- #variable,name=az_streak,value=azerite.streaking_stars.rank
- #variable,name=az_ds,value=azerite.dawning_sun.rank
- #variable,name=az_sb,value=azerite.sunblaze.rank
- #variable,name=az_potm,value=azerite.power_of_the_moon.rank,if=talent.twin_moons.enabled
+ #snapshot_stats
  #moonkin_form
- Spell(moonkin_form_balance)
- #solar_wrath
- Spell(solar_wrath_balance)
+ spell(moonkin_form)
+ #wrath
+ spell(wrath)
+ #wrath
+ spell(wrath)
+ #starsurge,if=spell_targets.starfall<4
+ if enemies() < 4 spell(starsurge)
 }
 
-AddFunction BalancePrecombatMainPostConditions
+AddFunction balanceprecombatmainpostconditions
 {
 }
 
-AddFunction BalancePrecombatShortCdActions
+AddFunction balanceprecombatshortcdactions
 {
 }
 
-AddFunction BalancePrecombatShortCdPostConditions
+AddFunction balanceprecombatshortcdpostconditions
 {
- Spell(moonkin_form_balance) or Spell(solar_wrath_balance)
+ spell(moonkin_form) or spell(wrath) or spell(wrath) or enemies() < 4 and spell(starsurge)
 }
 
-AddFunction BalancePrecombatCdActions
+AddFunction balanceprecombatcdactions
 {
- unless Spell(moonkin_form_balance)
+}
+
+AddFunction balanceprecombatcdpostconditions
+{
+ spell(moonkin_form) or spell(wrath) or spell(wrath) or enemies() < 4 and spell(starsurge)
+}
+
+### actions.aoe
+
+AddFunction balanceaoemainactions
+{
+ #starfall,if=buff.starfall.refreshable&(!runeforge.lycaras_fleeting_glimpse.equipped|time%%45>buff.starfall.remains+2)
+ if message("buff.starfall.refreshable is not implemented") and { not message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") or timeincombat() % 45 > buffremaining(starfall) + 2 } spell(starfall)
+ #sunfire,target_if=refreshable&target.time_to_die>14-spell_targets+remains,if=ap_check&eclipse.in_any
+ if target.refreshable(sunfire) and target.timetodie() > 14 - enemies() + buffremaining(sunfire) and astralpower() >= astralpowercost(sunfire) and message("eclipse.in_any is not implemented") spell(sunfire)
+ #moonfire,target_if=refreshable&target.time_to_die>(14+(spell_targets.starfire*1.5))%spell_targets+remains,if=(cooldown.ca_inc.ready|spell_targets.starfire<3|(eclipse.in_solar|eclipse.in_both|eclipse.in_lunar&!talent.soul_of_the_forest.enabled)&(spell_targets.starfire<10*(1+talent.twin_moons.enabled))&astral_power>50-buff.starfall.remains*6)&!buff.kindred_empowerment_energize.up&ap_check
+ if target.refreshable(moonfire) and target.timetodie() > { 14 + enemies() * 1.5 } / enemies() + buffremaining(moonfire) and { spellcooldown(ca_inc) == 0 or enemies() < 3 or { message("eclipse.in_solar is not implemented") or message("eclipse.in_both is not implemented") or message("eclipse.in_lunar is not implemented") and not hastalent(soul_of_the_forest_talent) } and enemies() < 10 * { 1 + talentpoints(twin_moons_talent) } and astralpower() > 50 - buffremaining(starfall) * 6 } and not buffpresent(kindred_empowerment_energize_buff) and astralpower() >= astralpowercost(moonfire) spell(moonfire)
+ #incarnation,if=(buff.starfall.up|astral_power>50)&!buff.solstice.up&!buff.ca_inc.up&(interpolated_fight_remains<cooldown.convoke_the_spirits.remains+7|interpolated_fight_remains%%180<32|cooldown.convoke_the_spirits.up|!covenant.night_fae)
+ if { buffpresent(starfall) or astralpower() > 50 } and not buffpresent(solstice_buff) and not buffpresent(ca_inc_buff) and { message("interpolated_fight_remains is not implemented") < spellcooldown(convoke_the_spirits) + 7 or message("interpolated_fight_remains is not implemented") % 180 < 32 or not spellcooldown(convoke_the_spirits) > 0 or not message("covenant.night_fae is not implemented") } spell(incarnation)
+ #kindred_spirits,if=interpolated_fight_remains<15|(buff.primordial_arcanic_pulsar.value<250|buff.primordial_arcanic_pulsar.value>=250)&buff.starfall.up&cooldown.ca_inc.remains>50
+ if message("interpolated_fight_remains is not implemented") < 15 or { buffamount(primordial_arcanic_pulsar) < 250 or buffamount(primordial_arcanic_pulsar) >= 250 } and buffpresent(starfall) and spellcooldown(ca_inc) > 50 spell(kindred_spirits)
+ #stellar_flare,target_if=refreshable&time_to_die>15,if=spell_targets.starfire<4&ap_check&(buff.ca_inc.remains>10|!buff.ca_inc.up)
+ if target.refreshable(stellar_flare) and target.timetodie() > 15 and enemies() < 4 and astralpower() >= astralpowercost(stellar_flare) and { buffremaining(ca_inc_buff) > 10 or not buffpresent(ca_inc_buff) } spell(stellar_flare)
+ #adaptive_swarm,target_if=!ticking,if=spell_targets.starfall<9
+ if not buffpresent(adaptive_swarm) and enemies() < 9 spell(adaptive_swarm)
+ #starfall,if=buff.oneths_perception.up&(buff.starfall.refreshable|astral_power>90)
+ if buffpresent(oneths_perception) and { message("buff.starfall.refreshable is not implemented") or astralpower() > 90 } spell(starfall)
+ #starfall,if=covenant.night_fae&variable.convoke_condition&cooldown.convoke_the_spirits.remains<gcd.max*ceil(astral_power%50)&buff.starfall.refreshable
+ if message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 50 } and message("buff.starfall.refreshable is not implemented") spell(starfall)
+ #starsurge,if=covenant.night_fae&variable.convoke_condition&cooldown.convoke_the_spirits.remains<gcd.max*ceil(astral_power%30)&buff.starfall.up
+ if message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 30 } and buffpresent(starfall) spell(starsurge)
+ #variable,name=starfall_wont_fall_off,value=astral_power>80-(buff.starfall.remains*3%spell_haste)-(dot.fury_of_elune.remains*5)&buff.starfall.up
+ #starsurge,if=buff.oneths_clear_vision.up|!starfire.ap_check|(buff.ca_inc.remains<5&buff.ca_inc.up|(buff.ravenous_frenzy.remains<gcd.max*ceil(astral_power%30)&buff.ravenous_frenzy.up))&variable.starfall_wont_fall_off&spell_targets.starfall<3
+ if buffpresent(oneths_clear_vision) or not message("starfire.ap_check is not implemented") or { buffremaining(ca_inc_buff) < 5 and buffpresent(ca_inc_buff) or buffremaining(ravenous_frenzy) < gcd() * { astralpower() / 30 } and buffpresent(ravenous_frenzy) } and starfall_wont_fall_off() and enemies() < 3 spell(starsurge)
+ #new_moon,if=(eclipse.in_any&cooldown.ca_inc.remains>50|(charges=2&recharge_time<5)|charges=3)&ap_check
+ if { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(new_moon) == 2 and spellchargecooldown(new_moon) < 5 or charges(new_moon) == 3 } and astralpower() >= astralpowercost(new_moon) and not spellknown(half_moon) and not spellknown(full_moon) spell(new_moon)
+ #half_moon,if=(eclipse.in_any&cooldown.ca_inc.remains>50|(charges=2&recharge_time<5)|charges=3)&ap_check
+ if { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(half_moon) == 2 and spellchargecooldown(half_moon) < 5 or charges(half_moon) == 3 } and astralpower() >= astralpowercost(half_moon) and spellknown(half_moon) spell(half_moon)
+ #full_moon,if=(eclipse.in_any&cooldown.ca_inc.remains>50|(charges=2&recharge_time<5)|charges=3)&ap_check
+ if { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(full_moon) == 2 and spellchargecooldown(full_moon) < 5 or charges(full_moon) == 3 } and astralpower() >= astralpowercost(full_moon) and spellknown(full_moon) spell(full_moon)
+ #variable,name=starfire_in_solar,value=spell_targets.starfire>8+floor(mastery_value%20)+floor(buff.starsurge_empowerment.stack%4)
+ #wrath,if=eclipse.lunar_next|eclipse.any_next&variable.is_cleave|eclipse.in_solar&!variable.starfire_in_solar|buff.ca_inc.remains<action.starfire.execute_time&!variable.is_cleave&buff.ca_inc.remains<execute_time&buff.ca_inc.up|buff.ravenous_frenzy.up&spell_haste>0.6|!variable.is_cleave&buff.ca_inc.remains>execute_time
+ if message("eclipse.lunar_next is not implemented") or message("eclipse.any_next is not implemented") and is_cleave() or message("eclipse.in_solar is not implemented") and not starfire_in_solar() or buffremaining(ca_inc_buff) < executetime(starfire) and not is_cleave() and buffremaining(ca_inc_buff) < executetime(wrath) and buffpresent(ca_inc_buff) or buffpresent(ravenous_frenzy) and 100 / { 100 + spellcastspeedpercent() } > 0.6 or not is_cleave() and buffremaining(ca_inc_buff) > executetime(wrath) spell(wrath)
+ #starfire
+ spell(starfire)
+ #run_action_list,name=fallthru
+ balancefallthruactions()
+}
+
+AddFunction balanceaoemainpostconditions
+{
+}
+
+AddFunction balanceaoeshortcdactions
+{
+ unless message("buff.starfall.refreshable is not implemented") and { not message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") or timeincombat() % 45 > buffremaining(starfall) + 2 } and spell(starfall) or target.refreshable(sunfire) and target.timetodie() > 14 - enemies() + buffremaining(sunfire) and astralpower() >= astralpowercost(sunfire) and message("eclipse.in_any is not implemented") and spell(sunfire) or target.refreshable(moonfire) and target.timetodie() > { 14 + enemies() * 1.5 } / enemies() + buffremaining(moonfire) and { spellcooldown(ca_inc) == 0 or enemies() < 3 or { message("eclipse.in_solar is not implemented") or message("eclipse.in_both is not implemented") or message("eclipse.in_lunar is not implemented") and not hastalent(soul_of_the_forest_talent) } and enemies() < 10 * { 1 + talentpoints(twin_moons_talent) } and astralpower() > 50 - buffremaining(starfall) * 6 } and not buffpresent(kindred_empowerment_energize_buff) and astralpower() >= astralpowercost(moonfire) and spell(moonfire)
  {
-  #snapshot_stats
-  #potion
-  if CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(rising_death usable=1)
+  #force_of_nature,if=ap_check
+  if astralpower() >= astralpowercost(force_of_nature) spell(force_of_nature)
+
+  unless { buffpresent(starfall) or astralpower() > 50 } and not buffpresent(solstice_buff) and not buffpresent(ca_inc_buff) and { message("interpolated_fight_remains is not implemented") < spellcooldown(convoke_the_spirits) + 7 or message("interpolated_fight_remains is not implemented") % 180 < 32 or not spellcooldown(convoke_the_spirits) > 0 or not message("covenant.night_fae is not implemented") } and spell(incarnation) or { message("interpolated_fight_remains is not implemented") < 15 or { buffamount(primordial_arcanic_pulsar) < 250 or buffamount(primordial_arcanic_pulsar) >= 250 } and buffpresent(starfall) and spellcooldown(ca_inc) > 50 } and spell(kindred_spirits) or target.refreshable(stellar_flare) and target.timetodie() > 15 and enemies() < 4 and astralpower() >= astralpowercost(stellar_flare) and { buffremaining(ca_inc_buff) > 10 or not buffpresent(ca_inc_buff) } and spell(stellar_flare)
+  {
+   #fury_of_elune,if=eclipse.in_any&ap_check&buff.primordial_arcanic_pulsar.value<250&(dot.adaptive_swarm_damage.ticking|!covenant.necrolord|spell_targets>2)
+   if message("eclipse.in_any is not implemented") and astralpower() >= astralpowercost(fury_of_elune) and buffamount(primordial_arcanic_pulsar) < 250 and { target.debuffpresent(adaptive_swarm_damage_debuff) or not message("covenant.necrolord is not implemented") or enemies() > 2 } spell(fury_of_elune)
+
+   unless not buffpresent(adaptive_swarm) and enemies() < 9 and spell(adaptive_swarm) or buffpresent(oneths_perception) and { message("buff.starfall.refreshable is not implemented") or astralpower() > 90 } and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 50 } and message("buff.starfall.refreshable is not implemented") and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 30 } and buffpresent(starfall) and spell(starsurge) or { buffpresent(oneths_clear_vision) or not message("starfire.ap_check is not implemented") or { buffremaining(ca_inc_buff) < 5 and buffpresent(ca_inc_buff) or buffremaining(ravenous_frenzy) < gcd() * { astralpower() / 30 } and buffpresent(ravenous_frenzy) } and starfall_wont_fall_off() and enemies() < 3 } and spell(starsurge) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(new_moon) == 2 and spellchargecooldown(new_moon) < 5 or charges(new_moon) == 3 } and astralpower() >= astralpowercost(new_moon) and not spellknown(half_moon) and not spellknown(full_moon) and spell(new_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(half_moon) == 2 and spellchargecooldown(half_moon) < 5 or charges(half_moon) == 3 } and astralpower() >= astralpowercost(half_moon) and spellknown(half_moon) and spell(half_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(full_moon) == 2 and spellchargecooldown(full_moon) < 5 or charges(full_moon) == 3 } and astralpower() >= astralpowercost(full_moon) and spellknown(full_moon) and spell(full_moon)
+   {
+    #warrior_of_elune
+    spell(warrior_of_elune)
+
+    unless { message("eclipse.lunar_next is not implemented") or message("eclipse.any_next is not implemented") and is_cleave() or message("eclipse.in_solar is not implemented") and not starfire_in_solar() or buffremaining(ca_inc_buff) < executetime(starfire) and not is_cleave() and buffremaining(ca_inc_buff) < executetime(wrath) and buffpresent(ca_inc_buff) or buffpresent(ravenous_frenzy) and 100 / { 100 + spellcastspeedpercent() } > 0.6 or not is_cleave() and buffremaining(ca_inc_buff) > executetime(wrath) } and spell(wrath) or spell(starfire)
+    {
+     #run_action_list,name=fallthru
+     balancefallthruactions()
+    }
+   }
+  }
  }
 }
 
-AddFunction BalancePrecombatCdPostConditions
+AddFunction balanceaoeshortcdpostconditions
 {
- Spell(moonkin_form_balance) or Spell(solar_wrath_balance)
+ message("buff.starfall.refreshable is not implemented") and { not message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") or timeincombat() % 45 > buffremaining(starfall) + 2 } and spell(starfall) or target.refreshable(sunfire) and target.timetodie() > 14 - enemies() + buffremaining(sunfire) and astralpower() >= astralpowercost(sunfire) and message("eclipse.in_any is not implemented") and spell(sunfire) or target.refreshable(moonfire) and target.timetodie() > { 14 + enemies() * 1.5 } / enemies() + buffremaining(moonfire) and { spellcooldown(ca_inc) == 0 or enemies() < 3 or { message("eclipse.in_solar is not implemented") or message("eclipse.in_both is not implemented") or message("eclipse.in_lunar is not implemented") and not hastalent(soul_of_the_forest_talent) } and enemies() < 10 * { 1 + talentpoints(twin_moons_talent) } and astralpower() > 50 - buffremaining(starfall) * 6 } and not buffpresent(kindred_empowerment_energize_buff) and astralpower() >= astralpowercost(moonfire) and spell(moonfire) or { buffpresent(starfall) or astralpower() > 50 } and not buffpresent(solstice_buff) and not buffpresent(ca_inc_buff) and { message("interpolated_fight_remains is not implemented") < spellcooldown(convoke_the_spirits) + 7 or message("interpolated_fight_remains is not implemented") % 180 < 32 or not spellcooldown(convoke_the_spirits) > 0 or not message("covenant.night_fae is not implemented") } and spell(incarnation) or { message("interpolated_fight_remains is not implemented") < 15 or { buffamount(primordial_arcanic_pulsar) < 250 or buffamount(primordial_arcanic_pulsar) >= 250 } and buffpresent(starfall) and spellcooldown(ca_inc) > 50 } and spell(kindred_spirits) or target.refreshable(stellar_flare) and target.timetodie() > 15 and enemies() < 4 and astralpower() >= astralpowercost(stellar_flare) and { buffremaining(ca_inc_buff) > 10 or not buffpresent(ca_inc_buff) } and spell(stellar_flare) or not buffpresent(adaptive_swarm) and enemies() < 9 and spell(adaptive_swarm) or buffpresent(oneths_perception) and { message("buff.starfall.refreshable is not implemented") or astralpower() > 90 } and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 50 } and message("buff.starfall.refreshable is not implemented") and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 30 } and buffpresent(starfall) and spell(starsurge) or { buffpresent(oneths_clear_vision) or not message("starfire.ap_check is not implemented") or { buffremaining(ca_inc_buff) < 5 and buffpresent(ca_inc_buff) or buffremaining(ravenous_frenzy) < gcd() * { astralpower() / 30 } and buffpresent(ravenous_frenzy) } and starfall_wont_fall_off() and enemies() < 3 } and spell(starsurge) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(new_moon) == 2 and spellchargecooldown(new_moon) < 5 or charges(new_moon) == 3 } and astralpower() >= astralpowercost(new_moon) and not spellknown(half_moon) and not spellknown(full_moon) and spell(new_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(half_moon) == 2 and spellchargecooldown(half_moon) < 5 or charges(half_moon) == 3 } and astralpower() >= astralpowercost(half_moon) and spellknown(half_moon) and spell(half_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(full_moon) == 2 and spellchargecooldown(full_moon) < 5 or charges(full_moon) == 3 } and astralpower() >= astralpowercost(full_moon) and spellknown(full_moon) and spell(full_moon) or { message("eclipse.lunar_next is not implemented") or message("eclipse.any_next is not implemented") and is_cleave() or message("eclipse.in_solar is not implemented") and not starfire_in_solar() or buffremaining(ca_inc_buff) < executetime(starfire) and not is_cleave() and buffremaining(ca_inc_buff) < executetime(wrath) and buffpresent(ca_inc_buff) or buffpresent(ravenous_frenzy) and 100 / { 100 + spellcastspeedpercent() } > 0.6 or not is_cleave() and buffremaining(ca_inc_buff) > executetime(wrath) } and spell(wrath) or spell(starfire)
+}
+
+AddFunction balanceaoecdactions
+{
+ unless message("buff.starfall.refreshable is not implemented") and { not message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") or timeincombat() % 45 > buffremaining(starfall) + 2 } and spell(starfall) or target.refreshable(sunfire) and target.timetodie() > 14 - enemies() + buffremaining(sunfire) and astralpower() >= astralpowercost(sunfire) and message("eclipse.in_any is not implemented") and spell(sunfire) or target.refreshable(moonfire) and target.timetodie() > { 14 + enemies() * 1.5 } / enemies() + buffremaining(moonfire) and { spellcooldown(ca_inc) == 0 or enemies() < 3 or { message("eclipse.in_solar is not implemented") or message("eclipse.in_both is not implemented") or message("eclipse.in_lunar is not implemented") and not hastalent(soul_of_the_forest_talent) } and enemies() < 10 * { 1 + talentpoints(twin_moons_talent) } and astralpower() > 50 - buffremaining(starfall) * 6 } and not buffpresent(kindred_empowerment_energize_buff) and astralpower() >= astralpowercost(moonfire) and spell(moonfire) or astralpower() >= astralpowercost(force_of_nature) and spell(force_of_nature)
+ {
+  #ravenous_frenzy,if=buff.ca_inc.up
+  if buffpresent(ca_inc_buff) spell(ravenous_frenzy)
+  #celestial_alignment,if=(buff.starfall.up|astral_power>50)&!buff.solstice.up&!buff.ca_inc.up&(interpolated_fight_remains<cooldown.convoke_the_spirits.remains+7|interpolated_fight_remains%%180<22|cooldown.convoke_the_spirits.up|!covenant.night_fae)
+  if { buffpresent(starfall) or astralpower() > 50 } and not buffpresent(solstice_buff) and not buffpresent(ca_inc_buff) and { message("interpolated_fight_remains is not implemented") < spellcooldown(convoke_the_spirits) + 7 or message("interpolated_fight_remains is not implemented") % 180 < 22 or not spellcooldown(convoke_the_spirits) > 0 or not message("covenant.night_fae is not implemented") } spell(celestial_alignment)
+
+  unless { buffpresent(starfall) or astralpower() > 50 } and not buffpresent(solstice_buff) and not buffpresent(ca_inc_buff) and { message("interpolated_fight_remains is not implemented") < spellcooldown(convoke_the_spirits) + 7 or message("interpolated_fight_remains is not implemented") % 180 < 32 or not spellcooldown(convoke_the_spirits) > 0 or not message("covenant.night_fae is not implemented") } and spell(incarnation) or { message("interpolated_fight_remains is not implemented") < 15 or { buffamount(primordial_arcanic_pulsar) < 250 or buffamount(primordial_arcanic_pulsar) >= 250 } and buffpresent(starfall) and spellcooldown(ca_inc) > 50 } and spell(kindred_spirits) or target.refreshable(stellar_flare) and target.timetodie() > 15 and enemies() < 4 and astralpower() >= astralpowercost(stellar_flare) and { buffremaining(ca_inc_buff) > 10 or not buffpresent(ca_inc_buff) } and spell(stellar_flare)
+  {
+   #variable,name=convoke_condition,value=buff.primordial_arcanic_pulsar.value<250-astral_power&(cooldown.ca_inc.remains+10>interpolated_fight_remains|cooldown.ca_inc.remains+30<interpolated_fight_remains&interpolated_fight_remains>130|buff.ca_inc.remains>7)&eclipse.in_any|interpolated_fight_remains%%120<15
+   #convoke_the_spirits,if=variable.convoke_condition&astral_power<50
+   if convoke_condition() and astralpower() < 50 spell(convoke_the_spirits)
+
+   unless message("eclipse.in_any is not implemented") and astralpower() >= astralpowercost(fury_of_elune) and buffamount(primordial_arcanic_pulsar) < 250 and { target.debuffpresent(adaptive_swarm_damage_debuff) or not message("covenant.necrolord is not implemented") or enemies() > 2 } and spell(fury_of_elune) or not buffpresent(adaptive_swarm) and enemies() < 9 and spell(adaptive_swarm) or buffpresent(oneths_perception) and { message("buff.starfall.refreshable is not implemented") or astralpower() > 90 } and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 50 } and message("buff.starfall.refreshable is not implemented") and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 30 } and buffpresent(starfall) and spell(starsurge) or { buffpresent(oneths_clear_vision) or not message("starfire.ap_check is not implemented") or { buffremaining(ca_inc_buff) < 5 and buffpresent(ca_inc_buff) or buffremaining(ravenous_frenzy) < gcd() * { astralpower() / 30 } and buffpresent(ravenous_frenzy) } and starfall_wont_fall_off() and enemies() < 3 } and spell(starsurge) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(new_moon) == 2 and spellchargecooldown(new_moon) < 5 or charges(new_moon) == 3 } and astralpower() >= astralpowercost(new_moon) and not spellknown(half_moon) and not spellknown(full_moon) and spell(new_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(half_moon) == 2 and spellchargecooldown(half_moon) < 5 or charges(half_moon) == 3 } and astralpower() >= astralpowercost(half_moon) and spellknown(half_moon) and spell(half_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(full_moon) == 2 and spellchargecooldown(full_moon) < 5 or charges(full_moon) == 3 } and astralpower() >= astralpowercost(full_moon) and spellknown(full_moon) and spell(full_moon) or spell(warrior_of_elune) or { message("eclipse.lunar_next is not implemented") or message("eclipse.any_next is not implemented") and is_cleave() or message("eclipse.in_solar is not implemented") and not starfire_in_solar() or buffremaining(ca_inc_buff) < executetime(starfire) and not is_cleave() and buffremaining(ca_inc_buff) < executetime(wrath) and buffpresent(ca_inc_buff) or buffpresent(ravenous_frenzy) and 100 / { 100 + spellcastspeedpercent() } > 0.6 or not is_cleave() and buffremaining(ca_inc_buff) > executetime(wrath) } and spell(wrath) or spell(starfire)
+   {
+    #run_action_list,name=fallthru
+    balancefallthruactions()
+   }
+  }
+ }
+}
+
+AddFunction balanceaoecdpostconditions
+{
+ message("buff.starfall.refreshable is not implemented") and { not message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") or timeincombat() % 45 > buffremaining(starfall) + 2 } and spell(starfall) or target.refreshable(sunfire) and target.timetodie() > 14 - enemies() + buffremaining(sunfire) and astralpower() >= astralpowercost(sunfire) and message("eclipse.in_any is not implemented") and spell(sunfire) or target.refreshable(moonfire) and target.timetodie() > { 14 + enemies() * 1.5 } / enemies() + buffremaining(moonfire) and { spellcooldown(ca_inc) == 0 or enemies() < 3 or { message("eclipse.in_solar is not implemented") or message("eclipse.in_both is not implemented") or message("eclipse.in_lunar is not implemented") and not hastalent(soul_of_the_forest_talent) } and enemies() < 10 * { 1 + talentpoints(twin_moons_talent) } and astralpower() > 50 - buffremaining(starfall) * 6 } and not buffpresent(kindred_empowerment_energize_buff) and astralpower() >= astralpowercost(moonfire) and spell(moonfire) or astralpower() >= astralpowercost(force_of_nature) and spell(force_of_nature) or { buffpresent(starfall) or astralpower() > 50 } and not buffpresent(solstice_buff) and not buffpresent(ca_inc_buff) and { message("interpolated_fight_remains is not implemented") < spellcooldown(convoke_the_spirits) + 7 or message("interpolated_fight_remains is not implemented") % 180 < 32 or not spellcooldown(convoke_the_spirits) > 0 or not message("covenant.night_fae is not implemented") } and spell(incarnation) or { message("interpolated_fight_remains is not implemented") < 15 or { buffamount(primordial_arcanic_pulsar) < 250 or buffamount(primordial_arcanic_pulsar) >= 250 } and buffpresent(starfall) and spellcooldown(ca_inc) > 50 } and spell(kindred_spirits) or target.refreshable(stellar_flare) and target.timetodie() > 15 and enemies() < 4 and astralpower() >= astralpowercost(stellar_flare) and { buffremaining(ca_inc_buff) > 10 or not buffpresent(ca_inc_buff) } and spell(stellar_flare) or message("eclipse.in_any is not implemented") and astralpower() >= astralpowercost(fury_of_elune) and buffamount(primordial_arcanic_pulsar) < 250 and { target.debuffpresent(adaptive_swarm_damage_debuff) or not message("covenant.necrolord is not implemented") or enemies() > 2 } and spell(fury_of_elune) or not buffpresent(adaptive_swarm) and enemies() < 9 and spell(adaptive_swarm) or buffpresent(oneths_perception) and { message("buff.starfall.refreshable is not implemented") or astralpower() > 90 } and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 50 } and message("buff.starfall.refreshable is not implemented") and spell(starfall) or message("covenant.night_fae is not implemented") and convoke_condition() and spellcooldown(convoke_the_spirits) < gcd() * { astralpower() / 30 } and buffpresent(starfall) and spell(starsurge) or { buffpresent(oneths_clear_vision) or not message("starfire.ap_check is not implemented") or { buffremaining(ca_inc_buff) < 5 and buffpresent(ca_inc_buff) or buffremaining(ravenous_frenzy) < gcd() * { astralpower() / 30 } and buffpresent(ravenous_frenzy) } and starfall_wont_fall_off() and enemies() < 3 } and spell(starsurge) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(new_moon) == 2 and spellchargecooldown(new_moon) < 5 or charges(new_moon) == 3 } and astralpower() >= astralpowercost(new_moon) and not spellknown(half_moon) and not spellknown(full_moon) and spell(new_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(half_moon) == 2 and spellchargecooldown(half_moon) < 5 or charges(half_moon) == 3 } and astralpower() >= astralpowercost(half_moon) and spellknown(half_moon) and spell(half_moon) or { message("eclipse.in_any is not implemented") and spellcooldown(ca_inc) > 50 or charges(full_moon) == 2 and spellchargecooldown(full_moon) < 5 or charges(full_moon) == 3 } and astralpower() >= astralpowercost(full_moon) and spellknown(full_moon) and spell(full_moon) or spell(warrior_of_elune) or { message("eclipse.lunar_next is not implemented") or message("eclipse.any_next is not implemented") and is_cleave() or message("eclipse.in_solar is not implemented") and not starfire_in_solar() or buffremaining(ca_inc_buff) < executetime(starfire) and not is_cleave() and buffremaining(ca_inc_buff) < executetime(wrath) and buffpresent(ca_inc_buff) or buffpresent(ravenous_frenzy) and 100 / { 100 + spellcastspeedpercent() } > 0.6 or not is_cleave() and buffremaining(ca_inc_buff) > executetime(wrath) } and spell(wrath) or spell(starfire)
 }
 
 ### actions.default
 
-AddFunction BalanceDefaultMainActions
+AddFunction balance_defaultmainactions
 {
- #sunfire,target_if=refreshable,if=astral_power.deficit>=7&target.time_to_die>5.4&(!buff.celestial_alignment.up&!buff.incarnation.up|!variable.az_streak|!prev_gcd.1.sunfire)&(movement.distance>0|raid_event.movement.in>remains|remains<=execute_time*2)
- if target.Refreshable(sunfire_debuff) and AstralPowerDeficit() >= 7 and target.TimeToDie() > 5.4 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(sunfire) } and { target.Distance() > 0 or 600 > target.DebuffRemaining(sunfire_debuff) or target.DebuffRemaining(sunfire_debuff) <= ExecuteTime(sunfire) * 2 } Spell(sunfire)
- #moonfire,target_if=refreshable,if=astral_power.deficit>=7&target.time_to_die>6.6&(!buff.celestial_alignment.up&!buff.incarnation.up|!variable.az_streak|!prev_gcd.1.moonfire)&(movement.distance>0|raid_event.movement.in>remains|remains<=execute_time*2)
- if target.Refreshable(moonfire_debuff) and AstralPowerDeficit() >= 7 and target.TimeToDie() > 6.6 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(moonfire) } and { target.Distance() > 0 or 600 > target.DebuffRemaining(moonfire_debuff) or target.DebuffRemaining(moonfire_debuff) <= ExecuteTime(moonfire) * 2 } Spell(moonfire)
- #stellar_flare,target_if=refreshable,if=astral_power.deficit>=12&target.time_to_die>7.2&(!buff.celestial_alignment.up&!buff.incarnation.up|!variable.az_streak|!prev_gcd.1.stellar_flare)
- if target.Refreshable(stellar_flare_debuff) and AstralPowerDeficit() >= 12 and target.TimeToDie() > 7.2 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(stellar_flare) } Spell(stellar_flare)
- #lunar_strike,if=astral_power.deficit>=16&(buff.lunar_empowerment.stack=3|(spell_targets<3&astral_power>=40&(buff.lunar_empowerment.stack=2&buff.solar_empowerment.stack=2)))&!(spell_targets.moonfire>=2&variable.az_potm=3&active_enemies=2)
- if AstralPowerDeficit() >= 16 and { BuffStacks(lunar_empowerment_buff) == 3 or Enemies() < 3 and AstralPower() >= 40 and BuffStacks(lunar_empowerment_buff) == 2 and BuffStacks(solar_empowerment_buff) == 2 } and not { Enemies() >= 2 and az_potm() == 3 and Enemies() == 2 } Spell(lunar_strike)
- #solar_wrath,if=astral_power.deficit>=12&(buff.solar_empowerment.stack=3|(variable.az_sb>1&spell_targets.starfall<3&astral_power>=32&!buff.sunblaze.up))&!(spell_targets.moonfire>=2&active_enemies<=4&variable.az_potm=3)|(variable.az_streak&(buff.celestial_alignment.up|buff.incarnation.up)&!prev_gcd.1.solar_wrath&astral_power.deficit>=12)
- if AstralPowerDeficit() >= 12 and { BuffStacks(solar_empowerment_buff) == 3 or az_sb() > 1 and Enemies() < 3 and AstralPower() >= 32 and not BuffPresent(sunblaze_buff) } and not { Enemies() >= 2 and Enemies() <= 4 and az_potm() == 3 } or az_streak() and { BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) } and not PreviousGCDSpell(solar_wrath_balance) and AstralPowerDeficit() >= 12 Spell(solar_wrath_balance)
- #starsurge,if=(spell_targets.starfall<3&(!buff.starlord.up|buff.starlord.remains>=4)|execute_time*(astral_power%40)>target.time_to_die)&(!buff.celestial_alignment.up&!buff.incarnation.up|variable.az_streak<2|!prev_gcd.1.starsurge)&(raid_event.movement.in>(buff.lunar_empowerment.stack*action.lunar_strike.execute_time+buff.solar_empowerment.stack*action.solar_wrath.execute_time)|(astral_power+buff.lunar_empowerment.stack*12+buff.solar_empowerment.stack*8)>=96)
- if { Enemies() < 3 and { not BuffPresent(starlord_buff) or BuffRemaining(starlord_buff) >= 4 } or ExecuteTime(starsurge_balance) * { AstralPower() / 40 } > target.TimeToDie() } and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(starsurge_balance) } and { 600 > BuffStacks(lunar_empowerment_buff) * ExecuteTime(lunar_strike) + BuffStacks(solar_empowerment_buff) * ExecuteTime(solar_wrath_balance) or AstralPower() + BuffStacks(lunar_empowerment_buff) * 12 + BuffStacks(solar_empowerment_buff) * 8 >= 96 } Spell(starsurge_balance)
- #starfall,if=spell_targets.starfall>=3&(!buff.starlord.up|buff.starlord.remains>=4)
- if Enemies() >= 3 and { not BuffPresent(starlord_buff) or BuffRemaining(starlord_buff) >= 4 } Spell(starfall)
- #new_moon,if=astral_power.deficit>10+execute_time%1.5
- if AstralPowerDeficit() > 10 + ExecuteTime(new_moon) / 1.5 and not SpellKnown(half_moon) and not SpellKnown(full_moon) Spell(new_moon)
- #half_moon,if=astral_power.deficit>20+execute_time%1.5
- if AstralPowerDeficit() > 20 + ExecuteTime(half_moon) / 1.5 and SpellKnown(half_moon) Spell(half_moon)
- #full_moon,if=astral_power.deficit>40+execute_time%1.5
- if AstralPowerDeficit() > 40 + ExecuteTime(full_moon) / 1.5 and SpellKnown(full_moon) Spell(full_moon)
- #lunar_strike,if=((buff.warrior_of_elune.up|buff.lunar_empowerment.up|spell_targets>=3&!buff.solar_empowerment.up)&(!buff.celestial_alignment.up&!buff.incarnation.up|variable.az_streak<2|!prev_gcd.1.lunar_strike)|(variable.az_ds&!buff.dawning_sun.up))&!(spell_targets.moonfire>=2&active_enemies<=4&(variable.az_potm=3|variable.az_potm=2&active_enemies=2))
- if { { BuffPresent(warrior_of_elune_buff) or BuffPresent(lunar_empowerment_buff) or Enemies() >= 3 and not BuffPresent(solar_empowerment_buff) } and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(lunar_strike) } or az_ds() and not BuffPresent(dawning_sun_buff) } and not { Enemies() >= 2 and Enemies() <= 4 and { az_potm() == 3 or az_potm() == 2 and Enemies() == 2 } } Spell(lunar_strike)
- #solar_wrath,if=(!buff.celestial_alignment.up&!buff.incarnation.up|variable.az_streak<2|!prev_gcd.1.solar_wrath)&!(spell_targets.moonfire>=2&active_enemies<=4&(variable.az_potm=3|variable.az_potm=2&active_enemies=2))
- if { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(solar_wrath_balance) } and not { Enemies() >= 2 and Enemies() <= 4 and { az_potm() == 3 or az_potm() == 2 and Enemies() == 2 } } Spell(solar_wrath_balance)
- #sunfire,if=(!buff.celestial_alignment.up&!buff.incarnation.up|!variable.az_streak|!prev_gcd.1.sunfire)&!(variable.az_potm>=2&spell_targets.moonfire>=2)
- if { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(sunfire) } and not { az_potm() >= 2 and Enemies() >= 2 } Spell(sunfire)
- #moonfire
- Spell(moonfire)
-}
+ #variable,name=is_aoe,value=spell_targets.starfall>1&(!talent.starlord.enabled|talent.stellar_drift.enabled)|spell_targets.starfall>2
+ #variable,name=is_cleave,value=spell_targets.starfire>1
+ #berserking,if=(!covenant.night_fae|!cooldown.convoke_the_spirits.up)&buff.ca_inc.up
+ if { not message("covenant.night_fae is not implemented") or not { not spellcooldown(convoke_the_spirits) > 0 } } and buffpresent(ca_inc_buff) spell(berserking)
+ #run_action_list,name=aoe,if=variable.is_aoe
+ if is_aoe() balanceaoemainactions()
 
-AddFunction BalanceDefaultMainPostConditions
-{
-}
-
-AddFunction BalanceDefaultShortCdActions
-{
- #warrior_of_elune
- Spell(warrior_of_elune)
- #fury_of_elune,if=(((raid_event.adds.duration%8)*(4)<(raid_event.adds.in%60))|(raid_event.adds.up))&((buff.celestial_alignment.up|buff.incarnation.up)|(cooldown.celestial_alignment.remains>30|cooldown.incarnation.remains>30))
- if { 10 / 8 * 4 < 600 / 60 or False(raid_event_adds_exists) } and { BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) or SpellCooldown(celestial_alignment) > 30 or SpellCooldown(incarnation_chosen_of_elune) > 30 } Spell(fury_of_elune)
- #force_of_nature,if=(buff.celestial_alignment.up|buff.incarnation.up)|(cooldown.celestial_alignment.remains>30|cooldown.incarnation.remains>30)
- if BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) or SpellCooldown(celestial_alignment) > 30 or SpellCooldown(incarnation_chosen_of_elune) > 30 Spell(force_of_nature)
-}
-
-AddFunction BalanceDefaultShortCdPostConditions
-{
- target.Refreshable(sunfire_debuff) and AstralPowerDeficit() >= 7 and target.TimeToDie() > 5.4 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(sunfire) } and { target.Distance() > 0 or 600 > target.DebuffRemaining(sunfire_debuff) or target.DebuffRemaining(sunfire_debuff) <= ExecuteTime(sunfire) * 2 } and Spell(sunfire) or target.Refreshable(moonfire_debuff) and AstralPowerDeficit() >= 7 and target.TimeToDie() > 6.6 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(moonfire) } and { target.Distance() > 0 or 600 > target.DebuffRemaining(moonfire_debuff) or target.DebuffRemaining(moonfire_debuff) <= ExecuteTime(moonfire) * 2 } and Spell(moonfire) or target.Refreshable(stellar_flare_debuff) and AstralPowerDeficit() >= 12 and target.TimeToDie() > 7.2 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(stellar_flare) } and Spell(stellar_flare) or AstralPowerDeficit() >= 16 and { BuffStacks(lunar_empowerment_buff) == 3 or Enemies() < 3 and AstralPower() >= 40 and BuffStacks(lunar_empowerment_buff) == 2 and BuffStacks(solar_empowerment_buff) == 2 } and not { Enemies() >= 2 and az_potm() == 3 and Enemies() == 2 } and Spell(lunar_strike) or { AstralPowerDeficit() >= 12 and { BuffStacks(solar_empowerment_buff) == 3 or az_sb() > 1 and Enemies() < 3 and AstralPower() >= 32 and not BuffPresent(sunblaze_buff) } and not { Enemies() >= 2 and Enemies() <= 4 and az_potm() == 3 } or az_streak() and { BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) } and not PreviousGCDSpell(solar_wrath_balance) and AstralPowerDeficit() >= 12 } and Spell(solar_wrath_balance) or { Enemies() < 3 and { not BuffPresent(starlord_buff) or BuffRemaining(starlord_buff) >= 4 } or ExecuteTime(starsurge_balance) * { AstralPower() / 40 } > target.TimeToDie() } and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(starsurge_balance) } and { 600 > BuffStacks(lunar_empowerment_buff) * ExecuteTime(lunar_strike) + BuffStacks(solar_empowerment_buff) * ExecuteTime(solar_wrath_balance) or AstralPower() + BuffStacks(lunar_empowerment_buff) * 12 + BuffStacks(solar_empowerment_buff) * 8 >= 96 } and Spell(starsurge_balance) or Enemies() >= 3 and { not BuffPresent(starlord_buff) or BuffRemaining(starlord_buff) >= 4 } and Spell(starfall) or AstralPowerDeficit() > 10 + ExecuteTime(new_moon) / 1.5 and not SpellKnown(half_moon) and not SpellKnown(full_moon) and Spell(new_moon) or AstralPowerDeficit() > 20 + ExecuteTime(half_moon) / 1.5 and SpellKnown(half_moon) and Spell(half_moon) or AstralPowerDeficit() > 40 + ExecuteTime(full_moon) / 1.5 and SpellKnown(full_moon) and Spell(full_moon) or { { BuffPresent(warrior_of_elune_buff) or BuffPresent(lunar_empowerment_buff) or Enemies() >= 3 and not BuffPresent(solar_empowerment_buff) } and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(lunar_strike) } or az_ds() and not BuffPresent(dawning_sun_buff) } and not { Enemies() >= 2 and Enemies() <= 4 and { az_potm() == 3 or az_potm() == 2 and Enemies() == 2 } } and Spell(lunar_strike) or { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(solar_wrath_balance) } and not { Enemies() >= 2 and Enemies() <= 4 and { az_potm() == 3 or az_potm() == 2 and Enemies() == 2 } } and Spell(solar_wrath_balance) or { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(sunfire) } and not { az_potm() >= 2 and Enemies() >= 2 } and Spell(sunfire) or Spell(moonfire)
-}
-
-AddFunction BalanceDefaultCdActions
-{
- BalanceInterruptActions()
- #potion,if=buff.celestial_alignment.up|buff.incarnation.up
- if { BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) } and CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(rising_death usable=1)
- #blood_fury,if=buff.celestial_alignment.up|buff.incarnation.up
- if BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) Spell(blood_fury)
- #berserking,if=buff.celestial_alignment.up|buff.incarnation.up
- if BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) Spell(berserking)
- #arcane_torrent,if=buff.celestial_alignment.up|buff.incarnation.up
- if BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) Spell(arcane_torrent_energy)
- #lights_judgment,if=buff.celestial_alignment.up|buff.incarnation.up
- if BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) Spell(lights_judgment)
- #fireblood,if=buff.celestial_alignment.up|buff.incarnation.up
- if BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) Spell(fireblood)
- #ancestral_call,if=buff.celestial_alignment.up|buff.incarnation.up
- if BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) Spell(ancestral_call)
- #use_items
- BalanceUseItemActions()
-
- unless Spell(warrior_of_elune)
+ unless is_aoe() and balanceaoemainpostconditions()
  {
-  #innervate,if=azerite.lively_spirit.enabled&(cooldown.incarnation.up|cooldown.celestial_alignment.remains<12)&(((raid_event.adds.duration%15)*(4)<(raid_event.adds.in%180))|(raid_event.adds.up))
-  if HasAzeriteTrait(lively_spirit_trait) and { not SpellCooldown(incarnation_chosen_of_elune) > 0 or SpellCooldown(celestial_alignment) < 12 } and { 10 / 15 * 4 < 600 / 180 or False(raid_event_adds_exists) } Spell(innervate)
-  #incarnation,if=astral_power>=40&(((raid_event.adds.duration%30)*(4)<(raid_event.adds.in%180))|(raid_event.adds.up))
-  if AstralPower() >= 40 and { 10 / 30 * 4 < 600 / 180 or False(raid_event_adds_exists) } Spell(incarnation_chosen_of_elune)
-  #celestial_alignment,if=astral_power>=40&(!azerite.lively_spirit.enabled|buff.lively_spirit.up)&(((raid_event.adds.duration%15)*(4)<(raid_event.adds.in%180))|(raid_event.adds.up))
-  if AstralPower() >= 40 and { not HasAzeriteTrait(lively_spirit_trait) or BuffPresent(lively_spirit_buff) } and { 10 / 15 * 4 < 600 / 180 or False(raid_event_adds_exists) } Spell(celestial_alignment)
+  #run_action_list,name=dreambinder,if=runeforge.timeworn_dreambinder.equipped
+  if message("runeforge.timeworn_dreambinder.equipped is not implemented") balancedreambinderactions()
+  #run_action_list,name=boat,if=runeforge.balance_of_all_things.equipped
+  if message("runeforge.balance_of_all_things.equipped is not implemented") balanceboatactions()
+  #run_action_list,name=st
+  balancestactions()
  }
 }
 
-AddFunction BalanceDefaultCdPostConditions
+AddFunction balance_defaultmainpostconditions
 {
- Spell(warrior_of_elune) or { 10 / 8 * 4 < 600 / 60 or False(raid_event_adds_exists) } and { BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) or SpellCooldown(celestial_alignment) > 30 or SpellCooldown(incarnation_chosen_of_elune) > 30 } and Spell(fury_of_elune) or { BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) or SpellCooldown(celestial_alignment) > 30 or SpellCooldown(incarnation_chosen_of_elune) > 30 } and Spell(force_of_nature) or target.Refreshable(sunfire_debuff) and AstralPowerDeficit() >= 7 and target.TimeToDie() > 5.4 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(sunfire) } and { target.Distance() > 0 or 600 > target.DebuffRemaining(sunfire_debuff) or target.DebuffRemaining(sunfire_debuff) <= ExecuteTime(sunfire) * 2 } and Spell(sunfire) or target.Refreshable(moonfire_debuff) and AstralPowerDeficit() >= 7 and target.TimeToDie() > 6.6 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(moonfire) } and { target.Distance() > 0 or 600 > target.DebuffRemaining(moonfire_debuff) or target.DebuffRemaining(moonfire_debuff) <= ExecuteTime(moonfire) * 2 } and Spell(moonfire) or target.Refreshable(stellar_flare_debuff) and AstralPowerDeficit() >= 12 and target.TimeToDie() > 7.2 and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(stellar_flare) } and Spell(stellar_flare) or AstralPowerDeficit() >= 16 and { BuffStacks(lunar_empowerment_buff) == 3 or Enemies() < 3 and AstralPower() >= 40 and BuffStacks(lunar_empowerment_buff) == 2 and BuffStacks(solar_empowerment_buff) == 2 } and not { Enemies() >= 2 and az_potm() == 3 and Enemies() == 2 } and Spell(lunar_strike) or { AstralPowerDeficit() >= 12 and { BuffStacks(solar_empowerment_buff) == 3 or az_sb() > 1 and Enemies() < 3 and AstralPower() >= 32 and not BuffPresent(sunblaze_buff) } and not { Enemies() >= 2 and Enemies() <= 4 and az_potm() == 3 } or az_streak() and { BuffPresent(celestial_alignment_buff) or BuffPresent(incarnation_chosen_of_elune_buff) } and not PreviousGCDSpell(solar_wrath_balance) and AstralPowerDeficit() >= 12 } and Spell(solar_wrath_balance) or { Enemies() < 3 and { not BuffPresent(starlord_buff) or BuffRemaining(starlord_buff) >= 4 } or ExecuteTime(starsurge_balance) * { AstralPower() / 40 } > target.TimeToDie() } and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(starsurge_balance) } and { 600 > BuffStacks(lunar_empowerment_buff) * ExecuteTime(lunar_strike) + BuffStacks(solar_empowerment_buff) * ExecuteTime(solar_wrath_balance) or AstralPower() + BuffStacks(lunar_empowerment_buff) * 12 + BuffStacks(solar_empowerment_buff) * 8 >= 96 } and Spell(starsurge_balance) or Enemies() >= 3 and { not BuffPresent(starlord_buff) or BuffRemaining(starlord_buff) >= 4 } and Spell(starfall) or AstralPowerDeficit() > 10 + ExecuteTime(new_moon) / 1.5 and not SpellKnown(half_moon) and not SpellKnown(full_moon) and Spell(new_moon) or AstralPowerDeficit() > 20 + ExecuteTime(half_moon) / 1.5 and SpellKnown(half_moon) and Spell(half_moon) or AstralPowerDeficit() > 40 + ExecuteTime(full_moon) / 1.5 and SpellKnown(full_moon) and Spell(full_moon) or { { BuffPresent(warrior_of_elune_buff) or BuffPresent(lunar_empowerment_buff) or Enemies() >= 3 and not BuffPresent(solar_empowerment_buff) } and { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(lunar_strike) } or az_ds() and not BuffPresent(dawning_sun_buff) } and not { Enemies() >= 2 and Enemies() <= 4 and { az_potm() == 3 or az_potm() == 2 and Enemies() == 2 } } and Spell(lunar_strike) or { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or az_streak() < 2 or not PreviousGCDSpell(solar_wrath_balance) } and not { Enemies() >= 2 and Enemies() <= 4 and { az_potm() == 3 or az_potm() == 2 and Enemies() == 2 } } and Spell(solar_wrath_balance) or { not BuffPresent(celestial_alignment_buff) and not BuffPresent(incarnation_chosen_of_elune_buff) or not az_streak() or not PreviousGCDSpell(sunfire) } and not { az_potm() >= 2 and Enemies() >= 2 } and Spell(sunfire) or Spell(moonfire)
+ is_aoe() and balanceaoemainpostconditions()
+}
+
+AddFunction balance_defaultshortcdactions
+{
+ unless { not message("covenant.night_fae is not implemented") or not { not spellcooldown(convoke_the_spirits) > 0 } } and buffpresent(ca_inc_buff) and spell(berserking)
+ {
+  #run_action_list,name=aoe,if=variable.is_aoe
+  if is_aoe() balanceaoeshortcdactions()
+
+  unless is_aoe() and balanceaoeshortcdpostconditions()
+  {
+   #run_action_list,name=dreambinder,if=runeforge.timeworn_dreambinder.equipped
+   if message("runeforge.timeworn_dreambinder.equipped is not implemented") balancedreambinderactions()
+   #run_action_list,name=boat,if=runeforge.balance_of_all_things.equipped
+   if message("runeforge.balance_of_all_things.equipped is not implemented") balanceboatactions()
+   #run_action_list,name=st
+   balancestactions()
+  }
+ }
+}
+
+AddFunction balance_defaultshortcdpostconditions
+{
+ { not message("covenant.night_fae is not implemented") or not { not spellcooldown(convoke_the_spirits) > 0 } } and buffpresent(ca_inc_buff) and spell(berserking) or is_aoe() and balanceaoeshortcdpostconditions()
+}
+
+AddFunction balance_defaultcdactions
+{
+ balanceinterruptactions()
+
+ unless { not message("covenant.night_fae is not implemented") or not { not spellcooldown(convoke_the_spirits) > 0 } } and buffpresent(ca_inc_buff) and spell(berserking)
+ {
+  #potion,if=buff.ca_inc.up
+  #use_items
+  balanceuseitemactions()
+  #heart_essence,if=level=50
+  if level() == 50 balanceuseheartessence()
+  #run_action_list,name=aoe,if=variable.is_aoe
+  if is_aoe() balanceaoecdactions()
+
+  unless is_aoe() and balanceaoecdpostconditions()
+  {
+   #run_action_list,name=dreambinder,if=runeforge.timeworn_dreambinder.equipped
+   if message("runeforge.timeworn_dreambinder.equipped is not implemented") balancedreambinderactions()
+   #run_action_list,name=boat,if=runeforge.balance_of_all_things.equipped
+   if message("runeforge.balance_of_all_things.equipped is not implemented") balanceboatactions()
+   #run_action_list,name=st
+   balancestactions()
+  }
+ }
+}
+
+AddFunction balance_defaultcdpostconditions
+{
+ { not message("covenant.night_fae is not implemented") or not { not spellcooldown(convoke_the_spirits) > 0 } } and buffpresent(ca_inc_buff) and spell(berserking) or is_aoe() and balanceaoecdpostconditions()
 }
 
 ### Balance icons.
 
-AddCheckBox(opt_druid_balance_aoe L(AOE) default specialization=balance)
+AddCheckBox(opt_druid_balance_aoe l(aoe) default specialization=balance)
 
 AddIcon checkbox=!opt_druid_balance_aoe enemies=1 help=shortcd specialization=balance
 {
- if not InCombat() BalancePrecombatShortCdActions()
- unless not InCombat() and BalancePrecombatShortCdPostConditions()
- {
-  BalanceDefaultShortCdActions()
- }
+ if not incombat() balanceprecombatshortcdactions()
+ balance_defaultshortcdactions()
 }
 
 AddIcon checkbox=opt_druid_balance_aoe help=shortcd specialization=balance
 {
- if not InCombat() BalancePrecombatShortCdActions()
- unless not InCombat() and BalancePrecombatShortCdPostConditions()
- {
-  BalanceDefaultShortCdActions()
- }
+ if not incombat() balanceprecombatshortcdactions()
+ balance_defaultshortcdactions()
 }
 
 AddIcon enemies=1 help=main specialization=balance
 {
- if not InCombat() BalancePrecombatMainActions()
- unless not InCombat() and BalancePrecombatMainPostConditions()
- {
-  BalanceDefaultMainActions()
- }
+ if not incombat() balanceprecombatmainactions()
+ balance_defaultmainactions()
 }
 
 AddIcon checkbox=opt_druid_balance_aoe help=aoe specialization=balance
 {
- if not InCombat() BalancePrecombatMainActions()
- unless not InCombat() and BalancePrecombatMainPostConditions()
- {
-  BalanceDefaultMainActions()
- }
+ if not incombat() balanceprecombatmainactions()
+ balance_defaultmainactions()
 }
 
 AddIcon checkbox=!opt_druid_balance_aoe enemies=1 help=cd specialization=balance
 {
- if not InCombat() BalancePrecombatCdActions()
- unless not InCombat() and BalancePrecombatCdPostConditions()
- {
-  BalanceDefaultCdActions()
- }
+ if not incombat() balanceprecombatcdactions()
+ balance_defaultcdactions()
 }
 
 AddIcon checkbox=opt_druid_balance_aoe help=cd specialization=balance
 {
- if not InCombat() BalancePrecombatCdActions()
- unless not InCombat() and BalancePrecombatCdPostConditions()
- {
-  BalanceDefaultCdActions()
- }
+ if not incombat() balanceprecombatcdactions()
+ balance_defaultcdactions()
 }
 
 ### Required symbols
-# ancestral_call
-# arcane_torrent_energy
+# adaptive_swarm
+# adaptive_swarm_damage_debuff
 # berserking
-# blood_fury
+# ca_inc
+# ca_inc_buff
 # celestial_alignment
-# celestial_alignment_buff
-# dawning_sun_buff
-# dawning_sun_trait
-# fireblood
+# concentrated_flame_essence
+# convoke_the_spirits
 # force_of_nature
 # full_moon
 # fury_of_elune
 # half_moon
-# incarnation_chosen_of_elune
-# incarnation_chosen_of_elune_buff
-# innervate
-# lights_judgment
-# lively_spirit_buff
-# lively_spirit_trait
-# lunar_empowerment_buff
-# lunar_strike
+# incarnation
+# incarnation_talent
+# kindred_empowerment_energize_buff
+# kindred_spirits
 # mighty_bash
 # moonfire
-# moonfire_debuff
-# moonkin_form_balance
+# moonkin_form
 # new_moon
-# power_of_the_moon_trait
-# rising_death
+# oneths_clear_vision
+# oneths_perception
+# primordial_arcanic_pulsar
+# ravenous_frenzy
 # solar_beam
-# solar_empowerment_buff
-# solar_wrath_balance
+# solstice_buff
+# soul_of_the_forest_talent
 # starfall
-# starlord_buff
-# starsurge_balance
+# starfire
+# starlord_talent
+# starsurge
+# starsurge_empowerment_buff
+# stellar_drift_talent
 # stellar_flare
-# stellar_flare_debuff
-# streaking_stars_trait
-# sunblaze_buff
-# sunblaze_trait
 # sunfire
-# sunfire_debuff
 # twin_moons_talent
 # typhoon
 # war_stomp
 # warrior_of_elune
-# warrior_of_elune_buff
+# wrath
 `
 	OvaleScripts.RegisterScript("DRUID", "balance", name, desc, code, "script")
 }
 
 {
-	const name = "sc_pr_druid_feral"
-	const desc = "[8.0] Simulationcraft: PR_Druid_Feral"
+	const name = "sc_t25_druid_feral"
+	const desc = "[9.0] Simulationcraft: T25_Druid_Feral"
 	const code = `
-# Based on SimulationCraft profile "PR_Druid_Feral".
+# Based on SimulationCraft profile "T25_Druid_Feral".
 #	class=druid
 #	spec=feral
-#	talents=3000212
+#	talents=2331122
 
 Include(ovale_common)
-Include(ovale_trinkets_mop)
-Include(ovale_trinkets_wod)
 Include(ovale_druid_spells)
 
 
-AddFunction delayed_tf_opener
+AddFunction reaping_delay
 {
- if Talent(sabertooth_talent) and Talent(bloodtalons_talent) and not Talent(lunar_inspiration_talent) 1
+ if 0 == 0 target.timetodie()
+}
+
+AddFunction best_rip
+{
+ if hastalent(primal_wrath_talent) 0
+}
+
+AddFunction thrash_ticks
+{
+ if hasazeritetrait(wild_fleshrending_trait) 0
+ 8
+}
+
+AddFunction rip_ticks
+{
+ 7
+}
+
+AddFunction filler
+{
+ if hasazeritetrait(wild_fleshrending_trait) 0
+ 1
+}
+
+AddFunction _4cp_bite
+{
  0
 }
 
-AddFunction opener_done
-{
- if target.DebuffPresent(rip_debuff) 1
- 0
-}
+AddCheckBox(opt_interrupt l(interrupt) default specialization=feral)
+AddCheckBox(opt_melee_range l(not_in_melee_range) specialization=feral)
 
-AddFunction use_thrash
+AddFunction feralinterruptactions
 {
- if HasEquippedItem(luffa_wrappings_item) 1
- 0
-}
-
-AddCheckBox(opt_interrupt L(interrupt) default specialization=feral)
-AddCheckBox(opt_melee_range L(not_in_melee_range) specialization=feral)
-AddCheckBox(opt_use_consumables L(opt_use_consumables) default specialization=feral)
-
-AddFunction FeralInterruptActions
-{
- if CheckBoxOn(opt_interrupt) and not target.IsFriend() and target.Casting()
+ if checkboxon(opt_interrupt) and not target.isfriend() and target.casting()
  {
-  if target.Distance(less 15) and not target.Classification(worldboss) Spell(typhoon)
-  if target.Distance(less 5) and not target.Classification(worldboss) Spell(war_stomp)
-  if target.InRange(maim) and not target.Classification(worldboss) Spell(maim)
-  if target.InRange(mighty_bash) and not target.Classification(worldboss) Spell(mighty_bash)
-  if target.InRange(skull_bash) and target.IsInterruptible() Spell(skull_bash)
+  if target.inrange(skull_bash) and target.isinterruptible() spell(skull_bash)
+  if target.inrange(mighty_bash) and not target.classification(worldboss) spell(mighty_bash)
+  if target.inrange(maim) and not target.classification(worldboss) spell(maim)
+  if target.distance(less 5) and not target.classification(worldboss) spell(war_stomp)
+  if target.distance(less 15) and not target.classification(worldboss) spell(typhoon)
  }
 }
 
-AddFunction FeralUseItemActions
+AddFunction feraluseitemactions
 {
- Item(Trinket0Slot text=13 usable=1)
- Item(Trinket1Slot text=14 usable=1)
+ item(trinket0slot text=13 usable=1)
+ item(trinket1slot text=14 usable=1)
 }
 
-AddFunction FeralGetInMeleeRange
+AddFunction feralgetinmeleerange
 {
- if CheckBoxOn(opt_melee_range) and Stance(druid_bear_form) and not target.InRange(mangle) or { Stance(druid_cat_form) or Stance(druid_claws_of_shirvallah) } and not target.InRange(shred)
+ if checkboxon(opt_melee_range) and stance(druid_bear_form) and not target.inrange(mangle) or { stance(druid_cat_form) or stance(druid_claws_of_shirvallah) } and not target.inrange(shred)
  {
-  if target.InRange(wild_charge) Spell(wild_charge)
-  Texture(misc_arrowlup help=L(not_in_melee_range))
+  if target.inrange(wild_charge) spell(wild_charge)
+  texture(misc_arrowlup help=l(not_in_melee_range))
  }
 }
 
-### actions.st_generators
+### actions.stealth
 
-AddFunction FeralStgeneratorsMainActions
+AddFunction feralstealthmainactions
 {
- #regrowth,if=talent.bloodtalons.enabled&buff.predatory_swiftness.up&buff.bloodtalons.down&combo_points=4&dot.rake.remains<4
- if Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffExpires(bloodtalons_buff) and ComboPoints() == 4 and target.DebuffRemaining(rake_debuff) < 4 Spell(regrowth)
- #regrowth,if=equipped.ailuro_pouncers&talent.bloodtalons.enabled&(buff.predatory_swiftness.stack>2|(buff.predatory_swiftness.stack>1&dot.rake.remains<3))&buff.bloodtalons.down
- if HasEquippedItem(ailuro_pouncers_item) and Talent(bloodtalons_talent) and { BuffStacks(predatory_swiftness_buff) > 2 or BuffStacks(predatory_swiftness_buff) > 1 and target.DebuffRemaining(rake_debuff) < 3 } and BuffExpires(bloodtalons_buff) Spell(regrowth)
- #brutal_slash,if=spell_targets.brutal_slash>desired_targets
- if Enemies() > Enemies(tagged=1) Spell(brutal_slash)
- #pool_resource,for_next=1
- #thrash_cat,if=refreshable&(spell_targets.thrash_cat>2)
- if target.Refreshable(thrash_cat_debuff) and Enemies() > 2 Spell(thrash_cat)
- unless target.Refreshable(thrash_cat_debuff) and Enemies() > 2 and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat)
+ #run_action_list,name=bloodtalons,if=talent.bloodtalons.enabled&buff.bloodtalons.down
+ if hastalent(bloodtalons_talent) and buffexpires(bloodtalons) feralbloodtalonsmainactions()
+
+ unless hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and feralbloodtalonsmainpostconditions()
  {
-  #pool_resource,for_next=1
-  #thrash_cat,if=spell_targets.thrash_cat>3&equipped.luffa_wrappings&talent.brutal_slash.enabled
-  if Enemies() > 3 and HasEquippedItem(luffa_wrappings_item) and Talent(brutal_slash_talent) Spell(thrash_cat)
-  unless Enemies() > 3 and HasEquippedItem(luffa_wrappings_item) and Talent(brutal_slash_talent) and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat)
+  #rake,target_if=dot.rake.pmultiplier<1.6&druid.rake.ticks_gained_on_refresh>2
+  if target.debuffpersistentmultiplier(rake_debuff) < 1.6 and message("druid.rake.ticks_gained_on_refresh is not implemented") > 2 spell(rake)
+  #shred
+  spell(shred)
+ }
+}
+
+AddFunction feralstealthmainpostconditions
+{
+ hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and feralbloodtalonsmainpostconditions()
+}
+
+AddFunction feralstealthshortcdactions
+{
+ #run_action_list,name=bloodtalons,if=talent.bloodtalons.enabled&buff.bloodtalons.down
+ if hastalent(bloodtalons_talent) and buffexpires(bloodtalons) feralbloodtalonsshortcdactions()
+}
+
+AddFunction feralstealthshortcdpostconditions
+{
+ hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and feralbloodtalonsshortcdpostconditions() or target.debuffpersistentmultiplier(rake_debuff) < 1.6 and message("druid.rake.ticks_gained_on_refresh is not implemented") > 2 and spell(rake) or spell(shred)
+}
+
+AddFunction feralstealthcdactions
+{
+ #run_action_list,name=bloodtalons,if=talent.bloodtalons.enabled&buff.bloodtalons.down
+ if hastalent(bloodtalons_talent) and buffexpires(bloodtalons) feralbloodtalonscdactions()
+}
+
+AddFunction feralstealthcdpostconditions
+{
+ hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and feralbloodtalonscdpostconditions() or target.debuffpersistentmultiplier(rake_debuff) < 1.6 and message("druid.rake.ticks_gained_on_refresh is not implemented") > 2 and spell(rake) or spell(shred)
+}
+
+### actions.precombat
+
+AddFunction feralprecombatmainactions
+{
+ #flask
+ #food
+ #augmentation
+ #snapshot_stats
+ #flask
+ #food
+ #augmentation
+ #variable,name=4cp_bite,value=0
+ #variable,name=filler,value=1
+ #variable,name=filler,value=0,if=azerite.wild_fleshrending.enabled
+ #variable,name=rip_ticks,value=7
+ #variable,name=thrash_ticks,value=8
+ #variable,name=thrash_ticks,value=0,if=azerite.wild_fleshrending.enabled
+ #snapshot_stats
+ #cat_form
+ spell(cat_form)
+ #prowl
+ spell(prowl)
+}
+
+AddFunction feralprecombatmainpostconditions
+{
+}
+
+AddFunction feralprecombatshortcdactions
+{
+}
+
+AddFunction feralprecombatshortcdpostconditions
+{
+ spell(cat_form) or spell(prowl)
+}
+
+AddFunction feralprecombatcdactions
+{
+}
+
+AddFunction feralprecombatcdpostconditions
+{
+ spell(cat_form) or spell(prowl)
+}
+
+### actions.finisher
+
+AddFunction feralfinishermainactions
+{
+ #savage_roar,if=refreshable
+ if target.refreshable(savage_roar) spell(savage_roar)
+ #variable,name=best_rip,value=0,if=talent.primal_wrath.enabled
+ #cycling_variable,name=best_rip,op=max,value=druid.rip.ticks_gained_on_refresh,if=talent.primal_wrath.enabled
+ #primal_wrath,if=druid.primal_wrath.ticks_gained_on_refresh>(variable.rip_ticks>?variable.best_rip)|spell_targets.primal_wrath>(3+1*talent.sabertooth.enabled)
+ if message("druid.primal_wrath.ticks_gained_on_refresh is not implemented") > rip_ticks() >? best_rip() or enemies() > 3 + 1 * talentpoints(sabertooth_talent) spell(primal_wrath)
+ #rip,target_if=(!ticking|(remains+combo_points*talent.sabertooth.enabled)<duration*0.3|dot.rip.pmultiplier<persistent_multiplier)&druid.rip.ticks_gained_on_refresh>variable.rip_ticks
+ if { not buffpresent(rip) or buffremaining(rip) + combopoints() * talentpoints(sabertooth_talent) < baseduration(rip) * 0.3 or target.debuffpersistentmultiplier(rip) < persistentmultiplier(rip) } and message("druid.rip.ticks_gained_on_refresh is not implemented") > rip_ticks() spell(rip)
+ #maim,if=buff.iron_jaws.up
+ if buffpresent(iron_jaws) spell(maim)
+ #ferocious_bite,max_energy=1,target_if=max:time_to_die
+ if energy() >= energycost(ferocious_bite max=1) spell(ferocious_bite)
+}
+
+AddFunction feralfinishermainpostconditions
+{
+}
+
+AddFunction feralfinishershortcdactions
+{
+}
+
+AddFunction feralfinishershortcdpostconditions
+{
+ target.refreshable(savage_roar) and spell(savage_roar) or { message("druid.primal_wrath.ticks_gained_on_refresh is not implemented") > rip_ticks() >? best_rip() or enemies() > 3 + 1 * talentpoints(sabertooth_talent) } and spell(primal_wrath) or { not buffpresent(rip) or buffremaining(rip) + combopoints() * talentpoints(sabertooth_talent) < baseduration(rip) * 0.3 or target.debuffpersistentmultiplier(rip) < persistentmultiplier(rip) } and message("druid.rip.ticks_gained_on_refresh is not implemented") > rip_ticks() and spell(rip) or buffpresent(iron_jaws) and spell(maim) or energy() >= energycost(ferocious_bite max=1) and spell(ferocious_bite)
+}
+
+AddFunction feralfinishercdactions
+{
+}
+
+AddFunction feralfinishercdpostconditions
+{
+ target.refreshable(savage_roar) and spell(savage_roar) or { message("druid.primal_wrath.ticks_gained_on_refresh is not implemented") > rip_ticks() >? best_rip() or enemies() > 3 + 1 * talentpoints(sabertooth_talent) } and spell(primal_wrath) or { not buffpresent(rip) or buffremaining(rip) + combopoints() * talentpoints(sabertooth_talent) < baseduration(rip) * 0.3 or target.debuffpersistentmultiplier(rip) < persistentmultiplier(rip) } and message("druid.rip.ticks_gained_on_refresh is not implemented") > rip_ticks() and spell(rip) or buffpresent(iron_jaws) and spell(maim) or energy() >= energycost(ferocious_bite max=1) and spell(ferocious_bite)
+}
+
+### actions.filler
+
+AddFunction feralfillermainactions
+{
+ #rake,target_if=variable.filler=1&dot.rake.pmultiplier<=persistent_multiplier
+ if filler() == 1 and target.debuffpersistentmultiplier(rake_debuff) <= persistentmultiplier(rake_debuff) spell(rake)
+ #rake,if=variable.filler=2
+ if filler() == 2 spell(rake)
+ #lunar_inspiration,if=variable.filler=3
+ if filler() == 3 spell(lunar_inspiration)
+ #swipe,if=variable.filler=4
+ if filler() == 4 spell(swipe)
+ #shred
+ spell(shred)
+}
+
+AddFunction feralfillermainpostconditions
+{
+}
+
+AddFunction feralfillershortcdactions
+{
+}
+
+AddFunction feralfillershortcdpostconditions
+{
+ filler() == 1 and target.debuffpersistentmultiplier(rake_debuff) <= persistentmultiplier(rake_debuff) and spell(rake) or filler() == 2 and spell(rake) or filler() == 3 and spell(lunar_inspiration) or filler() == 4 and spell(swipe) or spell(shred)
+}
+
+AddFunction feralfillercdactions
+{
+}
+
+AddFunction feralfillercdpostconditions
+{
+ filler() == 1 and target.debuffpersistentmultiplier(rake_debuff) <= persistentmultiplier(rake_debuff) and spell(rake) or filler() == 2 and spell(rake) or filler() == 3 and spell(lunar_inspiration) or filler() == 4 and spell(swipe) or spell(shred)
+}
+
+### actions.essence
+
+AddFunction feralessencemainactions
+{
+ #thorns,if=active_enemies>desired_targets|raid_event.adds.in>45
+ if enemies() > message("desired_targets is not implemented") or 600 > 45 spell(thorns)
+ #the_unbound_force,if=buff.reckless_force.up|buff.tigers_fury.up
+ if buffpresent(reckless_force_buff) or buffpresent(tigers_fury) spell(the_unbound_force)
+ #memory_of_lucid_dreams,if=buff.berserk_cat.up|buff.incarnation_king_of_the_jungle.up
+ if buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) spell(memory_of_lucid_dreams)
+ #blood_of_the_enemy,if=buff.tigers_fury.up&combo_points=5
+ if buffpresent(tigers_fury) and combopoints() == 5 spell(blood_of_the_enemy)
+ #concentrated_flame,if=buff.tigers_fury.up
+ if buffpresent(tigers_fury) spell(concentrated_flame)
+ #ripple_in_space,if=buff.tigers_fury.up
+ if buffpresent(tigers_fury) spell(ripple_in_space)
+ #worldvein_resonance,if=buff.tigers_fury.up
+ if buffpresent(tigers_fury) spell(worldvein_resonance)
+}
+
+AddFunction feralessencemainpostconditions
+{
+}
+
+AddFunction feralessenceshortcdactions
+{
+ unless { enemies() > message("desired_targets is not implemented") or 600 > 45 } and spell(thorns) or { buffpresent(reckless_force_buff) or buffpresent(tigers_fury) } and spell(the_unbound_force) or { buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(memory_of_lucid_dreams) or buffpresent(tigers_fury) and combopoints() == 5 and spell(blood_of_the_enemy)
+ {
+  #focused_azerite_beam,if=active_enemies>desired_targets|(raid_event.adds.in>90&energy.deficit>=50)
+  if enemies() > message("desired_targets is not implemented") or 600 > 90 and energydeficit() >= 50 spell(focused_azerite_beam)
+  #purifying_blast,if=active_enemies>desired_targets|raid_event.adds.in>60
+  if enemies() > message("desired_targets is not implemented") or 600 > 60 spell(purifying_blast)
+
+  unless buffpresent(tigers_fury) and spell(concentrated_flame) or buffpresent(tigers_fury) and spell(ripple_in_space) or buffpresent(tigers_fury) and spell(worldvein_resonance)
   {
-   #pool_resource,for_next=1
-   #rake,target_if=!ticking|(!talent.bloodtalons.enabled&remains<duration*0.3)&target.time_to_die>4
-   if not target.DebuffPresent(rake_debuff) or not Talent(bloodtalons_talent) and target.DebuffRemaining(rake_debuff) < BaseDuration(rake_debuff) * 0.3 and target.TimeToDie() > 4 Spell(rake)
-   unless { not target.DebuffPresent(rake_debuff) or not Talent(bloodtalons_talent) and target.DebuffRemaining(rake_debuff) < BaseDuration(rake_debuff) * 0.3 and target.TimeToDie() > 4 } and SpellUsable(rake) and SpellCooldown(rake) < TimeToEnergyFor(rake)
+   #reaping_flames,target_if=target.time_to_die<1.5|((target.health.pct>80|target.health.pct<=20)&variable.reaping_delay>29)|(target.time_to_pct_20>30&variable.reaping_delay>44)
+   if target.timetodie() < 1.5 or { target.healthpercent() > 80 or target.healthpercent() <= 20 } and reaping_delay() > 29 or target.timetohealthpercent(20) > 30 and reaping_delay() > 44 spell(reaping_flames)
+  }
+ }
+}
+
+AddFunction feralessenceshortcdpostconditions
+{
+ { enemies() > message("desired_targets is not implemented") or 600 > 45 } and spell(thorns) or { buffpresent(reckless_force_buff) or buffpresent(tigers_fury) } and spell(the_unbound_force) or { buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(memory_of_lucid_dreams) or buffpresent(tigers_fury) and combopoints() == 5 and spell(blood_of_the_enemy) or buffpresent(tigers_fury) and spell(concentrated_flame) or buffpresent(tigers_fury) and spell(ripple_in_space) or buffpresent(tigers_fury) and spell(worldvein_resonance)
+}
+
+AddFunction feralessencecdactions
+{
+ unless { enemies() > message("desired_targets is not implemented") or 600 > 45 } and spell(thorns) or { buffpresent(reckless_force_buff) or buffpresent(tigers_fury) } and spell(the_unbound_force) or { buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(memory_of_lucid_dreams) or buffpresent(tigers_fury) and combopoints() == 5 and spell(blood_of_the_enemy) or { enemies() > message("desired_targets is not implemented") or 600 > 90 and energydeficit() >= 50 } and spell(focused_azerite_beam) or { enemies() > message("desired_targets is not implemented") or 600 > 60 } and spell(purifying_blast)
+ {
+  #guardian_of_azeroth,if=buff.tigers_fury.up
+  if buffpresent(tigers_fury) spell(guardian_of_azeroth)
+ }
+}
+
+AddFunction feralessencecdpostconditions
+{
+ { enemies() > message("desired_targets is not implemented") or 600 > 45 } and spell(thorns) or { buffpresent(reckless_force_buff) or buffpresent(tigers_fury) } and spell(the_unbound_force) or { buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(memory_of_lucid_dreams) or buffpresent(tigers_fury) and combopoints() == 5 and spell(blood_of_the_enemy) or { enemies() > message("desired_targets is not implemented") or 600 > 90 and energydeficit() >= 50 } and spell(focused_azerite_beam) or { enemies() > message("desired_targets is not implemented") or 600 > 60 } and spell(purifying_blast) or buffpresent(tigers_fury) and spell(concentrated_flame) or buffpresent(tigers_fury) and spell(ripple_in_space) or buffpresent(tigers_fury) and spell(worldvein_resonance) or { target.timetodie() < 1.5 or { target.healthpercent() > 80 or target.healthpercent() <= 20 } and reaping_delay() > 29 or target.timetohealthpercent(20) > 30 and reaping_delay() > 44 } and spell(reaping_flames)
+}
+
+### actions.cooldown
+
+AddFunction feralcooldownmainactions
+{
+ #incarnation,if=buff.prowl.down
+ if buffexpires(prowl) spell(incarnation)
+ #berserking,if=buff.tigers_fury.up|buff.berserk_cat.up|buff.incarnation_king_of_the_jungle.up
+ if buffpresent(tigers_fury) or buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) spell(berserking)
+ #potion,if=buff.berserk_cat.up|buff.incarnation_king_of_the_jungle.up
+ #call_action_list,name=essence
+ feralessencemainactions()
+}
+
+AddFunction feralcooldownmainpostconditions
+{
+ feralessencemainpostconditions()
+}
+
+AddFunction feralcooldownshortcdactions
+{
+ unless buffexpires(prowl) and spell(incarnation)
+ {
+  #tigers_fury,if=energy.deficit>55|buff.berserk_cat.remains<13|buff.incarnation_king_of_the_jungle.remains<13
+  if energydeficit() > 55 or buffremaining(berserk_cat_buff) < 13 or buffremaining(incarnation_king_of_the_jungle) < 13 spell(tigers_fury)
+
+  unless { buffpresent(tigers_fury) or buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(berserking)
+  {
+   #potion,if=buff.berserk_cat.up|buff.incarnation_king_of_the_jungle.up
+   #call_action_list,name=essence
+   feralessenceshortcdactions()
+  }
+ }
+}
+
+AddFunction feralcooldownshortcdpostconditions
+{
+ buffexpires(prowl) and spell(incarnation) or { buffpresent(tigers_fury) or buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(berserking) or feralessenceshortcdpostconditions()
+}
+
+AddFunction feralcooldowncdactions
+{
+ #berserk,if=buff.prowl.down
+ if buffexpires(prowl) spell(berserk)
+
+ unless buffexpires(prowl) and spell(incarnation) or { energydeficit() > 55 or buffremaining(berserk_cat_buff) < 13 or buffremaining(incarnation_king_of_the_jungle) < 13 } and spell(tigers_fury)
+ {
+  #shadowmeld,if=buff.tigers_fury.up&buff.berserk_cat.down&buff.incarnation_king_of_the_jungle.down&buff.prowl.down&combo_points<4&dot.rake.pmultiplier<1.6&energy>40
+  if buffpresent(tigers_fury) and buffexpires(berserk_cat_buff) and buffexpires(incarnation_king_of_the_jungle) and buffexpires(prowl) and combopoints() < 4 and target.debuffpersistentmultiplier(rake_debuff) < 1.6 and energy() > 40 spell(shadowmeld)
+
+  unless { buffpresent(tigers_fury) or buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(berserking)
+  {
+   #potion,if=buff.berserk_cat.up|buff.incarnation_king_of_the_jungle.up
+   #call_action_list,name=essence
+   feralessencecdactions()
+
+   unless feralessencecdpostconditions()
    {
-    #pool_resource,for_next=1
-    #rake,target_if=talent.bloodtalons.enabled&buff.bloodtalons.up&((remains<=7)&persistent_multiplier>dot.rake.pmultiplier*0.85)&target.time_to_die>4
-    if Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and target.DebuffRemaining(rake_debuff) <= 7 and PersistentMultiplier(rake_debuff) > target.DebuffPersistentMultiplier(rake_debuff) * 0.85 and target.TimeToDie() > 4 Spell(rake)
-    unless Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and target.DebuffRemaining(rake_debuff) <= 7 and PersistentMultiplier(rake_debuff) > target.DebuffPersistentMultiplier(rake_debuff) * 0.85 and target.TimeToDie() > 4 and SpellUsable(rake) and SpellCooldown(rake) < TimeToEnergyFor(rake)
+    #use_item,name=ashvanes_razor_coral,if=debuff.razor_coral_debuff.down|debuff.conductive_ink_debuff.up&target.time_to_pct_30<1.5|!debuff.conductive_ink_debuff.up&(debuff.razor_coral_debuff.stack>=25-10*debuff.blood_of_the_enemy.up|target.time_to_die<40)&buff.tigers_fury.remains>10
+    if target.debuffexpires(razor_coral) or target.debuffpresent(conductive_ink_debuff) and target.timetohealthpercent(30) < 1.5 or not target.debuffpresent(conductive_ink_debuff) and { target.debuffstacks(razor_coral) >= 25 - 10 * target.debuffpresent(blood_of_the_enemy) or target.timetodie() < 40 } and buffremaining(tigers_fury) > 10 feraluseitemactions()
+    #use_items,if=buff.tigers_fury.up|target.time_to_die<20
+    if buffpresent(tigers_fury) or target.timetodie() < 20 feraluseitemactions()
+   }
+  }
+ }
+}
+
+AddFunction feralcooldowncdpostconditions
+{
+ buffexpires(prowl) and spell(incarnation) or { energydeficit() > 55 or buffremaining(berserk_cat_buff) < 13 or buffremaining(incarnation_king_of_the_jungle) < 13 } and spell(tigers_fury) or { buffpresent(tigers_fury) or buffpresent(berserk_cat_buff) or buffpresent(incarnation_king_of_the_jungle) } and spell(berserking) or feralessencecdpostconditions()
+}
+
+### actions.bloodtalons
+
+AddFunction feralbloodtalonsmainactions
+{
+ #rake,target_if=(!ticking|(refreshable&persistent_multiplier>dot.rake.pmultiplier))&buff.bt_rake.down&druid.rake.ticks_gained_on_refresh>=2
+ if { not target.debuffpresent(rake_debuff) or target.refreshable(rake_debuff) and persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) } and buffexpires(bt_rake_buff) and message("druid.rake.ticks_gained_on_refresh is not implemented") >= 2 spell(rake)
+ #lunar_inspiration,target_if=refreshable&buff.bt_moonfire.down
+ if target.refreshable(lunar_inspiration) and buffexpires(bt_moonfire_buff) spell(lunar_inspiration)
+ #thrash_cat,target_if=refreshable&buff.bt_thrash.down&druid.thrash_cat.ticks_gained_on_refresh>8
+ if target.refreshable(thrash_cat_debuff) and buffexpires(bt_thrash_buff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > 8 spell(thrash_cat)
+ #brutal_slash,if=buff.bt_brutal_slash.down
+ if buffexpires(bt_brutal_slash_buff) spell(brutal_slash)
+ #swipe_cat,if=buff.bt_swipe.down&spell_targets.swipe_cat>1
+ if buffexpires(bt_swipe_buff) and enemies() > 1 spell(swipe_cat)
+ #shred,if=buff.bt_shred.down
+ if buffexpires(bt_shred_buff) spell(shred)
+ #swipe_cat,if=buff.bt_swipe.down
+ if buffexpires(bt_swipe_buff) spell(swipe_cat)
+ #thrash_cat,if=buff.bt_thrash.down
+ if buffexpires(bt_thrash_buff) spell(thrash_cat)
+}
+
+AddFunction feralbloodtalonsmainpostconditions
+{
+}
+
+AddFunction feralbloodtalonsshortcdactions
+{
+}
+
+AddFunction feralbloodtalonsshortcdpostconditions
+{
+ { not target.debuffpresent(rake_debuff) or target.refreshable(rake_debuff) and persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) } and buffexpires(bt_rake_buff) and message("druid.rake.ticks_gained_on_refresh is not implemented") >= 2 and spell(rake) or target.refreshable(lunar_inspiration) and buffexpires(bt_moonfire_buff) and spell(lunar_inspiration) or target.refreshable(thrash_cat_debuff) and buffexpires(bt_thrash_buff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > 8 and spell(thrash_cat) or buffexpires(bt_brutal_slash_buff) and spell(brutal_slash) or buffexpires(bt_swipe_buff) and enemies() > 1 and spell(swipe_cat) or buffexpires(bt_shred_buff) and spell(shred) or buffexpires(bt_swipe_buff) and spell(swipe_cat) or buffexpires(bt_thrash_buff) and spell(thrash_cat)
+}
+
+AddFunction feralbloodtalonscdactions
+{
+}
+
+AddFunction feralbloodtalonscdpostconditions
+{
+ { not target.debuffpresent(rake_debuff) or target.refreshable(rake_debuff) and persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) } and buffexpires(bt_rake_buff) and message("druid.rake.ticks_gained_on_refresh is not implemented") >= 2 and spell(rake) or target.refreshable(lunar_inspiration) and buffexpires(bt_moonfire_buff) and spell(lunar_inspiration) or target.refreshable(thrash_cat_debuff) and buffexpires(bt_thrash_buff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > 8 and spell(thrash_cat) or buffexpires(bt_brutal_slash_buff) and spell(brutal_slash) or buffexpires(bt_swipe_buff) and enemies() > 1 and spell(swipe_cat) or buffexpires(bt_shred_buff) and spell(shred) or buffexpires(bt_swipe_buff) and spell(swipe_cat) or buffexpires(bt_thrash_buff) and spell(thrash_cat)
+}
+
+### actions.default
+
+AddFunction feral_defaultmainactions
+{
+ #cat_form,if=buff.cat_form.down
+ if buffexpires(cat_form) spell(cat_form)
+ #prowl
+ spell(prowl)
+ #variable,name=reaping_delay,value=target.time_to_die,if=variable.reaping_delay=0
+ #cycling_variable,name=reaping_delay,op=min,value=target.time_to_die
+ #call_action_list,name=cooldown
+ feralcooldownmainactions()
+
+ unless feralcooldownmainpostconditions()
+ {
+  #run_action_list,name=finisher,if=combo_points>=(5-variable.4cp_bite)
+  if combopoints() >= 5 - 4cp_bite() feralfinishermainactions()
+
+  unless combopoints() >= 5 - 4cp_bite() and feralfinishermainpostconditions()
+  {
+   #run_action_list,name=stealth,if=buff.berserk_cat.up|buff.incarnation.up|buff.shadowmeld.up|buff.sudden_ambush.up|buff.prowl.up
+   if buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) feralstealthmainactions()
+
+   unless { buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) } and feralstealthmainpostconditions()
+   {
+    #pool_resource,if=talent.bloodtalons.enabled&buff.bloodtalons.down&(energy+3.5*energy.regen+(40*buff.clearcasting.up))>=(115-23*buff.incarnation_king_of_the_jungle.up)&active_bt_triggers=0
+    unless hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and energy() + 3.5 * energy() + 40 * buffpresent(clearcasting) >= 115 - 23 * buffpresent(incarnation_king_of_the_jungle) and message("active_bt_triggers is not implemented") == 0
     {
-     #brutal_slash,if=(buff.tigers_fury.up&(raid_event.adds.in>(1+max_charges-charges_fractional)*recharge_time))
-     if BuffPresent(tigers_fury_buff) and 600 > { 1 + SpellMaxCharges(brutal_slash) - Charges(brutal_slash count=0) } * SpellChargeCooldown(brutal_slash) Spell(brutal_slash)
-     #moonfire_cat,target_if=refreshable
-     if target.Refreshable(moonfire_cat_debuff) Spell(moonfire_cat)
-     #pool_resource,for_next=1
-     #thrash_cat,if=refreshable&(variable.use_thrash=2|spell_targets.thrash_cat>1)
-     if target.Refreshable(thrash_cat_debuff) and { use_thrash() == 2 or Enemies() > 1 } Spell(thrash_cat)
-     unless target.Refreshable(thrash_cat_debuff) and { use_thrash() == 2 or Enemies() > 1 } and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat)
+     #run_action_list,name=bloodtalons,if=talent.bloodtalons.enabled&(buff.bloodtalons.down|active_bt_triggers=2)
+     if hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } feralbloodtalonsmainactions()
+
+     unless hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } and feralbloodtalonsmainpostconditions()
      {
-      #thrash_cat,if=refreshable&variable.use_thrash=1&buff.clearcasting.react
-      if target.Refreshable(thrash_cat_debuff) and use_thrash() == 1 and BuffPresent(clearcasting_buff) Spell(thrash_cat)
-      #pool_resource,for_next=1
-      #swipe_cat,if=spell_targets.swipe_cat>1
-      if Enemies() > 1 Spell(swipe_cat)
-      unless Enemies() > 1 and SpellUsable(swipe_cat) and SpellCooldown(swipe_cat) < TimeToEnergyFor(swipe_cat)
+      #rake,target_if=refreshable|persistent_multiplier>dot.rake.pmultiplier
+      if target.refreshable(rake_debuff) or persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) spell(rake)
+      #moonfire_cat,target_if=refreshable
+      if target.refreshable(moonfire_cat_debuff) spell(moonfire_cat)
+      #thrash_cat,if=refreshable&druid.thrash_cat.ticks_gained_on_refresh>variable.thrash_ticks
+      if target.refreshable(thrash_cat_debuff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > thrash_ticks() spell(thrash_cat)
+      #brutal_slash,if=(buff.tigers_fury.up&(raid_event.adds.in>(1+max_charges-charges_fractional)*recharge_time))&(spell_targets.brutal_slash*action.brutal_slash.damage%action.brutal_slash.cost)>(action.shred.damage%action.shred.cost)
+      if buffpresent(tigers_fury) and 600 > { 1 + spellmaxcharges(brutal_slash) - charges(brutal_slash count=0) } * spellchargecooldown(brutal_slash) and enemies() * damage(brutal_slash) / powercost(brutal_slash) > damage(shred) / powercost(shred) spell(brutal_slash)
+      #swipe_cat,if=spell_targets.swipe_cat>2
+      if enemies() > 2 spell(swipe_cat)
+      #shred,if=buff.clearcasting.up
+      if buffpresent(clearcasting) spell(shred)
+      #call_action_list,name=filler,if=energy.time_to_max<1
+      if energy() < 1 feralfillermainactions()
+     }
+    }
+   }
+  }
+ }
+}
+
+AddFunction feral_defaultmainpostconditions
+{
+ feralcooldownmainpostconditions() or combopoints() >= 5 - 4cp_bite() and feralfinishermainpostconditions() or { buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) } and feralstealthmainpostconditions() or not { hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and energy() + 3.5 * energy() + 40 * buffpresent(clearcasting) >= 115 - 23 * buffpresent(incarnation_king_of_the_jungle) and message("active_bt_triggers is not implemented") == 0 } and { hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } and feralbloodtalonsmainpostconditions() or energy() < 1 and feralfillermainpostconditions() }
+}
+
+AddFunction feral_defaultshortcdactions
+{
+ unless buffexpires(cat_form) and spell(cat_form) or spell(prowl)
+ {
+  #auto_attack,if=!buff.prowl.up&!buff.shadowmeld.up
+  if not buffpresent(prowl) and not buffpresent(shadowmeld) feralgetinmeleerange()
+  #variable,name=reaping_delay,value=target.time_to_die,if=variable.reaping_delay=0
+  #cycling_variable,name=reaping_delay,op=min,value=target.time_to_die
+  #call_action_list,name=cooldown
+  feralcooldownshortcdactions()
+
+  unless feralcooldownshortcdpostconditions()
+  {
+   #run_action_list,name=finisher,if=combo_points>=(5-variable.4cp_bite)
+   if combopoints() >= 5 - 4cp_bite() feralfinishershortcdactions()
+
+   unless combopoints() >= 5 - 4cp_bite() and feralfinishershortcdpostconditions()
+   {
+    #run_action_list,name=stealth,if=buff.berserk_cat.up|buff.incarnation.up|buff.shadowmeld.up|buff.sudden_ambush.up|buff.prowl.up
+    if buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) feralstealthshortcdactions()
+
+    unless { buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) } and feralstealthshortcdpostconditions()
+    {
+     #pool_resource,if=talent.bloodtalons.enabled&buff.bloodtalons.down&(energy+3.5*energy.regen+(40*buff.clearcasting.up))>=(115-23*buff.incarnation_king_of_the_jungle.up)&active_bt_triggers=0
+     unless hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and energy() + 3.5 * energy() + 40 * buffpresent(clearcasting) >= 115 - 23 * buffpresent(incarnation_king_of_the_jungle) and message("active_bt_triggers is not implemented") == 0
+     {
+      #run_action_list,name=bloodtalons,if=talent.bloodtalons.enabled&(buff.bloodtalons.down|active_bt_triggers=2)
+      if hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } feralbloodtalonsshortcdactions()
+
+      unless hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } and feralbloodtalonsshortcdpostconditions() or { target.refreshable(rake_debuff) or persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) } and spell(rake)
       {
-       #shred,if=dot.rake.remains>(action.shred.cost+action.rake.cost-energy)%energy.regen|buff.clearcasting.react
-       if target.DebuffRemaining(rake_debuff) > { PowerCost(shred) + PowerCost(rake) - Energy() } / EnergyRegenRate() or BuffPresent(clearcasting_buff) Spell(shred)
+       #feral_frenzy,if=combo_points=0
+       if combopoints() == 0 spell(feral_frenzy)
+
+       unless target.refreshable(moonfire_cat_debuff) and spell(moonfire_cat) or target.refreshable(thrash_cat_debuff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > thrash_ticks() and spell(thrash_cat) or buffpresent(tigers_fury) and 600 > { 1 + spellmaxcharges(brutal_slash) - charges(brutal_slash count=0) } * spellchargecooldown(brutal_slash) and enemies() * damage(brutal_slash) / powercost(brutal_slash) > damage(shred) / powercost(shred) and spell(brutal_slash) or enemies() > 2 and spell(swipe_cat) or buffpresent(clearcasting) and spell(shred)
+       {
+        #call_action_list,name=filler,if=energy.time_to_max<1
+        if energy() < 1 feralfillershortcdactions()
+       }
       }
      }
     }
@@ -1446,798 +908,726 @@ AddFunction FeralStgeneratorsMainActions
  }
 }
 
-AddFunction FeralStgeneratorsMainPostConditions
+AddFunction feral_defaultshortcdpostconditions
 {
+ buffexpires(cat_form) and spell(cat_form) or spell(prowl) or feralcooldownshortcdpostconditions() or combopoints() >= 5 - 4cp_bite() and feralfinishershortcdpostconditions() or { buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) } and feralstealthshortcdpostconditions() or not { hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and energy() + 3.5 * energy() + 40 * buffpresent(clearcasting) >= 115 - 23 * buffpresent(incarnation_king_of_the_jungle) and message("active_bt_triggers is not implemented") == 0 } and { hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } and feralbloodtalonsshortcdpostconditions() or { target.refreshable(rake_debuff) or persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) } and spell(rake) or target.refreshable(moonfire_cat_debuff) and spell(moonfire_cat) or target.refreshable(thrash_cat_debuff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > thrash_ticks() and spell(thrash_cat) or buffpresent(tigers_fury) and 600 > { 1 + spellmaxcharges(brutal_slash) - charges(brutal_slash count=0) } * spellchargecooldown(brutal_slash) and enemies() * damage(brutal_slash) / powercost(brutal_slash) > damage(shred) / powercost(shred) and spell(brutal_slash) or enemies() > 2 and spell(swipe_cat) or buffpresent(clearcasting) and spell(shred) or energy() < 1 and feralfillershortcdpostconditions() }
 }
 
-AddFunction FeralStgeneratorsShortCdActions
+AddFunction feral_defaultcdactions
 {
-}
+ feralinterruptactions()
 
-AddFunction FeralStgeneratorsShortCdPostConditions
-{
- Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffExpires(bloodtalons_buff) and ComboPoints() == 4 and target.DebuffRemaining(rake_debuff) < 4 and Spell(regrowth) or HasEquippedItem(ailuro_pouncers_item) and Talent(bloodtalons_talent) and { BuffStacks(predatory_swiftness_buff) > 2 or BuffStacks(predatory_swiftness_buff) > 1 and target.DebuffRemaining(rake_debuff) < 3 } and BuffExpires(bloodtalons_buff) and Spell(regrowth) or Enemies() > Enemies(tagged=1) and Spell(brutal_slash) or target.Refreshable(thrash_cat_debuff) and Enemies() > 2 and Spell(thrash_cat) or not { target.Refreshable(thrash_cat_debuff) and Enemies() > 2 and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat) } and { Enemies() > 3 and HasEquippedItem(luffa_wrappings_item) and Talent(brutal_slash_talent) and Spell(thrash_cat) or not { Enemies() > 3 and HasEquippedItem(luffa_wrappings_item) and Talent(brutal_slash_talent) and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat) } and { { not target.DebuffPresent(rake_debuff) or not Talent(bloodtalons_talent) and target.DebuffRemaining(rake_debuff) < BaseDuration(rake_debuff) * 0.3 and target.TimeToDie() > 4 } and Spell(rake) or not { { not target.DebuffPresent(rake_debuff) or not Talent(bloodtalons_talent) and target.DebuffRemaining(rake_debuff) < BaseDuration(rake_debuff) * 0.3 and target.TimeToDie() > 4 } and SpellUsable(rake) and SpellCooldown(rake) < TimeToEnergyFor(rake) } and { Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and target.DebuffRemaining(rake_debuff) <= 7 and PersistentMultiplier(rake_debuff) > target.DebuffPersistentMultiplier(rake_debuff) * 0.85 and target.TimeToDie() > 4 and Spell(rake) or not { Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and target.DebuffRemaining(rake_debuff) <= 7 and PersistentMultiplier(rake_debuff) > target.DebuffPersistentMultiplier(rake_debuff) * 0.85 and target.TimeToDie() > 4 and SpellUsable(rake) and SpellCooldown(rake) < TimeToEnergyFor(rake) } and { BuffPresent(tigers_fury_buff) and 600 > { 1 + SpellMaxCharges(brutal_slash) - Charges(brutal_slash count=0) } * SpellChargeCooldown(brutal_slash) and Spell(brutal_slash) or target.Refreshable(moonfire_cat_debuff) and Spell(moonfire_cat) or target.Refreshable(thrash_cat_debuff) and { use_thrash() == 2 or Enemies() > 1 } and Spell(thrash_cat) or not { target.Refreshable(thrash_cat_debuff) and { use_thrash() == 2 or Enemies() > 1 } and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat) } and { target.Refreshable(thrash_cat_debuff) and use_thrash() == 1 and BuffPresent(clearcasting_buff) and Spell(thrash_cat) or Enemies() > 1 and Spell(swipe_cat) or not { Enemies() > 1 and SpellUsable(swipe_cat) and SpellCooldown(swipe_cat) < TimeToEnergyFor(swipe_cat) } and { target.DebuffRemaining(rake_debuff) > { PowerCost(shred) + PowerCost(rake) - Energy() } / EnergyRegenRate() or BuffPresent(clearcasting_buff) } and Spell(shred) } } } } }
-}
-
-AddFunction FeralStgeneratorsCdActions
-{
-}
-
-AddFunction FeralStgeneratorsCdPostConditions
-{
- Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffExpires(bloodtalons_buff) and ComboPoints() == 4 and target.DebuffRemaining(rake_debuff) < 4 and Spell(regrowth) or HasEquippedItem(ailuro_pouncers_item) and Talent(bloodtalons_talent) and { BuffStacks(predatory_swiftness_buff) > 2 or BuffStacks(predatory_swiftness_buff) > 1 and target.DebuffRemaining(rake_debuff) < 3 } and BuffExpires(bloodtalons_buff) and Spell(regrowth) or Enemies() > Enemies(tagged=1) and Spell(brutal_slash) or target.Refreshable(thrash_cat_debuff) and Enemies() > 2 and Spell(thrash_cat) or not { target.Refreshable(thrash_cat_debuff) and Enemies() > 2 and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat) } and { Enemies() > 3 and HasEquippedItem(luffa_wrappings_item) and Talent(brutal_slash_talent) and Spell(thrash_cat) or not { Enemies() > 3 and HasEquippedItem(luffa_wrappings_item) and Talent(brutal_slash_talent) and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat) } and { { not target.DebuffPresent(rake_debuff) or not Talent(bloodtalons_talent) and target.DebuffRemaining(rake_debuff) < BaseDuration(rake_debuff) * 0.3 and target.TimeToDie() > 4 } and Spell(rake) or not { { not target.DebuffPresent(rake_debuff) or not Talent(bloodtalons_talent) and target.DebuffRemaining(rake_debuff) < BaseDuration(rake_debuff) * 0.3 and target.TimeToDie() > 4 } and SpellUsable(rake) and SpellCooldown(rake) < TimeToEnergyFor(rake) } and { Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and target.DebuffRemaining(rake_debuff) <= 7 and PersistentMultiplier(rake_debuff) > target.DebuffPersistentMultiplier(rake_debuff) * 0.85 and target.TimeToDie() > 4 and Spell(rake) or not { Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and target.DebuffRemaining(rake_debuff) <= 7 and PersistentMultiplier(rake_debuff) > target.DebuffPersistentMultiplier(rake_debuff) * 0.85 and target.TimeToDie() > 4 and SpellUsable(rake) and SpellCooldown(rake) < TimeToEnergyFor(rake) } and { BuffPresent(tigers_fury_buff) and 600 > { 1 + SpellMaxCharges(brutal_slash) - Charges(brutal_slash count=0) } * SpellChargeCooldown(brutal_slash) and Spell(brutal_slash) or target.Refreshable(moonfire_cat_debuff) and Spell(moonfire_cat) or target.Refreshable(thrash_cat_debuff) and { use_thrash() == 2 or Enemies() > 1 } and Spell(thrash_cat) or not { target.Refreshable(thrash_cat_debuff) and { use_thrash() == 2 or Enemies() > 1 } and SpellUsable(thrash_cat) and SpellCooldown(thrash_cat) < TimeToEnergyFor(thrash_cat) } and { target.Refreshable(thrash_cat_debuff) and use_thrash() == 1 and BuffPresent(clearcasting_buff) and Spell(thrash_cat) or Enemies() > 1 and Spell(swipe_cat) or not { Enemies() > 1 and SpellUsable(swipe_cat) and SpellCooldown(swipe_cat) < TimeToEnergyFor(swipe_cat) } and { target.DebuffRemaining(rake_debuff) > { PowerCost(shred) + PowerCost(rake) - Energy() } / EnergyRegenRate() or BuffPresent(clearcasting_buff) } and Spell(shred) } } } } }
-}
-
-### actions.st_finishers
-
-AddFunction FeralStfinishersMainActions
-{
- #pool_resource,for_next=1
- #savage_roar,if=buff.savage_roar.down
- if BuffExpires(savage_roar_buff) Spell(savage_roar)
- unless BuffExpires(savage_roar_buff) and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar)
+ unless buffexpires(cat_form) and spell(cat_form) or spell(prowl)
  {
-  #pool_resource,for_next=1
-  #rip,target_if=!ticking|(remains<=duration*0.3)&(target.health.pct>25&!talent.sabertooth.enabled)|(remains<=duration*0.8&persistent_multiplier>dot.rip.pmultiplier)&target.time_to_die>8
-  if not target.DebuffPresent(rip_debuff) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.3 and target.HealthPercent() > 25 and not Talent(sabertooth_talent) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 and PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) and target.TimeToDie() > 8 Spell(rip)
-  unless { not target.DebuffPresent(rip_debuff) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.3 and target.HealthPercent() > 25 and not Talent(sabertooth_talent) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 and PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) and target.TimeToDie() > 8 } and SpellUsable(rip) and SpellCooldown(rip) < TimeToEnergyFor(rip)
+  #variable,name=reaping_delay,value=target.time_to_die,if=variable.reaping_delay=0
+  #cycling_variable,name=reaping_delay,op=min,value=target.time_to_die
+  #call_action_list,name=cooldown
+  feralcooldowncdactions()
+
+  unless feralcooldowncdpostconditions()
   {
-   #pool_resource,for_next=1
-   #savage_roar,if=buff.savage_roar.remains<12
-   if BuffRemaining(savage_roar_buff) < 12 Spell(savage_roar)
-   unless BuffRemaining(savage_roar_buff) < 12 and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar)
+   #run_action_list,name=finisher,if=combo_points>=(5-variable.4cp_bite)
+   if combopoints() >= 5 - 4cp_bite() feralfinishercdactions()
+
+   unless combopoints() >= 5 - 4cp_bite() and feralfinishercdpostconditions()
    {
-    #ferocious_bite,max_energy=1
-    if Energy() >= EnergyCost(ferocious_bite max=1) Spell(ferocious_bite)
+    #run_action_list,name=stealth,if=buff.berserk_cat.up|buff.incarnation.up|buff.shadowmeld.up|buff.sudden_ambush.up|buff.prowl.up
+    if buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) feralstealthcdactions()
+
+    unless { buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) } and feralstealthcdpostconditions()
+    {
+     #pool_resource,if=talent.bloodtalons.enabled&buff.bloodtalons.down&(energy+3.5*energy.regen+(40*buff.clearcasting.up))>=(115-23*buff.incarnation_king_of_the_jungle.up)&active_bt_triggers=0
+     unless hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and energy() + 3.5 * energy() + 40 * buffpresent(clearcasting) >= 115 - 23 * buffpresent(incarnation_king_of_the_jungle) and message("active_bt_triggers is not implemented") == 0
+     {
+      #run_action_list,name=bloodtalons,if=talent.bloodtalons.enabled&(buff.bloodtalons.down|active_bt_triggers=2)
+      if hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } feralbloodtalonscdactions()
+
+      unless hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } and feralbloodtalonscdpostconditions() or { target.refreshable(rake_debuff) or persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) } and spell(rake) or combopoints() == 0 and spell(feral_frenzy) or target.refreshable(moonfire_cat_debuff) and spell(moonfire_cat) or target.refreshable(thrash_cat_debuff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > thrash_ticks() and spell(thrash_cat) or buffpresent(tigers_fury) and 600 > { 1 + spellmaxcharges(brutal_slash) - charges(brutal_slash count=0) } * spellchargecooldown(brutal_slash) and enemies() * damage(brutal_slash) / powercost(brutal_slash) > damage(shred) / powercost(shred) and spell(brutal_slash) or enemies() > 2 and spell(swipe_cat) or buffpresent(clearcasting) and spell(shred)
+      {
+       #call_action_list,name=filler,if=energy.time_to_max<1
+       if energy() < 1 feralfillercdactions()
+      }
+     }
+    }
    }
   }
  }
 }
 
-AddFunction FeralStfinishersMainPostConditions
+AddFunction feral_defaultcdpostconditions
 {
-}
-
-AddFunction FeralStfinishersShortCdActions
-{
-}
-
-AddFunction FeralStfinishersShortCdPostConditions
-{
- BuffExpires(savage_roar_buff) and Spell(savage_roar) or not { BuffExpires(savage_roar_buff) and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar) } and { { not target.DebuffPresent(rip_debuff) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.3 and target.HealthPercent() > 25 and not Talent(sabertooth_talent) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 and PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) and target.TimeToDie() > 8 } and Spell(rip) or not { { not target.DebuffPresent(rip_debuff) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.3 and target.HealthPercent() > 25 and not Talent(sabertooth_talent) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 and PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) and target.TimeToDie() > 8 } and SpellUsable(rip) and SpellCooldown(rip) < TimeToEnergyFor(rip) } and { BuffRemaining(savage_roar_buff) < 12 and Spell(savage_roar) or not { BuffRemaining(savage_roar_buff) < 12 and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar) } and Energy() >= EnergyCost(ferocious_bite max=1) and Spell(ferocious_bite) } }
-}
-
-AddFunction FeralStfinishersCdActions
-{
-}
-
-AddFunction FeralStfinishersCdPostConditions
-{
- BuffExpires(savage_roar_buff) and Spell(savage_roar) or not { BuffExpires(savage_roar_buff) and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar) } and { { not target.DebuffPresent(rip_debuff) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.3 and target.HealthPercent() > 25 and not Talent(sabertooth_talent) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 and PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) and target.TimeToDie() > 8 } and Spell(rip) or not { { not target.DebuffPresent(rip_debuff) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.3 and target.HealthPercent() > 25 and not Talent(sabertooth_talent) or target.DebuffRemaining(rip_debuff) <= BaseDuration(rip_debuff) * 0.8 and PersistentMultiplier(rip_debuff) > target.DebuffPersistentMultiplier(rip_debuff) and target.TimeToDie() > 8 } and SpellUsable(rip) and SpellCooldown(rip) < TimeToEnergyFor(rip) } and { BuffRemaining(savage_roar_buff) < 12 and Spell(savage_roar) or not { BuffRemaining(savage_roar_buff) < 12 and SpellUsable(savage_roar) and SpellCooldown(savage_roar) < TimeToEnergyFor(savage_roar) } and Energy() >= EnergyCost(ferocious_bite max=1) and Spell(ferocious_bite) } }
-}
-
-### actions.single_target
-
-AddFunction FeralSingletargetMainActions
-{
- #cat_form,if=!buff.cat_form.up
- if not BuffPresent(cat_form_buff) Spell(cat_form)
- #rake,if=buff.prowl.up|buff.shadowmeld.up
- if BuffPresent(prowl_buff) or BuffPresent(shadowmeld_buff) Spell(rake)
- #call_action_list,name=cooldowns
- FeralCooldownsMainActions()
-
- unless FeralCooldownsMainPostConditions()
- {
-  #ferocious_bite,target_if=dot.rip.ticking&dot.rip.remains<3&target.time_to_die>10&(target.health.pct<25|talent.sabertooth.enabled)
-  if target.DebuffPresent(rip_debuff) and target.DebuffRemaining(rip_debuff) < 3 and target.TimeToDie() > 10 and { target.HealthPercent() < 25 or Talent(sabertooth_talent) } Spell(ferocious_bite)
-  #regrowth,if=combo_points=5&buff.predatory_swiftness.up&talent.bloodtalons.enabled&buff.bloodtalons.down&(!buff.incarnation.up|dot.rip.remains<8)
-  if ComboPoints() == 5 and BuffPresent(predatory_swiftness_buff) and Talent(bloodtalons_talent) and BuffExpires(bloodtalons_buff) and { not BuffPresent(incarnation_king_of_the_jungle_buff) or target.DebuffRemaining(rip_debuff) < 8 } Spell(regrowth)
-  #regrowth,if=combo_points>3&talent.bloodtalons.enabled&buff.predatory_swiftness.up&buff.apex_predator.up&buff.incarnation.down
-  if ComboPoints() > 3 and Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffPresent(apex_predator_buff) and BuffExpires(incarnation_king_of_the_jungle_buff) Spell(regrowth)
-  #ferocious_bite,if=buff.apex_predator.up&((combo_points>4&(buff.incarnation.up|talent.moment_of_clarity.enabled))|(talent.bloodtalons.enabled&buff.bloodtalons.up&combo_points>3))
-  if BuffPresent(apex_predator_buff) and { ComboPoints() > 4 and { BuffPresent(incarnation_king_of_the_jungle_buff) or Talent(moment_of_clarity_talent) } or Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and ComboPoints() > 3 } Spell(ferocious_bite)
-  #run_action_list,name=st_finishers,if=combo_points>4
-  if ComboPoints() > 4 FeralStfinishersMainActions()
-
-  unless ComboPoints() > 4 and FeralStfinishersMainPostConditions()
-  {
-   #run_action_list,name=st_generators
-   FeralStgeneratorsMainActions()
-  }
- }
-}
-
-AddFunction FeralSingletargetMainPostConditions
-{
- FeralCooldownsMainPostConditions() or ComboPoints() > 4 and FeralStfinishersMainPostConditions() or FeralStgeneratorsMainPostConditions()
-}
-
-AddFunction FeralSingletargetShortCdActions
-{
- unless not BuffPresent(cat_form_buff) and Spell(cat_form) or { BuffPresent(prowl_buff) or BuffPresent(shadowmeld_buff) } and Spell(rake)
- {
-  #auto_attack
-  FeralGetInMeleeRange()
-  #call_action_list,name=cooldowns
-  FeralCooldownsShortCdActions()
-
-  unless FeralCooldownsShortCdPostConditions() or target.DebuffPresent(rip_debuff) and target.DebuffRemaining(rip_debuff) < 3 and target.TimeToDie() > 10 and { target.HealthPercent() < 25 or Talent(sabertooth_talent) } and Spell(ferocious_bite) or ComboPoints() == 5 and BuffPresent(predatory_swiftness_buff) and Talent(bloodtalons_talent) and BuffExpires(bloodtalons_buff) and { not BuffPresent(incarnation_king_of_the_jungle_buff) or target.DebuffRemaining(rip_debuff) < 8 } and Spell(regrowth) or ComboPoints() > 3 and Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffPresent(apex_predator_buff) and BuffExpires(incarnation_king_of_the_jungle_buff) and Spell(regrowth) or BuffPresent(apex_predator_buff) and { ComboPoints() > 4 and { BuffPresent(incarnation_king_of_the_jungle_buff) or Talent(moment_of_clarity_talent) } or Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and ComboPoints() > 3 } and Spell(ferocious_bite)
-  {
-   #run_action_list,name=st_finishers,if=combo_points>4
-   if ComboPoints() > 4 FeralStfinishersShortCdActions()
-
-   unless ComboPoints() > 4 and FeralStfinishersShortCdPostConditions()
-   {
-    #run_action_list,name=st_generators
-    FeralStgeneratorsShortCdActions()
-   }
-  }
- }
-}
-
-AddFunction FeralSingletargetShortCdPostConditions
-{
- not BuffPresent(cat_form_buff) and Spell(cat_form) or { BuffPresent(prowl_buff) or BuffPresent(shadowmeld_buff) } and Spell(rake) or FeralCooldownsShortCdPostConditions() or target.DebuffPresent(rip_debuff) and target.DebuffRemaining(rip_debuff) < 3 and target.TimeToDie() > 10 and { target.HealthPercent() < 25 or Talent(sabertooth_talent) } and Spell(ferocious_bite) or ComboPoints() == 5 and BuffPresent(predatory_swiftness_buff) and Talent(bloodtalons_talent) and BuffExpires(bloodtalons_buff) and { not BuffPresent(incarnation_king_of_the_jungle_buff) or target.DebuffRemaining(rip_debuff) < 8 } and Spell(regrowth) or ComboPoints() > 3 and Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffPresent(apex_predator_buff) and BuffExpires(incarnation_king_of_the_jungle_buff) and Spell(regrowth) or BuffPresent(apex_predator_buff) and { ComboPoints() > 4 and { BuffPresent(incarnation_king_of_the_jungle_buff) or Talent(moment_of_clarity_talent) } or Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and ComboPoints() > 3 } and Spell(ferocious_bite) or ComboPoints() > 4 and FeralStfinishersShortCdPostConditions() or FeralStgeneratorsShortCdPostConditions()
-}
-
-AddFunction FeralSingletargetCdActions
-{
- unless not BuffPresent(cat_form_buff) and Spell(cat_form) or { BuffPresent(prowl_buff) or BuffPresent(shadowmeld_buff) } and Spell(rake)
- {
-  #call_action_list,name=cooldowns
-  FeralCooldownsCdActions()
-
-  unless FeralCooldownsCdPostConditions() or target.DebuffPresent(rip_debuff) and target.DebuffRemaining(rip_debuff) < 3 and target.TimeToDie() > 10 and { target.HealthPercent() < 25 or Talent(sabertooth_talent) } and Spell(ferocious_bite) or ComboPoints() == 5 and BuffPresent(predatory_swiftness_buff) and Talent(bloodtalons_talent) and BuffExpires(bloodtalons_buff) and { not BuffPresent(incarnation_king_of_the_jungle_buff) or target.DebuffRemaining(rip_debuff) < 8 } and Spell(regrowth) or ComboPoints() > 3 and Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffPresent(apex_predator_buff) and BuffExpires(incarnation_king_of_the_jungle_buff) and Spell(regrowth) or BuffPresent(apex_predator_buff) and { ComboPoints() > 4 and { BuffPresent(incarnation_king_of_the_jungle_buff) or Talent(moment_of_clarity_talent) } or Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and ComboPoints() > 3 } and Spell(ferocious_bite)
-  {
-   #run_action_list,name=st_finishers,if=combo_points>4
-   if ComboPoints() > 4 FeralStfinishersCdActions()
-
-   unless ComboPoints() > 4 and FeralStfinishersCdPostConditions()
-   {
-    #run_action_list,name=st_generators
-    FeralStgeneratorsCdActions()
-   }
-  }
- }
-}
-
-AddFunction FeralSingletargetCdPostConditions
-{
- not BuffPresent(cat_form_buff) and Spell(cat_form) or { BuffPresent(prowl_buff) or BuffPresent(shadowmeld_buff) } and Spell(rake) or FeralCooldownsCdPostConditions() or target.DebuffPresent(rip_debuff) and target.DebuffRemaining(rip_debuff) < 3 and target.TimeToDie() > 10 and { target.HealthPercent() < 25 or Talent(sabertooth_talent) } and Spell(ferocious_bite) or ComboPoints() == 5 and BuffPresent(predatory_swiftness_buff) and Talent(bloodtalons_talent) and BuffExpires(bloodtalons_buff) and { not BuffPresent(incarnation_king_of_the_jungle_buff) or target.DebuffRemaining(rip_debuff) < 8 } and Spell(regrowth) or ComboPoints() > 3 and Talent(bloodtalons_talent) and BuffPresent(predatory_swiftness_buff) and BuffPresent(apex_predator_buff) and BuffExpires(incarnation_king_of_the_jungle_buff) and Spell(regrowth) or BuffPresent(apex_predator_buff) and { ComboPoints() > 4 and { BuffPresent(incarnation_king_of_the_jungle_buff) or Talent(moment_of_clarity_talent) } or Talent(bloodtalons_talent) and BuffPresent(bloodtalons_buff) and ComboPoints() > 3 } and Spell(ferocious_bite) or ComboPoints() > 4 and FeralStfinishersCdPostConditions() or FeralStgeneratorsCdPostConditions()
-}
-
-### actions.precombat
-
-AddFunction FeralPrecombatMainActions
-{
- #flask
- #food
- #augmentation
- #regrowth,if=talent.bloodtalons.enabled
- if Talent(bloodtalons_talent) Spell(regrowth)
- #variable,name=use_thrash,value=0
- #variable,name=use_thrash,value=1,if=equipped.luffa_wrappings
- #variable,name=opener_done,value=0
- #variable,name=delayed_tf_opener,value=0
- #variable,name=delayed_tf_opener,value=1,if=talent.sabertooth.enabled&talent.bloodtalons.enabled&!talent.lunar_inspiration.enabled
- #cat_form
- Spell(cat_form)
- #prowl
- Spell(prowl)
-}
-
-AddFunction FeralPrecombatMainPostConditions
-{
-}
-
-AddFunction FeralPrecombatShortCdActions
-{
-}
-
-AddFunction FeralPrecombatShortCdPostConditions
-{
- Talent(bloodtalons_talent) and Spell(regrowth) or Spell(cat_form) or Spell(prowl)
-}
-
-AddFunction FeralPrecombatCdActions
-{
- unless Talent(bloodtalons_talent) and Spell(regrowth) or Spell(cat_form) or Spell(prowl)
- {
-  #snapshot_stats
-  #berserk
-  Spell(berserk)
-  #potion
-  if CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(battle_potion_of_agility usable=1)
- }
-}
-
-AddFunction FeralPrecombatCdPostConditions
-{
- Talent(bloodtalons_talent) and Spell(regrowth) or Spell(cat_form) or Spell(prowl)
-}
-
-### actions.opener
-
-AddFunction FeralOpenerMainActions
-{
- #rake,if=!ticking|buff.prowl.up
- if not target.DebuffPresent(rake_debuff) or BuffPresent(prowl_buff) Spell(rake)
- #variable,name=opener_done,value=1,if=dot.rip.ticking
- #wait,sec=0.001,if=dot.rip.ticking
- #moonfire_cat,if=!ticking|buff.bloodtalons.stack=1&combo_points<5
- if not target.DebuffPresent(moonfire_cat_debuff) or BuffStacks(bloodtalons_buff) == 1 and ComboPoints() < 5 Spell(moonfire_cat)
- #thrash,if=!ticking&combo_points<5
- if not target.DebuffPresent(thrash) and ComboPoints() < 5 Spell(thrash)
- #shred,if=combo_points<5
- if ComboPoints() < 5 Spell(shred)
- #regrowth,if=combo_points=5&talent.bloodtalons.enabled&(talent.sabertooth.enabled&buff.bloodtalons.down|buff.predatory_swiftness.up)
- if ComboPoints() == 5 and Talent(bloodtalons_talent) and { Talent(sabertooth_talent) and BuffExpires(bloodtalons_buff) or BuffPresent(predatory_swiftness_buff) } Spell(regrowth)
- #rip,if=combo_points=5
- if ComboPoints() == 5 Spell(rip)
-}
-
-AddFunction FeralOpenerMainPostConditions
-{
-}
-
-AddFunction FeralOpenerShortCdActions
-{
- #tigers_fury,if=variable.delayed_tf_opener=0
- if delayed_tf_opener() == 0 Spell(tigers_fury)
-
- unless { not target.DebuffPresent(rake_debuff) or BuffPresent(prowl_buff) } and Spell(rake) or { not target.DebuffPresent(moonfire_cat_debuff) or BuffStacks(bloodtalons_buff) == 1 and ComboPoints() < 5 } and Spell(moonfire_cat) or not target.DebuffPresent(thrash) and ComboPoints() < 5 and Spell(thrash) or ComboPoints() < 5 and Spell(shred) or ComboPoints() == 5 and Talent(bloodtalons_talent) and { Talent(sabertooth_talent) and BuffExpires(bloodtalons_buff) or BuffPresent(predatory_swiftness_buff) } and Spell(regrowth)
- {
-  #tigers_fury
-  Spell(tigers_fury)
- }
-}
-
-AddFunction FeralOpenerShortCdPostConditions
-{
- { not target.DebuffPresent(rake_debuff) or BuffPresent(prowl_buff) } and Spell(rake) or { not target.DebuffPresent(moonfire_cat_debuff) or BuffStacks(bloodtalons_buff) == 1 and ComboPoints() < 5 } and Spell(moonfire_cat) or not target.DebuffPresent(thrash) and ComboPoints() < 5 and Spell(thrash) or ComboPoints() < 5 and Spell(shred) or ComboPoints() == 5 and Talent(bloodtalons_talent) and { Talent(sabertooth_talent) and BuffExpires(bloodtalons_buff) or BuffPresent(predatory_swiftness_buff) } and Spell(regrowth) or ComboPoints() == 5 and Spell(rip)
-}
-
-AddFunction FeralOpenerCdActions
-{
-}
-
-AddFunction FeralOpenerCdPostConditions
-{
- delayed_tf_opener() == 0 and Spell(tigers_fury) or { not target.DebuffPresent(rake_debuff) or BuffPresent(prowl_buff) } and Spell(rake) or { not target.DebuffPresent(moonfire_cat_debuff) or BuffStacks(bloodtalons_buff) == 1 and ComboPoints() < 5 } and Spell(moonfire_cat) or not target.DebuffPresent(thrash) and ComboPoints() < 5 and Spell(thrash) or ComboPoints() < 5 and Spell(shred) or ComboPoints() == 5 and Talent(bloodtalons_talent) and { Talent(sabertooth_talent) and BuffExpires(bloodtalons_buff) or BuffPresent(predatory_swiftness_buff) } and Spell(regrowth) or Spell(tigers_fury) or ComboPoints() == 5 and Spell(rip)
-}
-
-### actions.cooldowns
-
-AddFunction FeralCooldownsMainActions
-{
- #prowl,if=buff.incarnation.remains<0.5&buff.jungle_stalker.up
- if BuffRemaining(incarnation_king_of_the_jungle_buff) < 0.5 and BuffPresent(jungle_stalker_buff) Spell(prowl)
-}
-
-AddFunction FeralCooldownsMainPostConditions
-{
-}
-
-AddFunction FeralCooldownsShortCdActions
-{
- unless BuffRemaining(incarnation_king_of_the_jungle_buff) < 0.5 and BuffPresent(jungle_stalker_buff) and Spell(prowl)
- {
-  #tigers_fury,if=energy.deficit>=60
-  if EnergyDeficit() >= 60 Spell(tigers_fury)
-  #feral_frenzy,if=combo_points=0
-  if ComboPoints() == 0 Spell(feral_frenzy)
- }
-}
-
-AddFunction FeralCooldownsShortCdPostConditions
-{
- BuffRemaining(incarnation_king_of_the_jungle_buff) < 0.5 and BuffPresent(jungle_stalker_buff) and Spell(prowl)
-}
-
-AddFunction FeralCooldownsCdActions
-{
- #dash,if=!buff.cat_form.up
- if not BuffPresent(cat_form_buff) Spell(dash)
-
- unless BuffRemaining(incarnation_king_of_the_jungle_buff) < 0.5 and BuffPresent(jungle_stalker_buff) and Spell(prowl)
- {
-  #berserk,if=energy>=30&(cooldown.tigers_fury.remains>5|buff.tigers_fury.up)
-  if Energy() >= 30 and { SpellCooldown(tigers_fury) > 5 or BuffPresent(tigers_fury_buff) } Spell(berserk)
-
-  unless EnergyDeficit() >= 60 and Spell(tigers_fury)
-  {
-   #berserking
-   Spell(berserking)
-
-   unless ComboPoints() == 0 and Spell(feral_frenzy)
-   {
-    #incarnation,if=energy>=30&(cooldown.tigers_fury.remains>15|buff.tigers_fury.up)
-    if Energy() >= 30 and { SpellCooldown(tigers_fury) > 15 or BuffPresent(tigers_fury_buff) } Spell(incarnation_king_of_the_jungle)
-    #potion,name=battle_potion_of_agility,if=target.time_to_die<65|(time_to_die<180&(buff.berserk.up|buff.incarnation.up))
-    if { target.TimeToDie() < 65 or target.TimeToDie() < 180 and { BuffPresent(berserk_buff) or BuffPresent(incarnation_king_of_the_jungle_buff) } } and CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(battle_potion_of_agility usable=1)
-    #shadowmeld,if=combo_points<5&energy>=action.rake.cost&dot.rake.pmultiplier<2.1&buff.tigers_fury.up&(buff.bloodtalons.up|!talent.bloodtalons.enabled)&(!talent.incarnation.enabled|cooldown.incarnation.remains>18)&!buff.incarnation.up
-    if ComboPoints() < 5 and Energy() >= PowerCost(rake) and target.DebuffPersistentMultiplier(rake_debuff) < 2.1 and BuffPresent(tigers_fury_buff) and { BuffPresent(bloodtalons_buff) or not Talent(bloodtalons_talent) } and { not Talent(incarnation_talent) or SpellCooldown(incarnation_king_of_the_jungle) > 18 } and not BuffPresent(incarnation_king_of_the_jungle_buff) Spell(shadowmeld)
-    #use_items
-    FeralUseItemActions()
-   }
-  }
- }
-}
-
-AddFunction FeralCooldownsCdPostConditions
-{
- BuffRemaining(incarnation_king_of_the_jungle_buff) < 0.5 and BuffPresent(jungle_stalker_buff) and Spell(prowl) or EnergyDeficit() >= 60 and Spell(tigers_fury) or ComboPoints() == 0 and Spell(feral_frenzy)
-}
-
-### actions.default
-
-AddFunction FeralDefaultMainActions
-{
- #run_action_list,name=opener,if=variable.opener_done=0
- if opener_done() == 0 FeralOpenerMainActions()
-
- unless opener_done() == 0 and FeralOpenerMainPostConditions()
- {
-  #run_action_list,name=single_target
-  FeralSingletargetMainActions()
- }
-}
-
-AddFunction FeralDefaultMainPostConditions
-{
- opener_done() == 0 and FeralOpenerMainPostConditions() or FeralSingletargetMainPostConditions()
-}
-
-AddFunction FeralDefaultShortCdActions
-{
- #auto_attack,if=!buff.prowl.up&!buff.shadowmeld.up
- if not BuffPresent(prowl_buff) and not BuffPresent(shadowmeld_buff) FeralGetInMeleeRange()
- #run_action_list,name=opener,if=variable.opener_done=0
- if opener_done() == 0 FeralOpenerShortCdActions()
-
- unless opener_done() == 0 and FeralOpenerShortCdPostConditions()
- {
-  #run_action_list,name=single_target
-  FeralSingletargetShortCdActions()
- }
-}
-
-AddFunction FeralDefaultShortCdPostConditions
-{
- opener_done() == 0 and FeralOpenerShortCdPostConditions() or FeralSingletargetShortCdPostConditions()
-}
-
-AddFunction FeralDefaultCdActions
-{
- FeralInterruptActions()
- #run_action_list,name=opener,if=variable.opener_done=0
- if opener_done() == 0 FeralOpenerCdActions()
-
- unless opener_done() == 0 and FeralOpenerCdPostConditions()
- {
-  #run_action_list,name=single_target
-  FeralSingletargetCdActions()
- }
-}
-
-AddFunction FeralDefaultCdPostConditions
-{
- opener_done() == 0 and FeralOpenerCdPostConditions() or FeralSingletargetCdPostConditions()
+ buffexpires(cat_form) and spell(cat_form) or spell(prowl) or feralcooldowncdpostconditions() or combopoints() >= 5 - 4cp_bite() and feralfinishercdpostconditions() or { buffpresent(berserk_cat_buff) or buffpresent(incarnation) or buffpresent(shadowmeld) or buffpresent(sudden_ambush_buff) or buffpresent(prowl) } and feralstealthcdpostconditions() or not { hastalent(bloodtalons_talent) and buffexpires(bloodtalons) and energy() + 3.5 * energy() + 40 * buffpresent(clearcasting) >= 115 - 23 * buffpresent(incarnation_king_of_the_jungle) and message("active_bt_triggers is not implemented") == 0 } and { hastalent(bloodtalons_talent) and { buffexpires(bloodtalons) or message("active_bt_triggers is not implemented") == 2 } and feralbloodtalonscdpostconditions() or { target.refreshable(rake_debuff) or persistentmultiplier(rake_debuff) > target.debuffpersistentmultiplier(rake_debuff) } and spell(rake) or combopoints() == 0 and spell(feral_frenzy) or target.refreshable(moonfire_cat_debuff) and spell(moonfire_cat) or target.refreshable(thrash_cat_debuff) and message("druid.thrash_cat.ticks_gained_on_refresh is not implemented") > thrash_ticks() and spell(thrash_cat) or buffpresent(tigers_fury) and 600 > { 1 + spellmaxcharges(brutal_slash) - charges(brutal_slash count=0) } * spellchargecooldown(brutal_slash) and enemies() * damage(brutal_slash) / powercost(brutal_slash) > damage(shred) / powercost(shred) and spell(brutal_slash) or enemies() > 2 and spell(swipe_cat) or buffpresent(clearcasting) and spell(shred) or energy() < 1 and feralfillercdpostconditions() }
 }
 
 ### Feral icons.
 
-AddCheckBox(opt_druid_feral_aoe L(AOE) default specialization=feral)
+AddCheckBox(opt_druid_feral_aoe l(aoe) default specialization=feral)
 
 AddIcon checkbox=!opt_druid_feral_aoe enemies=1 help=shortcd specialization=feral
 {
- if not InCombat() FeralPrecombatShortCdActions()
- unless not InCombat() and FeralPrecombatShortCdPostConditions()
- {
-  FeralDefaultShortCdActions()
- }
+ if not incombat() feralprecombatshortcdactions()
+ feral_defaultshortcdactions()
 }
 
 AddIcon checkbox=opt_druid_feral_aoe help=shortcd specialization=feral
 {
- if not InCombat() FeralPrecombatShortCdActions()
- unless not InCombat() and FeralPrecombatShortCdPostConditions()
- {
-  FeralDefaultShortCdActions()
- }
+ if not incombat() feralprecombatshortcdactions()
+ feral_defaultshortcdactions()
 }
 
 AddIcon enemies=1 help=main specialization=feral
 {
- if not InCombat() FeralPrecombatMainActions()
- unless not InCombat() and FeralPrecombatMainPostConditions()
- {
-  FeralDefaultMainActions()
- }
+ if not incombat() feralprecombatmainactions()
+ feral_defaultmainactions()
 }
 
 AddIcon checkbox=opt_druid_feral_aoe help=aoe specialization=feral
 {
- if not InCombat() FeralPrecombatMainActions()
- unless not InCombat() and FeralPrecombatMainPostConditions()
- {
-  FeralDefaultMainActions()
- }
+ if not incombat() feralprecombatmainactions()
+ feral_defaultmainactions()
 }
 
 AddIcon checkbox=!opt_druid_feral_aoe enemies=1 help=cd specialization=feral
 {
- if not InCombat() FeralPrecombatCdActions()
- unless not InCombat() and FeralPrecombatCdPostConditions()
- {
-  FeralDefaultCdActions()
- }
+ if not incombat() feralprecombatcdactions()
+ feral_defaultcdactions()
 }
 
 AddIcon checkbox=opt_druid_feral_aoe help=cd specialization=feral
 {
- if not InCombat() FeralPrecombatCdActions()
- unless not InCombat() and FeralPrecombatCdPostConditions()
- {
-  FeralDefaultCdActions()
- }
+ if not incombat() feralprecombatcdactions()
+ feral_defaultcdactions()
 }
 
 ### Required symbols
-# ailuro_pouncers_item
-# apex_predator_buff
-# battle_potion_of_agility
 # berserk
-# berserk_buff
+# berserk_cat_buff
 # berserking
-# bloodtalons_buff
+# blood_of_the_enemy
+# bloodtalons
 # bloodtalons_talent
 # brutal_slash
-# brutal_slash_talent
+# bt_brutal_slash_buff
+# bt_moonfire_buff
+# bt_rake_buff
+# bt_shred_buff
+# bt_swipe_buff
+# bt_thrash_buff
 # cat_form
-# cat_form_buff
-# clearcasting_buff
-# dash
+# clearcasting
+# concentrated_flame
+# conductive_ink_debuff
 # feral_frenzy
 # ferocious_bite
+# focused_azerite_beam
+# guardian_of_azeroth
+# incarnation
 # incarnation_king_of_the_jungle
-# incarnation_king_of_the_jungle_buff
-# incarnation_talent
-# jungle_stalker_buff
-# luffa_wrappings_item
-# lunar_inspiration_talent
+# iron_jaws
+# lunar_inspiration
 # maim
 # mangle
+# memory_of_lucid_dreams
 # mighty_bash
-# moment_of_clarity_talent
 # moonfire_cat
 # moonfire_cat_debuff
-# predatory_swiftness_buff
+# primal_wrath
+# primal_wrath_talent
 # prowl
-# prowl_buff
+# purifying_blast
 # rake
 # rake_debuff
-# regrowth
+# razor_coral
+# reaping_flames
+# reckless_force_buff
 # rip
-# rip_debuff
+# ripple_in_space
 # sabertooth_talent
 # savage_roar
-# savage_roar_buff
 # shadowmeld
-# shadowmeld_buff
 # shred
 # skull_bash
+# sudden_ambush_buff
+# swipe
 # swipe_cat
-# thrash
+# the_unbound_force
+# thorns
 # thrash_cat
 # thrash_cat_debuff
 # tigers_fury
-# tigers_fury_buff
 # typhoon
 # war_stomp
 # wild_charge
 # wild_charge_bear
 # wild_charge_cat
+# wild_fleshrending_trait
+# worldvein_resonance
 `
 	OvaleScripts.RegisterScript("DRUID", "feral", name, desc, code, "script")
 }
 
 {
-	const name = "sc_pr_druid_guardian"
-	const desc = "[8.0] Simulationcraft: PR_Druid_Guardian"
+	const name = "sc_t25_druid_guardian"
+	const desc = "[9.0] Simulationcraft: T25_Druid_Guardian"
 	const code = `
-# Based on SimulationCraft profile "PR_Druid_Guardian".
+# Based on SimulationCraft profile "T25_Druid_Guardian".
 #	class=druid
 #	spec=guardian
-#	talents=1111123
+#	talents=1000131
 
 Include(ovale_common)
-Include(ovale_trinkets_mop)
-Include(ovale_trinkets_wod)
 Include(ovale_druid_spells)
 
-AddCheckBox(opt_interrupt L(interrupt) default specialization=guardian)
-AddCheckBox(opt_melee_range L(not_in_melee_range) specialization=guardian)
-AddCheckBox(opt_use_consumables L(opt_use_consumables) default specialization=guardian)
+AddCheckBox(opt_interrupt l(interrupt) default specialization=guardian)
+AddCheckBox(opt_melee_range l(not_in_melee_range) specialization=guardian)
 
-AddFunction GuardianInterruptActions
+AddFunction guardianinterruptactions
 {
- if CheckBoxOn(opt_interrupt) and not target.IsFriend() and target.Casting()
+ if checkboxon(opt_interrupt) and not target.isfriend() and target.casting()
  {
-  if target.Distance(less 15) and not target.Classification(worldboss) Spell(typhoon)
-  if target.Distance(less 5) and not target.Classification(worldboss) Spell(war_stomp)
-  if target.Distance(less 10) and not target.Classification(worldboss) Spell(incapacitating_roar)
-  if target.InRange(mighty_bash) and not target.Classification(worldboss) Spell(mighty_bash)
-  if target.InRange(skull_bash) and target.IsInterruptible() Spell(skull_bash)
+  if target.inrange(skull_bash) and target.isinterruptible() spell(skull_bash)
+  if target.inrange(mighty_bash) and not target.classification(worldboss) spell(mighty_bash)
+  if target.distance(less 10) and not target.classification(worldboss) spell(incapacitating_roar)
+  if target.distance(less 5) and not target.classification(worldboss) spell(war_stomp)
+  if target.distance(less 15) and not target.classification(worldboss) spell(typhoon)
  }
 }
 
-AddFunction GuardianUseItemActions
+AddFunction guardianuseitemactions
 {
- Item(Trinket0Slot text=13 usable=1)
- Item(Trinket1Slot text=14 usable=1)
+ item(trinket0slot text=13 usable=1)
+ item(trinket1slot text=14 usable=1)
 }
 
-AddFunction GuardianGetInMeleeRange
+AddFunction guardiangetinmeleerange
 {
- if CheckBoxOn(opt_melee_range) and Stance(druid_bear_form) and not target.InRange(mangle) or { Stance(druid_cat_form) or Stance(druid_claws_of_shirvallah) } and not target.InRange(shred)
+ if checkboxon(opt_melee_range) and stance(druid_bear_form) and not target.inrange(mangle) or { stance(druid_cat_form) or stance(druid_claws_of_shirvallah) } and not target.inrange(shred)
  {
-  if target.InRange(wild_charge) Spell(wild_charge)
-  Texture(misc_arrowlup help=L(not_in_melee_range))
+  if target.inrange(wild_charge) spell(wild_charge)
+  texture(misc_arrowlup help=l(not_in_melee_range))
  }
 }
 
 ### actions.precombat
 
-AddFunction GuardianPrecombatMainActions
+AddFunction guardianprecombatmainactions
 {
  #flask
  #food
  #augmentation
- #bear_form
- Spell(bear_form)
+ #snapshot_stats
+ #cat_form,if=druid.catweave_bear&talent.feral_affinity.enabled
+ if message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) spell(cat_form)
+ #prowl,if=druid.catweave_bear&talent.feral_affinity.enabled
+ if message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) spell(prowl)
+ #moonkin_form,if=druid.owlweave_bear&talent.balance_affinity.enabled
+ if message("druid.owlweave_bear is not implemented") and hastalent(balance_affinity_talent) spell(moonkin_form)
+ #bear_form,if=!druid.catweave_bear&!druid.owlweave_bear
+ if not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") spell(bear_form)
+ #wrath,if=druid.owlweave_bear
+ if message("druid.owlweave_bear is not implemented") spell(wrath)
 }
 
-AddFunction GuardianPrecombatMainPostConditions
+AddFunction guardianprecombatmainpostconditions
 {
 }
 
-AddFunction GuardianPrecombatShortCdActions
+AddFunction guardianprecombatshortcdactions
 {
 }
 
-AddFunction GuardianPrecombatShortCdPostConditions
+AddFunction guardianprecombatshortcdpostconditions
 {
- Spell(bear_form)
+ message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) and spell(cat_form) or message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) and spell(prowl) or message("druid.owlweave_bear is not implemented") and hastalent(balance_affinity_talent) and spell(moonkin_form) or not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") and spell(bear_form) or message("druid.owlweave_bear is not implemented") and spell(wrath)
 }
 
-AddFunction GuardianPrecombatCdActions
+AddFunction guardianprecombatcdactions
 {
- unless Spell(bear_form)
+ unless message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) and spell(cat_form) or message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) and spell(prowl) or message("druid.owlweave_bear is not implemented") and hastalent(balance_affinity_talent) and spell(moonkin_form) or not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") and spell(bear_form)
  {
-  #snapshot_stats
-  #potion
-  if CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(old_war usable=1)
+  #heart_of_the_Wild,if=talent.heart_of_the_wild.enabled&druid.owlweave_bear
+  if hastalent(heart_of_the_wild_talent) and message("druid.owlweave_bear is not implemented") spell(heart_of_the_wild)
  }
 }
 
-AddFunction GuardianPrecombatCdPostConditions
+AddFunction guardianprecombatcdpostconditions
 {
- Spell(bear_form)
+ message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) and spell(cat_form) or message("druid.catweave_bear is not implemented") and hastalent(feral_affinity_talent_guardian) and spell(prowl) or message("druid.owlweave_bear is not implemented") and hastalent(balance_affinity_talent) and spell(moonkin_form) or not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") and spell(bear_form) or message("druid.owlweave_bear is not implemented") and spell(wrath)
 }
 
-### actions.cooldowns
+### actions.owlweave
 
-AddFunction GuardianCooldownsMainActions
+AddFunction guardianowlweavemainactions
+{
+ #moonkin_form,if=!buff.moonkin_form.up
+ if not buffpresent(moonkin_form) spell(moonkin_form)
+ #adaptive_swarm,target_if=refreshable
+ if target.refreshable(adaptive_swarm) spell(adaptive_swarm)
+ #moonfire,target_if=refreshable|buff.galactic_guardian.up
+ if target.refreshable(moonfire) or buffpresent(galactic_guardian) spell(moonfire)
+ #sunfire,target_if=refreshable
+ if target.refreshable(sunfire) spell(sunfire)
+ #starsurge,if=(buff.eclipse_lunar.up|buff.eclipse_solar.up)
+ if buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) spell(starsurge)
+ #starfire,if=(eclipse.in_lunar|eclipse.solar_next)|(eclipse.in_lunar&buff.starsurge_empowerment.up)
+ if message("eclipse.in_lunar is not implemented") or message("eclipse.solar_next is not implemented") or message("eclipse.in_lunar is not implemented") and buffpresent(starsurge_empowerment_buff) spell(starfire)
+ #wrath
+ spell(wrath)
+}
+
+AddFunction guardianowlweavemainpostconditions
 {
 }
 
-AddFunction GuardianCooldownsMainPostConditions
+AddFunction guardianowlweaveshortcdactions
 {
-}
-
-AddFunction GuardianCooldownsShortCdActions
-{
- #barkskin,if=buff.bear_form.up
- if DebuffPresent(bear_form) Spell(barkskin)
- #lunar_beam,if=buff.bear_form.up
- if DebuffPresent(bear_form) Spell(lunar_beam)
- #bristling_fur,if=buff.bear_form.up
- if DebuffPresent(bear_form) Spell(bristling_fur)
-}
-
-AddFunction GuardianCooldownsShortCdPostConditions
-{
-}
-
-AddFunction GuardianCooldownsCdActions
-{
- #potion
- if CheckBoxOn(opt_use_consumables) and target.Classification(worldboss) Item(old_war usable=1)
- #blood_fury
- Spell(blood_fury)
- #berserking
- Spell(berserking)
- #arcane_torrent
- Spell(arcane_torrent_energy)
- #lights_judgment
- Spell(lights_judgment)
- #fireblood
- Spell(fireblood)
- #ancestral_call
- Spell(ancestral_call)
-
- unless DebuffPresent(bear_form) and Spell(barkskin) or DebuffPresent(bear_form) and Spell(lunar_beam) or DebuffPresent(bear_form) and Spell(bristling_fur)
+ unless not buffpresent(moonkin_form) and spell(moonkin_form)
  {
-  #use_items
-  GuardianUseItemActions()
+  #empower_bond,if=druid.owlweave_bear
+  if message("druid.owlweave_bear is not implemented") spell(empower_bond)
  }
 }
 
-AddFunction GuardianCooldownsCdPostConditions
+AddFunction guardianowlweaveshortcdpostconditions
 {
- DebuffPresent(bear_form) and Spell(barkskin) or DebuffPresent(bear_form) and Spell(lunar_beam) or DebuffPresent(bear_form) and Spell(bristling_fur)
+ not buffpresent(moonkin_form) and spell(moonkin_form) or target.refreshable(adaptive_swarm) and spell(adaptive_swarm) or { target.refreshable(moonfire) or buffpresent(galactic_guardian) } and spell(moonfire) or target.refreshable(sunfire) and spell(sunfire) or { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and spell(starsurge) or { message("eclipse.in_lunar is not implemented") or message("eclipse.solar_next is not implemented") or message("eclipse.in_lunar is not implemented") and buffpresent(starsurge_empowerment_buff) } and spell(starfire) or spell(wrath)
+}
+
+AddFunction guardianowlweavecdactions
+{
+ unless not buffpresent(moonkin_form) and spell(moonkin_form)
+ {
+  #heart_of_the_wild,if=talent.heart_of_the_wild.enabled&!buff.heart_of_the_wild.up
+  if hastalent(heart_of_the_wild_talent) and not buffpresent(heart_of_the_wild) spell(heart_of_the_wild)
+
+  unless message("druid.owlweave_bear is not implemented") and spell(empower_bond)
+  {
+   #convoke_the_spirits,if=druid.owlweave_bear
+   if message("druid.owlweave_bear is not implemented") spell(convoke_the_spirits)
+  }
+ }
+}
+
+AddFunction guardianowlweavecdpostconditions
+{
+ not buffpresent(moonkin_form) and spell(moonkin_form) or message("druid.owlweave_bear is not implemented") and spell(empower_bond) or target.refreshable(adaptive_swarm) and spell(adaptive_swarm) or { target.refreshable(moonfire) or buffpresent(galactic_guardian) } and spell(moonfire) or target.refreshable(sunfire) and spell(sunfire) or { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and spell(starsurge) or { message("eclipse.in_lunar is not implemented") or message("eclipse.solar_next is not implemented") or message("eclipse.in_lunar is not implemented") and buffpresent(starsurge_empowerment_buff) } and spell(starfire) or spell(wrath)
+}
+
+### actions.lycarao
+
+AddFunction guardianlycaraomainactions
+{
+ #moonkin_form
+ spell(moonkin_form)
+}
+
+AddFunction guardianlycaraomainpostconditions
+{
+}
+
+AddFunction guardianlycaraoshortcdactions
+{
+}
+
+AddFunction guardianlycaraoshortcdpostconditions
+{
+ spell(moonkin_form)
+}
+
+AddFunction guardianlycaraocdactions
+{
+}
+
+AddFunction guardianlycaraocdpostconditions
+{
+ spell(moonkin_form)
+}
+
+### actions.lycarac
+
+AddFunction guardianlycaracmainactions
+{
+ #cat_form
+ spell(cat_form)
+}
+
+AddFunction guardianlycaracmainpostconditions
+{
+}
+
+AddFunction guardianlycaracshortcdactions
+{
+}
+
+AddFunction guardianlycaracshortcdpostconditions
+{
+ spell(cat_form)
+}
+
+AddFunction guardianlycaraccdactions
+{
+}
+
+AddFunction guardianlycaraccdpostconditions
+{
+ spell(cat_form)
+}
+
+### actions.catweave
+
+AddFunction guardiancatweavemainactions
+{
+ #cat_form,if=!buff.cat_form.up
+ if not buffpresent(cat_form) spell(cat_form)
+ #rake,if=buff.prowl.up
+ if buffpresent(prowl) spell(rake)
+ #rip,if=dot.rip.refreshable&combo_points>=4
+ if target.debuffrefreshable(rip) and combopoints() >= 4 spell(rip)
+ #ferocious_bite,if=combo_points>=4
+ if combopoints() >= 4 spell(ferocious_bite)
+ #adaptive_swarm,target_if=refreshable
+ if target.refreshable(adaptive_swarm) spell(adaptive_swarm)
+ #rake,if=dot.rake.refreshable&combo_points<4
+ if target.debuffrefreshable(rake_debuff) and combopoints() < 4 spell(rake)
+ #shred
+ spell(shred)
+}
+
+AddFunction guardiancatweavemainpostconditions
+{
+}
+
+AddFunction guardiancatweaveshortcdactions
+{
+ unless not buffpresent(cat_form) and spell(cat_form) or buffpresent(prowl) and spell(rake)
+ {
+  #empower_bond,if=druid.catweave_bear
+  if message("druid.catweave_bear is not implemented") spell(empower_bond)
+ }
+}
+
+AddFunction guardiancatweaveshortcdpostconditions
+{
+ not buffpresent(cat_form) and spell(cat_form) or buffpresent(prowl) and spell(rake) or target.debuffrefreshable(rip) and combopoints() >= 4 and spell(rip) or combopoints() >= 4 and spell(ferocious_bite) or target.refreshable(adaptive_swarm) and spell(adaptive_swarm) or target.debuffrefreshable(rake_debuff) and combopoints() < 4 and spell(rake) or spell(shred)
+}
+
+AddFunction guardiancatweavecdactions
+{
+ unless not buffpresent(cat_form) and spell(cat_form) or buffpresent(prowl) and spell(rake)
+ {
+  #heart_of_the_wild,if=talent.heart_of_the_wild.enabled&!buff.heart_of_the_wild.up
+  if hastalent(heart_of_the_wild_talent) and not buffpresent(heart_of_the_wild) spell(heart_of_the_wild)
+
+  unless message("druid.catweave_bear is not implemented") and spell(empower_bond)
+  {
+   #convoke_the_spirits,if=druid.catweave_bear
+   if message("druid.catweave_bear is not implemented") spell(convoke_the_spirits)
+  }
+ }
+}
+
+AddFunction guardiancatweavecdpostconditions
+{
+ not buffpresent(cat_form) and spell(cat_form) or buffpresent(prowl) and spell(rake) or message("druid.catweave_bear is not implemented") and spell(empower_bond) or target.debuffrefreshable(rip) and combopoints() >= 4 and spell(rip) or combopoints() >= 4 and spell(ferocious_bite) or target.refreshable(adaptive_swarm) and spell(adaptive_swarm) or target.debuffrefreshable(rake_debuff) and combopoints() < 4 and spell(rake) or spell(shred)
+}
+
+### actions.bear
+
+AddFunction guardianbearmainactions
+{
+ #bear_form,if=!buff.bear_form.up
+ if not buffpresent(bear_form) spell(bear_form)
+ #berserk_bear,if=(buff.ravenous_frenzy.up|!covenant.venthyr)
+ if buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") spell(berserk_bear)
+ #incarnation,if=(buff.ravenous_frenzy.up|!covenant.venthyr)
+ if buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") spell(incarnation)
+ #ironfur,if=buff.ironfur.remains<0.5
+ if buffremaining(ironfur) < 0.5 spell(ironfur)
+ #adaptive_swarm,target_if=refreshable
+ if target.refreshable(adaptive_swarm) spell(adaptive_swarm)
+ #moonfire,if=(buff.galactic_guardian.up&druid.owlweave_bear)&active_enemies<=3
+ if buffpresent(galactic_guardian) and message("druid.owlweave_bear is not implemented") and enemies() <= 3 spell(moonfire)
+ #thrash_bear,target_if=refreshable|dot.thrash_bear.stack<3|(dot.thrash_bear.stack<4&runeforge.luffainfused_embrace.equipped)|active_enemies>5
+ if target.refreshable(thrash_bear_debuff) or target.debuffstacks(thrash_bear_debuff) < 3 or target.debuffstacks(thrash_bear_debuff) < 4 and message("runeforge.luffainfused_embrace.equipped is not implemented") or enemies() > 5 spell(thrash_bear)
+ #swipe,if=buff.incarnation_guardian_of_ursoc.down&buff.berserk_bear.down&active_enemies>=4
+ if buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and enemies() >= 4 spell(swipe)
+ #maul,if=buff.incarnation.up&active_enemies<2
+ if buffpresent(incarnation) and enemies() < 2 spell(maul)
+ #maul,if=(buff.savage_combatant.stack>=1)&(buff.tooth_and_claw.up)&buff.incarnation.up&active_enemies=2
+ if buffstacks(savage_combatant_buff) >= 1 and buffpresent(tooth_and_claw_buff) and buffpresent(incarnation) and enemies() == 2 spell(maul)
+ #mangle,if=buff.incarnation.up&active_enemies<=3
+ if buffpresent(incarnation) and enemies() <= 3 spell(mangle)
+ #moonfire,target_if=refreshable&active_enemies<=3
+ if target.refreshable(moonfire) and enemies() <= 3 spell(moonfire)
+ #maul,if=(buff.tooth_and_claw.stack>=2)|(buff.tooth_and_claw.up&buff.tooth_and_claw.remains<1.5)|(buff.savage_combatant.stack>=3)
+ if buffstacks(tooth_and_claw_buff) >= 2 or buffpresent(tooth_and_claw_buff) and buffremaining(tooth_and_claw_buff) < 1.5 or buffstacks(savage_combatant_buff) >= 3 spell(maul)
+ #thrash_bear,if=active_enemies>1
+ if enemies() > 1 spell(thrash_bear)
+ #moonfire,if=(buff.galactic_guardian.up&druid.catweave_bear)&active_enemies<=3|(buff.galactic_guardian.up&!druid.catweave_bear&!druid.owlweave_bear)&active_enemies<=3
+ if buffpresent(galactic_guardian) and message("druid.catweave_bear is not implemented") and enemies() <= 3 or buffpresent(galactic_guardian) and not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") and enemies() <= 3 spell(moonfire)
+ #mangle,if=(rage<80)&active_enemies<4
+ if rage() < 80 and enemies() < 4 spell(mangle)
+ #thrash_bear
+ spell(thrash_bear)
+ #maul
+ spell(maul)
+ #swipe_bear
+ spell(swipe_bear)
+}
+
+AddFunction guardianbearmainpostconditions
+{
+}
+
+AddFunction guardianbearshortcdactions
+{
+ unless not buffpresent(bear_form) and spell(bear_form) or { buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") } and spell(berserk_bear) or { buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") } and spell(incarnation)
+ {
+  #empower_bond,if=(!druid.catweave_bear&!druid.owlweave_bear)|active_enemies>=2
+  if not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") or enemies() >= 2 spell(empower_bond)
+  #barkskin,if=(talent.brambles.enabled)&(buff.bear_form.up)
+  if hastalent(brambles_talent) and buffpresent(bear_form) spell(barkskin)
+
+  unless buffremaining(ironfur) < 0.5 and spell(ironfur) or target.refreshable(adaptive_swarm) and spell(adaptive_swarm) or buffpresent(galactic_guardian) and message("druid.owlweave_bear is not implemented") and enemies() <= 3 and spell(moonfire) or { target.refreshable(thrash_bear_debuff) or target.debuffstacks(thrash_bear_debuff) < 3 or target.debuffstacks(thrash_bear_debuff) < 4 and message("runeforge.luffainfused_embrace.equipped is not implemented") or enemies() > 5 } and spell(thrash_bear) or buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and enemies() >= 4 and spell(swipe) or buffpresent(incarnation) and enemies() < 2 and spell(maul) or buffstacks(savage_combatant_buff) >= 1 and buffpresent(tooth_and_claw_buff) and buffpresent(incarnation) and enemies() == 2 and spell(maul) or buffpresent(incarnation) and enemies() <= 3 and spell(mangle) or target.refreshable(moonfire) and enemies() <= 3 and spell(moonfire) or { buffstacks(tooth_and_claw_buff) >= 2 or buffpresent(tooth_and_claw_buff) and buffremaining(tooth_and_claw_buff) < 1.5 or buffstacks(savage_combatant_buff) >= 3 } and spell(maul) or enemies() > 1 and spell(thrash_bear) or { buffpresent(galactic_guardian) and message("druid.catweave_bear is not implemented") and enemies() <= 3 or buffpresent(galactic_guardian) and not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") and enemies() <= 3 } and spell(moonfire) or rage() < 80 and enemies() < 4 and spell(mangle)
+  {
+   #pulverize,target_if=dot.thrash_bear.stack>2
+   if target.debuffstacks(thrash_bear_debuff) > 2 and target.debuffgain(thrash_bear_debuff) <= baseduration(thrash_bear_debuff) spell(pulverize)
+  }
+ }
+}
+
+AddFunction guardianbearshortcdpostconditions
+{
+ not buffpresent(bear_form) and spell(bear_form) or { buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") } and spell(berserk_bear) or { buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") } and spell(incarnation) or buffremaining(ironfur) < 0.5 and spell(ironfur) or target.refreshable(adaptive_swarm) and spell(adaptive_swarm) or buffpresent(galactic_guardian) and message("druid.owlweave_bear is not implemented") and enemies() <= 3 and spell(moonfire) or { target.refreshable(thrash_bear_debuff) or target.debuffstacks(thrash_bear_debuff) < 3 or target.debuffstacks(thrash_bear_debuff) < 4 and message("runeforge.luffainfused_embrace.equipped is not implemented") or enemies() > 5 } and spell(thrash_bear) or buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and enemies() >= 4 and spell(swipe) or buffpresent(incarnation) and enemies() < 2 and spell(maul) or buffstacks(savage_combatant_buff) >= 1 and buffpresent(tooth_and_claw_buff) and buffpresent(incarnation) and enemies() == 2 and spell(maul) or buffpresent(incarnation) and enemies() <= 3 and spell(mangle) or target.refreshable(moonfire) and enemies() <= 3 and spell(moonfire) or { buffstacks(tooth_and_claw_buff) >= 2 or buffpresent(tooth_and_claw_buff) and buffremaining(tooth_and_claw_buff) < 1.5 or buffstacks(savage_combatant_buff) >= 3 } and spell(maul) or enemies() > 1 and spell(thrash_bear) or { buffpresent(galactic_guardian) and message("druid.catweave_bear is not implemented") and enemies() <= 3 or buffpresent(galactic_guardian) and not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") and enemies() <= 3 } and spell(moonfire) or rage() < 80 and enemies() < 4 and spell(mangle) or spell(thrash_bear) or spell(maul) or spell(swipe_bear)
+}
+
+AddFunction guardianbearcdactions
+{
+ unless not buffpresent(bear_form) and spell(bear_form)
+ {
+  #potion,if=((buff.berserk_bear.up|buff.incarnation_guardian_of_ursoc.up)&(!druid.catweave_bear&!druid.owlweave_bear))
+  #ravenous_frenzy
+  spell(ravenous_frenzy)
+  #convoke_the_spirits,if=!druid.catweave_bear&!druid.owlweave_bear
+  if not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") spell(convoke_the_spirits)
+ }
+}
+
+AddFunction guardianbearcdpostconditions
+{
+ not buffpresent(bear_form) and spell(bear_form) or { buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") } and spell(berserk_bear) or { buffpresent(ravenous_frenzy) or not message("covenant.venthyr is not implemented") } and spell(incarnation) or { not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") or enemies() >= 2 } and spell(empower_bond) or hastalent(brambles_talent) and buffpresent(bear_form) and spell(barkskin) or buffremaining(ironfur) < 0.5 and spell(ironfur) or target.refreshable(adaptive_swarm) and spell(adaptive_swarm) or buffpresent(galactic_guardian) and message("druid.owlweave_bear is not implemented") and enemies() <= 3 and spell(moonfire) or { target.refreshable(thrash_bear_debuff) or target.debuffstacks(thrash_bear_debuff) < 3 or target.debuffstacks(thrash_bear_debuff) < 4 and message("runeforge.luffainfused_embrace.equipped is not implemented") or enemies() > 5 } and spell(thrash_bear) or buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and enemies() >= 4 and spell(swipe) or buffpresent(incarnation) and enemies() < 2 and spell(maul) or buffstacks(savage_combatant_buff) >= 1 and buffpresent(tooth_and_claw_buff) and buffpresent(incarnation) and enemies() == 2 and spell(maul) or buffpresent(incarnation) and enemies() <= 3 and spell(mangle) or target.refreshable(moonfire) and enemies() <= 3 and spell(moonfire) or { buffstacks(tooth_and_claw_buff) >= 2 or buffpresent(tooth_and_claw_buff) and buffremaining(tooth_and_claw_buff) < 1.5 or buffstacks(savage_combatant_buff) >= 3 } and spell(maul) or enemies() > 1 and spell(thrash_bear) or { buffpresent(galactic_guardian) and message("druid.catweave_bear is not implemented") and enemies() <= 3 or buffpresent(galactic_guardian) and not message("druid.catweave_bear is not implemented") and not message("druid.owlweave_bear is not implemented") and enemies() <= 3 } and spell(moonfire) or rage() < 80 and enemies() < 4 and spell(mangle) or target.debuffstacks(thrash_bear_debuff) > 2 and target.debuffgain(thrash_bear_debuff) <= baseduration(thrash_bear_debuff) and spell(pulverize) or spell(thrash_bear) or spell(maul) or spell(swipe_bear)
 }
 
 ### actions.default
 
-AddFunction GuardianDefaultMainActions
+AddFunction guardian_defaultmainactions
 {
- #call_action_list,name=cooldowns
- GuardianCooldownsMainActions()
+ #potion,if=((talent.heart_of_the_wild.enabled&buff.heart_of_the_wild.up)&(druid.catweave_bear|druid.owlweave_bear))
+ #run_action_list,name=catweave,if=druid.catweave_bear&((cooldown.thrash_bear.remains>0&cooldown.mangle.remains>0&dot.moonfire.remains>=gcd+0.5&rage<40&buff.incarnation_guardian_of_ursoc.down&buff.berserk_bear.down&buff.galactic_guardian.down)|(buff.cat_form.up&energy>25)|(runeforge.oath_of_the_elder_druid.equipped&!buff.oath_of_the_elder_druid.up&(buff.cat_form.up&energy>20))|(runeforge.oath_of_the_elder_druid.equipped&buff.heart_of_the_wild.remains<10)&(buff.cat_form.up&energy>20)|(covenant.kyrian&cooldown.empower_bond.remains<=1&active_enemies<2))
+ if message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } guardiancatweavemainactions()
 
- unless GuardianCooldownsMainPostConditions()
+ unless message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardiancatweavemainpostconditions()
  {
-  #maul,if=rage.deficit<10&active_enemies<4
-  if RageDeficit() < 10 and Enemies() < 4 Spell(maul)
-  #pulverize,target_if=dot.thrash_bear.stack=dot.thrash_bear.max_stacks
-  if target.DebuffStacks(thrash_bear_debuff) == MaxStacks(thrash_bear_debuff) and target.DebuffGain(thrash_bear_debuff) <= BaseDuration(thrash_bear_debuff) Spell(pulverize)
-  #moonfire,target_if=dot.moonfire.refreshable&active_enemies<2
-  if target.DebuffRefreshable(moonfire_debuff) and Enemies() < 2 Spell(moonfire)
-  #thrash,if=(buff.incarnation.down&active_enemies>1)|(buff.incarnation.up&active_enemies>4)
-  if BuffExpires(incarnation_guardian_of_ursoc_buff) and Enemies() > 1 or BuffPresent(incarnation_guardian_of_ursoc_buff) and Enemies() > 4 Spell(thrash)
-  #swipe,if=buff.incarnation.down&active_enemies>4
-  if BuffExpires(incarnation_guardian_of_ursoc_buff) and Enemies() > 4 Spell(swipe)
-  #mangle,if=dot.thrash_bear.ticking
-  if target.DebuffPresent(thrash_bear_debuff) Spell(mangle)
-  #moonfire,target_if=buff.galactic_guardian.up&active_enemies<2
-  if BuffPresent(galactic_guardian_buff) and Enemies() < 2 Spell(moonfire)
-  #thrash
-  Spell(thrash)
-  #maul
-  Spell(maul)
-  #swipe
-  Spell(swipe)
+  #run_action_list,name=owlweave,if=druid.owlweave_bear&((cooldown.thrash_bear.remains>0&cooldown.mangle.remains>0&rage<20&buff.incarnation.down&buff.berserk_bear.down)|(buff.moonkin_form.up&dot.sunfire.refreshable)|(buff.moonkin_form.up&buff.heart_of_the_wild.up)|(buff.moonkin_form.up&(buff.eclipse_lunar.up|buff.eclipse_solar.up)&!runeforge.oath_of_the_elder_druid.equipped)|(runeforge.oath_of_the_elder_druid.equipped&!buff.oath_of_the_elder_druid.up)|(covenant.night_fae&cooldown.convoke_the_spirits.remains<=1)|(covenant.kyrian&cooldown.empower_bond.remains<=1&active_enemies<2))
+  if message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } guardianowlweavemainactions()
+
+  unless message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardianowlweavemainpostconditions()
+  {
+   #run_action_list,name=lycarao,if=((runeforge.lycaras_fleeting_glimpse.equipped)&(talent.balance_affinity.enabled)&(buff.lycaras_fleeting_glimpse.up)&(buff.lycaras_fleeting_glimpse.remains<=2))
+   if message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 guardianlycaraomainactions()
+
+   unless message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraomainpostconditions()
+   {
+    #run_action_list,name=lycarac,if=((runeforge.lycaras_fleeting_glimpse.equipped)&(talent.feral_affinity.enabled)&(buff.lycaras_fleeting_glimpse.up)&(buff.lycaras_fleeting_glimpse.remains<=2))
+    if message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 guardianlycaracmainactions()
+
+    unless message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaracmainpostconditions()
+    {
+     #run_action_list,name=bear
+     guardianbearmainactions()
+    }
+   }
+  }
  }
 }
 
-AddFunction GuardianDefaultMainPostConditions
+AddFunction guardian_defaultmainpostconditions
 {
- GuardianCooldownsMainPostConditions()
+ message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardiancatweavemainpostconditions() or message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardianowlweavemainpostconditions() or message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraomainpostconditions() or message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaracmainpostconditions() or guardianbearmainpostconditions()
 }
 
-AddFunction GuardianDefaultShortCdActions
+AddFunction guardian_defaultshortcdactions
 {
  #auto_attack
- GuardianGetInMeleeRange()
- #call_action_list,name=cooldowns
- GuardianCooldownsShortCdActions()
-}
+ guardiangetinmeleerange()
+ #potion,if=((talent.heart_of_the_wild.enabled&buff.heart_of_the_wild.up)&(druid.catweave_bear|druid.owlweave_bear))
+ #run_action_list,name=catweave,if=druid.catweave_bear&((cooldown.thrash_bear.remains>0&cooldown.mangle.remains>0&dot.moonfire.remains>=gcd+0.5&rage<40&buff.incarnation_guardian_of_ursoc.down&buff.berserk_bear.down&buff.galactic_guardian.down)|(buff.cat_form.up&energy>25)|(runeforge.oath_of_the_elder_druid.equipped&!buff.oath_of_the_elder_druid.up&(buff.cat_form.up&energy>20))|(runeforge.oath_of_the_elder_druid.equipped&buff.heart_of_the_wild.remains<10)&(buff.cat_form.up&energy>20)|(covenant.kyrian&cooldown.empower_bond.remains<=1&active_enemies<2))
+ if message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } guardiancatweaveshortcdactions()
 
-AddFunction GuardianDefaultShortCdPostConditions
-{
- GuardianCooldownsShortCdPostConditions() or RageDeficit() < 10 and Enemies() < 4 and Spell(maul) or target.DebuffStacks(thrash_bear_debuff) == MaxStacks(thrash_bear_debuff) and target.DebuffGain(thrash_bear_debuff) <= BaseDuration(thrash_bear_debuff) and Spell(pulverize) or target.DebuffRefreshable(moonfire_debuff) and Enemies() < 2 and Spell(moonfire) or { BuffExpires(incarnation_guardian_of_ursoc_buff) and Enemies() > 1 or BuffPresent(incarnation_guardian_of_ursoc_buff) and Enemies() > 4 } and Spell(thrash) or BuffExpires(incarnation_guardian_of_ursoc_buff) and Enemies() > 4 and Spell(swipe) or target.DebuffPresent(thrash_bear_debuff) and Spell(mangle) or BuffPresent(galactic_guardian_buff) and Enemies() < 2 and Spell(moonfire) or Spell(thrash) or Spell(maul) or Spell(swipe)
-}
-
-AddFunction GuardianDefaultCdActions
-{
- GuardianInterruptActions()
- #call_action_list,name=cooldowns
- GuardianCooldownsCdActions()
-
- unless GuardianCooldownsCdPostConditions() or RageDeficit() < 10 and Enemies() < 4 and Spell(maul) or target.DebuffStacks(thrash_bear_debuff) == MaxStacks(thrash_bear_debuff) and target.DebuffGain(thrash_bear_debuff) <= BaseDuration(thrash_bear_debuff) and Spell(pulverize) or target.DebuffRefreshable(moonfire_debuff) and Enemies() < 2 and Spell(moonfire)
+ unless message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardiancatweaveshortcdpostconditions()
  {
-  #incarnation
-  Spell(incarnation_guardian_of_ursoc)
+  #run_action_list,name=owlweave,if=druid.owlweave_bear&((cooldown.thrash_bear.remains>0&cooldown.mangle.remains>0&rage<20&buff.incarnation.down&buff.berserk_bear.down)|(buff.moonkin_form.up&dot.sunfire.refreshable)|(buff.moonkin_form.up&buff.heart_of_the_wild.up)|(buff.moonkin_form.up&(buff.eclipse_lunar.up|buff.eclipse_solar.up)&!runeforge.oath_of_the_elder_druid.equipped)|(runeforge.oath_of_the_elder_druid.equipped&!buff.oath_of_the_elder_druid.up)|(covenant.night_fae&cooldown.convoke_the_spirits.remains<=1)|(covenant.kyrian&cooldown.empower_bond.remains<=1&active_enemies<2))
+  if message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } guardianowlweaveshortcdactions()
+
+  unless message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardianowlweaveshortcdpostconditions()
+  {
+   #run_action_list,name=lycarao,if=((runeforge.lycaras_fleeting_glimpse.equipped)&(talent.balance_affinity.enabled)&(buff.lycaras_fleeting_glimpse.up)&(buff.lycaras_fleeting_glimpse.remains<=2))
+   if message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 guardianlycaraoshortcdactions()
+
+   unless message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraoshortcdpostconditions()
+   {
+    #run_action_list,name=lycarac,if=((runeforge.lycaras_fleeting_glimpse.equipped)&(talent.feral_affinity.enabled)&(buff.lycaras_fleeting_glimpse.up)&(buff.lycaras_fleeting_glimpse.remains<=2))
+    if message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 guardianlycaracshortcdactions()
+
+    unless message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaracshortcdpostconditions()
+    {
+     #run_action_list,name=bear
+     guardianbearshortcdactions()
+    }
+   }
+  }
  }
 }
 
-AddFunction GuardianDefaultCdPostConditions
+AddFunction guardian_defaultshortcdpostconditions
 {
- GuardianCooldownsCdPostConditions() or RageDeficit() < 10 and Enemies() < 4 and Spell(maul) or target.DebuffStacks(thrash_bear_debuff) == MaxStacks(thrash_bear_debuff) and target.DebuffGain(thrash_bear_debuff) <= BaseDuration(thrash_bear_debuff) and Spell(pulverize) or target.DebuffRefreshable(moonfire_debuff) and Enemies() < 2 and Spell(moonfire) or { BuffExpires(incarnation_guardian_of_ursoc_buff) and Enemies() > 1 or BuffPresent(incarnation_guardian_of_ursoc_buff) and Enemies() > 4 } and Spell(thrash) or BuffExpires(incarnation_guardian_of_ursoc_buff) and Enemies() > 4 and Spell(swipe) or target.DebuffPresent(thrash_bear_debuff) and Spell(mangle) or BuffPresent(galactic_guardian_buff) and Enemies() < 2 and Spell(moonfire) or Spell(thrash) or Spell(maul) or Spell(swipe)
+ message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardiancatweaveshortcdpostconditions() or message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardianowlweaveshortcdpostconditions() or message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraoshortcdpostconditions() or message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaracshortcdpostconditions() or guardianbearshortcdpostconditions()
+}
+
+AddFunction guardian_defaultcdactions
+{
+ guardianinterruptactions()
+ #use_items
+ guardianuseitemactions()
+ #potion,if=((talent.heart_of_the_wild.enabled&buff.heart_of_the_wild.up)&(druid.catweave_bear|druid.owlweave_bear))
+ #run_action_list,name=catweave,if=druid.catweave_bear&((cooldown.thrash_bear.remains>0&cooldown.mangle.remains>0&dot.moonfire.remains>=gcd+0.5&rage<40&buff.incarnation_guardian_of_ursoc.down&buff.berserk_bear.down&buff.galactic_guardian.down)|(buff.cat_form.up&energy>25)|(runeforge.oath_of_the_elder_druid.equipped&!buff.oath_of_the_elder_druid.up&(buff.cat_form.up&energy>20))|(runeforge.oath_of_the_elder_druid.equipped&buff.heart_of_the_wild.remains<10)&(buff.cat_form.up&energy>20)|(covenant.kyrian&cooldown.empower_bond.remains<=1&active_enemies<2))
+ if message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } guardiancatweavecdactions()
+
+ unless message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardiancatweavecdpostconditions()
+ {
+  #run_action_list,name=owlweave,if=druid.owlweave_bear&((cooldown.thrash_bear.remains>0&cooldown.mangle.remains>0&rage<20&buff.incarnation.down&buff.berserk_bear.down)|(buff.moonkin_form.up&dot.sunfire.refreshable)|(buff.moonkin_form.up&buff.heart_of_the_wild.up)|(buff.moonkin_form.up&(buff.eclipse_lunar.up|buff.eclipse_solar.up)&!runeforge.oath_of_the_elder_druid.equipped)|(runeforge.oath_of_the_elder_druid.equipped&!buff.oath_of_the_elder_druid.up)|(covenant.night_fae&cooldown.convoke_the_spirits.remains<=1)|(covenant.kyrian&cooldown.empower_bond.remains<=1&active_enemies<2))
+  if message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } guardianowlweavecdactions()
+
+  unless message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardianowlweavecdpostconditions()
+  {
+   #run_action_list,name=lycarao,if=((runeforge.lycaras_fleeting_glimpse.equipped)&(talent.balance_affinity.enabled)&(buff.lycaras_fleeting_glimpse.up)&(buff.lycaras_fleeting_glimpse.remains<=2))
+   if message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 guardianlycaraocdactions()
+
+   unless message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraocdpostconditions()
+   {
+    #run_action_list,name=lycarac,if=((runeforge.lycaras_fleeting_glimpse.equipped)&(talent.feral_affinity.enabled)&(buff.lycaras_fleeting_glimpse.up)&(buff.lycaras_fleeting_glimpse.remains<=2))
+    if message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 guardianlycaraccdactions()
+
+    unless message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraccdpostconditions()
+    {
+     #run_action_list,name=bear
+     guardianbearcdactions()
+    }
+   }
+  }
+ }
+}
+
+AddFunction guardian_defaultcdpostconditions
+{
+ message("druid.catweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and target.debuffremaining(moonfire) >= gcd() + 0.5 and rage() < 40 and buffexpires(incarnation_guardian_of_ursoc) and buffexpires(berserk_bear_buff) and buffexpires(galactic_guardian) or buffpresent(cat_form) and energy() > 25 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) and buffpresent(cat_form) and energy() > 20 or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and buffremaining(heart_of_the_wild) < 10 and buffpresent(cat_form) and energy() > 20 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardiancatweavecdpostconditions() or message("druid.owlweave_bear is not implemented") and { spellcooldown(thrash_bear) > 0 and spellcooldown(mangle) > 0 and rage() < 20 and buffexpires(incarnation) and buffexpires(berserk_bear_buff) or buffpresent(moonkin_form) and target.debuffrefreshable(sunfire) or buffpresent(moonkin_form) and buffpresent(heart_of_the_wild) or buffpresent(moonkin_form) and { buffpresent(eclipse_lunar) or buffpresent(eclipse_solar) } and not message("runeforge.oath_of_the_elder_druid.equipped is not implemented") or message("runeforge.oath_of_the_elder_druid.equipped is not implemented") and not buffpresent(oath_of_the_elder_druid) or message("covenant.night_fae is not implemented") and spellcooldown(convoke_the_spirits) <= 1 or message("covenant.kyrian is not implemented") and spellcooldown(empower_bond) <= 1 and enemies() < 2 } and guardianowlweavecdpostconditions() or message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(balance_affinity_talent) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraocdpostconditions() or message("runeforge.lycaras_fleeting_glimpse.equipped is not implemented") and hastalent(feral_affinity_talent_guardian) and buffpresent(lycaras_fleeting_glimpse) and buffremaining(lycaras_fleeting_glimpse) <= 2 and guardianlycaraccdpostconditions() or guardianbearcdpostconditions()
 }
 
 ### Guardian icons.
 
-AddCheckBox(opt_druid_guardian_aoe L(AOE) default specialization=guardian)
+AddCheckBox(opt_druid_guardian_aoe l(aoe) default specialization=guardian)
 
 AddIcon checkbox=!opt_druid_guardian_aoe enemies=1 help=shortcd specialization=guardian
 {
- if not InCombat() GuardianPrecombatShortCdActions()
- unless not InCombat() and GuardianPrecombatShortCdPostConditions()
- {
-  GuardianDefaultShortCdActions()
- }
+ if not incombat() guardianprecombatshortcdactions()
+ guardian_defaultshortcdactions()
 }
 
 AddIcon checkbox=opt_druid_guardian_aoe help=shortcd specialization=guardian
 {
- if not InCombat() GuardianPrecombatShortCdActions()
- unless not InCombat() and GuardianPrecombatShortCdPostConditions()
- {
-  GuardianDefaultShortCdActions()
- }
+ if not incombat() guardianprecombatshortcdactions()
+ guardian_defaultshortcdactions()
 }
 
 AddIcon enemies=1 help=main specialization=guardian
 {
- if not InCombat() GuardianPrecombatMainActions()
- unless not InCombat() and GuardianPrecombatMainPostConditions()
- {
-  GuardianDefaultMainActions()
- }
+ if not incombat() guardianprecombatmainactions()
+ guardian_defaultmainactions()
 }
 
 AddIcon checkbox=opt_druid_guardian_aoe help=aoe specialization=guardian
 {
- if not InCombat() GuardianPrecombatMainActions()
- unless not InCombat() and GuardianPrecombatMainPostConditions()
- {
-  GuardianDefaultMainActions()
- }
+ if not incombat() guardianprecombatmainactions()
+ guardian_defaultmainactions()
 }
 
 AddIcon checkbox=!opt_druid_guardian_aoe enemies=1 help=cd specialization=guardian
 {
- if not InCombat() GuardianPrecombatCdActions()
- unless not InCombat() and GuardianPrecombatCdPostConditions()
- {
-  GuardianDefaultCdActions()
- }
+ if not incombat() guardianprecombatcdactions()
+ guardian_defaultcdactions()
 }
 
 AddIcon checkbox=opt_druid_guardian_aoe help=cd specialization=guardian
 {
- if not InCombat() GuardianPrecombatCdActions()
- unless not InCombat() and GuardianPrecombatCdPostConditions()
- {
-  GuardianDefaultCdActions()
- }
+ if not incombat() guardianprecombatcdactions()
+ guardian_defaultcdactions()
 }
 
 ### Required symbols
-# ancestral_call
-# arcane_torrent_energy
+# adaptive_swarm
+# balance_affinity_talent
 # barkskin
 # bear_form
-# berserking
-# blood_fury
-# bristling_fur
-# fireblood
-# galactic_guardian_buff
+# berserk_bear
+# berserk_bear_buff
+# brambles_talent
+# cat_form
+# convoke_the_spirits
+# eclipse_lunar
+# eclipse_solar
+# empower_bond
+# feral_affinity_talent_guardian
+# ferocious_bite
+# galactic_guardian
+# heart_of_the_wild
+# heart_of_the_wild_talent
 # incapacitating_roar
+# incarnation
 # incarnation_guardian_of_ursoc
-# incarnation_guardian_of_ursoc_buff
-# lights_judgment
-# lunar_beam
+# ironfur
+# lycaras_fleeting_glimpse
 # mangle
 # maul
 # mighty_bash
 # moonfire
-# moonfire_debuff
-# old_war
+# moonkin_form
+# oath_of_the_elder_druid
+# prowl
 # pulverize
+# rake
+# rake_debuff
+# ravenous_frenzy
+# rip
+# savage_combatant_buff
 # shred
 # skull_bash
+# starfire
+# starsurge
+# starsurge_empowerment_buff
+# sunfire
 # swipe
-# thrash
+# swipe_bear
+# thrash_bear
 # thrash_bear_debuff
+# tooth_and_claw_buff
 # typhoon
 # war_stomp
 # wild_charge
 # wild_charge_bear
 # wild_charge_cat
+# wrath
 `
 	OvaleScripts.RegisterScript("DRUID", "guardian", name, desc, code, "script")
+}
+
 }

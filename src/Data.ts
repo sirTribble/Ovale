@@ -1,18 +1,23 @@
-import { Ovale } from "./Ovale";
-import { OvaleGUID } from "./GUID";
-import { OvaleDebug } from "./Debug";
-import { nowRequirements, CheckRequirements } from "./Requirement";
-import { type, pairs, tonumber, wipe, truthy, LuaArray, LuaObj } from "@wowts/lua";
+import { OvaleGUIDClass } from "./GUID";
+import { OvaleRequirement } from "./Requirement";
+import {
+    type,
+    ipairs,
+    pairs,
+    tonumber,
+    wipe,
+    truthy,
+    LuaArray,
+    LuaObj,
+    kpairs,
+} from "@wowts/lua";
 import { find } from "@wowts/string";
-import { baseState } from "./BaseState";
-import { isLuaArray, isString } from "./tools";
+import { BaseState } from "./BaseState";
+import { isLuaArray, isString, OneTimeMessage } from "./tools";
 import { HasteType } from "./PaperDoll";
 import { Powers } from "./Power";
 
-
-let OvaleDataBase = OvaleDebug.RegisterDebugging(Ovale.NewModule("OvaleData"));
-
-let BLOODELF_CLASSES: LuaObj<boolean> = {
+const BLOODELF_CLASSES: LuaObj<boolean> = {
     ["DEATHKNIGHT"]: true,
     ["DEMONHUNTER"]: true,
     ["DRUID"]: false,
@@ -24,9 +29,9 @@ let BLOODELF_CLASSES: LuaObj<boolean> = {
     ["ROGUE"]: true,
     ["SHAMAN"]: false,
     ["WARLOCK"]: true,
-    ["WARRIOR"]: true
-}
-let PANDAREN_CLASSES: LuaObj<boolean> = {
+    ["WARRIOR"]: true,
+};
+const PANDAREN_CLASSES: LuaObj<boolean> = {
     ["DEATHKNIGHT"]: false,
     ["DEMONHUNTER"]: false,
     ["DRUID"]: false,
@@ -38,9 +43,9 @@ let PANDAREN_CLASSES: LuaObj<boolean> = {
     ["ROGUE"]: true,
     ["SHAMAN"]: true,
     ["WARLOCK"]: false,
-    ["WARRIOR"]: true
-}
-let TAUREN_CLASSES: LuaObj<boolean> = {
+    ["WARRIOR"]: true,
+};
+const TAUREN_CLASSES: LuaObj<boolean> = {
     ["DEATHKNIGHT"]: true,
     ["DEMONHUNTER"]: false,
     ["DRUID"]: true,
@@ -52,9 +57,9 @@ let TAUREN_CLASSES: LuaObj<boolean> = {
     ["ROGUE"]: false,
     ["SHAMAN"]: true,
     ["WARLOCK"]: false,
-    ["WARRIOR"]: true
-}
-let STAT_NAMES: LuaArray<string> = {
+    ["WARRIOR"]: true,
+};
+const STAT_NAMES: LuaArray<string> = {
     1: "agility",
     2: "bonus_armor",
     3: "critical_strike",
@@ -64,27 +69,27 @@ let STAT_NAMES: LuaArray<string> = {
     7: "spirit",
     8: "spellpower",
     9: "strength",
-    10: "versatility"
-}
-let STAT_SHORTNAME: LuaObj<string> = {
+    10: "versatility",
+};
+const STAT_SHORTNAME: LuaObj<string> = {
     agility: "agi",
     critical_strike: "crit",
     intellect: "int",
     strength: "str",
-    spirit: "spi"
-}
-let STAT_USE_NAMES: LuaArray<string> = {
+    spirit: "spi",
+};
+const STAT_USE_NAMES: LuaArray<string> = {
     1: "trinket_proc",
     2: "trinket_stacking_proc",
     3: "trinket_stacking_stat",
     4: "trinket_stat",
-    5: "trinket_stack_proc"
-}
+    5: "trinket_stack_proc",
+};
 
 type SpellData = number | string | LuaArray<number | string>;
 type Requirements = LuaObj<LuaArray<string>>;
 
-type AuraList = { [key: number]: SpellData;[key: string]: SpellData; };
+type AuraList = { [key: number]: SpellData; [key: string]: SpellData };
 
 export interface AuraByType {
     HARMFUL: AuraList;
@@ -93,8 +98,7 @@ export interface AuraByType {
 
 export type AuraType = keyof AuraByType;
 
-interface Auras
-{
+interface Auras {
     damage: AuraByType;
     pet: AuraByType;
     target: AuraByType;
@@ -109,63 +113,63 @@ interface Auras
  */
 export interface SpellInfo extends Powers {
     //[key:string]: LuaObj<Requirements> | number | string | LuaArray<string> | LuaArray<number> | Auras;
-    require?: {[key in keyof SpellInfo]: Requirements };
+    require: { [key in keyof SpellInfo]?: Requirements };
     // Aura
     aura?: Auras;
-    duration?:number;   
-    add_duration_combopoints?:number;
-    tick?:number;
-    stacking?:number;
-    max_stacks?:number;
-    stat?:string | LuaArray<string>;
-    buff?:number | LuaArray<number>;
+    duration?: number;
+    add_duration_combopoints?: number;
+    tick?: number;
+    stacking?: number;
+    max_stacks?: number;
+    stat?: string | LuaArray<string>;
+    buff?: number | LuaArray<number>;
     // Cooldown
     gcd?: number;
-    shared_cd?:number;
+    shared_cd?: number;
     cd?: number;
     charge_cd?: number;
-    forcecd?:number;
-    buff_cd?:number; // Internal cooldown, rename?
-    buff_cdr?:number; // Cooldown reduction TODO
+    forcecd?: number;
+    buff_cd?: number; // Internal cooldown, rename?
+    buff_cdr?: number; // Cooldown reduction TODO
     // Haste
-    haste?:HasteType;
-    cd_haste?:string;
-    gcd_haste?:HasteType;
+    haste?: HasteType;
+    cd_haste?: string;
+    gcd_haste?: HasteType;
     // Damage Calculations
-    bonusmainhand?:number;
-    bonusoffhand?:number;
+    bonusmainhand?: number;
+    bonusoffhand?: number;
     bonuscp?: number;
     bonusap?: number;
-    bonusapcp?:number;
-    bonussp?:number;
+    bonusapcp?: number;
+    bonussp?: number;
     damage?: number;
-    base?:number; // base damage
-    physical?:number;
+    base?: number; // base damage
+    physical?: number;
     // Icon
-    tag?:string;
-    texture?:string;
+    tag?: string;
+    texture?: string;
     // Spells
-    replaced_by?:number;
-    max_travel_time?:number;
-    travel_time?:number;
-    canStopChannelling?:number;
-    channel?:number;
-    unusable?:number;
-    to_stance?:number;
+    replaced_by?: number;
+    max_travel_time?: number;
+    travel_time?: number;
+    canStopChannelling?: number;
+    channel?: number;
+    unusable?: number;
+    to_stance?: number;
     // Totems
-    totem?:number;
-    buff_totem?:number;
-    max_totems?:number;
+    totem?: number;
+    buff_totem?: number;
+    max_totems?: number;
     // (custom) Counter
-    inccounter?:number;
-    resetcounter?:number;
+    inccounter?: number;
+    resetcounter?: number;
     /** Power
      * ${powerType}: number; // Cost of a spell.  ${powerType} = energy, focus, rage, etc.
      */
-    runes?:number;
+    runes?: number;
     interrupt?: number;
-    add_duration?:number;
-    add_cd?:number;
+    add_duration?: number;
+    add_cd?: number;
     // nocd?:number;
     // flash?:boolean;
     // target?:string;
@@ -178,44 +182,21 @@ export interface SpellInfo extends Powers {
 
 const tempTokens: LuaArray<string> = {};
 
-class OvaleDataClass extends OvaleDataBase {
+export class OvaleDataClass {
     STAT_NAMES = STAT_NAMES;
     STAT_SHORTNAME = STAT_SHORTNAME;
     STAT_USE_NAMES = STAT_USE_NAMES;
     BLOODELF_CLASSES = BLOODELF_CLASSES;
     PANDAREN_CLASSES = PANDAREN_CLASSES;
     TAUREN_CLASSES = TAUREN_CLASSES;
-    itemInfo: LuaArray<SpellInfo> = {}
-    itemList: LuaObj<LuaArray<number>> = {}
-    spellInfo: LuaObj<SpellInfo> = {}
+    itemInfo: LuaArray<SpellInfo> = {};
+    itemList: LuaObj<LuaArray<number>> = {};
+    spellInfo: LuaObj<SpellInfo> = {};
     buffSpellList: LuaObj<LuaArray<boolean>> = {
-        fear_debuff: {
-            [5246]: true,
-            [5484]: true,
-            [5782]: true,
-            [8122]: true
-        },
-        incapacitate_debuff: {
-            [6770]: true,
-            [12540]: true,
-            [20066]: true,
-            [137460]: true
-        },
-        root_debuff: {
-            [122]: true,
-            [339]: true
-        },
-        stun_debuff: {
-            [408]: true,
-            [853]: true,
-            [1833]: true,
-            [5211]: true,
-            [46968]: true
-        },
         attack_power_multiplier_buff: {
             [6673]: true,
             [19506]: true,
-            [57330]: true
+            [57330]: true,
         },
         critical_strike_buff: {
             [1459]: true,
@@ -230,7 +211,7 @@ class OvaleDataClass extends OvaleDataBase {
             [126373]: true,
             [128997]: true,
             [160052]: true,
-            [160200]: true
+            [160200]: true,
         },
         haste_buff: {
             [49868]: true,
@@ -240,7 +221,7 @@ class OvaleDataClass extends OvaleDataBase {
             [135678]: true,
             [160003]: true,
             [160074]: true,
-            [160203]: true
+            [160203]: true,
         },
         mastery_buff: {
             [19740]: true,
@@ -250,7 +231,7 @@ class OvaleDataClass extends OvaleDataBase {
             [128997]: true,
             [155522]: true,
             [160073]: true,
-            [160198]: true
+            [160198]: true,
         },
         spell_power_multiplier_buff: {
             [1459]: true,
@@ -259,7 +240,7 @@ class OvaleDataClass extends OvaleDataBase {
             [109773]: true,
             [126309]: true,
             [128433]: true,
-            [160205]: true
+            [160205]: true,
         },
         stamina_buff: {
             [469]: true,
@@ -269,7 +250,7 @@ class OvaleDataClass extends OvaleDataBase {
             [160003]: true,
             [160014]: true,
             [166928]: true,
-            [160199]: true
+            [160199]: true,
         },
         str_agi_int_buff: {
             [1126]: true,
@@ -280,7 +261,7 @@ class OvaleDataClass extends OvaleDataBase {
             [159988]: true,
             [160017]: true,
             [160077]: true,
-            [160206]: true
+            [160206]: true,
         },
         versatility_buff: {
             [1126]: true,
@@ -293,7 +274,7 @@ class OvaleDataClass extends OvaleDataBase {
             [160077]: true,
             [167187]: true,
             [167188]: true,
-            [172967]: true
+            [172967]: true,
         },
         bleed_debuff: {
             [1079]: true,
@@ -304,13 +285,13 @@ class OvaleDataClass extends OvaleDataBase {
             [115767]: true,
             [122233]: true,
             [154953]: true,
-            [155722]: true
+            [155722]: true,
         },
         healing_reduced_debuff: {
             [8680]: true,
             [54680]: true,
             [115625]: true,
-            [115804]: true
+            [115804]: true,
         },
         stealthed_buff: {
             [1784]: true,
@@ -324,57 +305,60 @@ class OvaleDataClass extends OvaleDataBase {
             [115191]: true,
             [115192]: true,
             [115193]: true,
-            [185422]: true
+            [185422]: true,
         },
         burst_haste_buff: {
             [2825]: true,
             [32182]: true,
             [80353]: true,
-            [90355]: true
+            [90355]: true,
         },
         burst_haste_debuff: {
             [57723]: true,
             [57724]: true,
             [80354]: true,
-            [95809]: true
+            [95809]: true,
         },
         raid_movement_buff: {
-            [106898]: true
-        }
-    }
-    constructor() {
-        super();
+            [106898]: true,
+        },
+    };
+    constructor(
+        private baseState: BaseState,
+        private ovaleGuid: OvaleGUIDClass,
+        private requirement: OvaleRequirement
+    ) {
         for (const [, useName] of pairs(STAT_USE_NAMES)) {
             let name;
             for (const [, statName] of pairs(STAT_NAMES)) {
                 name = `${useName}_${statName}_buff`;
-                this.buffSpellList[name] = {}
+                this.buffSpellList[name] = {};
                 let shortName = STAT_SHORTNAME[statName];
                 if (shortName) {
                     name = `${useName}_${shortName}_buff`;
-                    this.buffSpellList[name] = {}
+                    this.buffSpellList[name] = {};
                 }
             }
             name = `${useName}_any_buff`;
-            this.buffSpellList[name] = {}
+            this.buffSpellList[name] = {};
         }
 
         {
             for (const [name] of pairs(this.buffSpellList)) {
                 this.DEFAULT_SPELL_LIST[name] = true;
             }
-        }        
+        }
     }
 
-    DEFAULT_SPELL_LIST: LuaObj<boolean> = {}
-    
+    DEFAULT_SPELL_LIST: LuaObj<boolean> = {};
+
     Reset() {
         wipe(this.itemInfo);
         wipe(this.spellInfo);
         for (const [k, v] of pairs(this.buffSpellList)) {
             if (!this.DEFAULT_SPELL_LIST[k]) {
                 wipe(v);
-                this.buffSpellList[k] = undefined;
+                delete this.buffSpellList[k];
             } else if (truthy(find(k, "^trinket_"))) {
                 wipe(v);
             }
@@ -387,24 +371,23 @@ class OvaleDataClass extends OvaleDataBase {
                 aura: {
                     player: {
                         HELPFUL: {},
-                        HARMFUL: {}
+                        HARMFUL: {},
                     },
                     target: {
                         HELPFUL: {},
-                        HARMFUL: {}
+                        HARMFUL: {},
                     },
                     pet: {
                         HELPFUL: {},
-                        HARMFUL: {}
+                        HARMFUL: {},
                     },
                     damage: {
                         HELPFUL: {},
-                        HARMFUL: {}
-                    }
+                        HARMFUL: {},
+                    },
                 },
-                require: {
-                }
-            }
+                require: {},
+            };
             this.spellInfo[spellId] = si;
         }
         return si;
@@ -424,9 +407,8 @@ class OvaleDataClass extends OvaleDataBase {
         let ii = this.itemInfo[itemId];
         if (!ii) {
             ii = {
-                require: {
-                }
-            }
+                require: {},
+            };
             this.itemInfo[itemId] = ii;
         }
         return ii;
@@ -435,7 +417,7 @@ class OvaleDataClass extends OvaleDataBase {
         return ["cd", false];
     }
     GetSpellTagInfo(spellId: number): [string, boolean] {
-        let tag = "main";
+        let tag: string | undefined = "main";
         let invokesGCD = true;
         let si = this.spellInfo[spellId];
         if (si) {
@@ -458,9 +440,14 @@ class OvaleDataClass extends OvaleDataBase {
         }
         return [tag, invokesGCD];
     }
-    
-    CheckSpellAuraData(auraId: number | string, spellData: SpellData, atTime: number, guid: string): [boolean, string | number, number | undefined] {
-        guid = guid || OvaleGUID.UnitGUID("player");
+
+    CheckSpellAuraData(
+        auraId: number | string,
+        spellData: SpellData,
+        atTime: number,
+        guid: string | undefined
+    ): [boolean, string | number, number | undefined] {
+        guid = guid || this.ovaleGuid.UnitGUID("player");
         let index, value: string | number, data;
         let spellDataArray: LuaArray<string | number> | undefined = undefined;
         if (isLuaArray(spellData)) {
@@ -479,7 +466,11 @@ class OvaleDataClass extends OvaleDataBase {
             if (N) {
                 data = tonumber(N);
             } else {
-                Ovale.OneTimeMessage("Warning: '%d' has '%s' missing final stack count.", auraId, value);
+                OneTimeMessage(
+                    "Warning: '%d' has '%s' missing final stack count.",
+                    auraId,
+                    value
+                );
             }
         } else if (value == "extend") {
             let seconds;
@@ -490,7 +481,11 @@ class OvaleDataClass extends OvaleDataBase {
             if (seconds) {
                 data = tonumber(seconds);
             } else {
-                Ovale.OneTimeMessage("Warning: '%d' has '%s' missing duration.", auraId, value);
+                OneTimeMessage(
+                    "Warning: '%d' has '%s' missing duration.",
+                    auraId,
+                    value
+                );
             }
         } else {
             let asNumber = tonumber(value);
@@ -498,24 +493,56 @@ class OvaleDataClass extends OvaleDataBase {
         }
         let verified = true;
         if (index) {
-            [verified] = CheckRequirements(<number>auraId, atTime, spellDataArray!, index, guid);
+            [verified] = this.requirement.CheckRequirements(
+                <number>auraId,
+                atTime,
+                spellDataArray!,
+                index,
+                guid
+            );
         }
         return [verified, value, data];
     }
 
-    CheckSpellInfo(spellId: number, atTime: number, targetGUID: string): [boolean, string] {
-        targetGUID = targetGUID || OvaleGUID.UnitGUID(baseState.next.defaultTarget || "target");
+    CheckSpellInfo(
+        spellId: number,
+        atTime: number,
+        targetGUID: string | undefined
+    ): [boolean, string?] {
+        targetGUID =
+            targetGUID ||
+            this.ovaleGuid.UnitGUID(
+                this.baseState.next.defaultTarget || "target"
+            );
         let verified = true;
-        let requirement;
-        for (const [name, handler] of pairs(nowRequirements)) {
-            let value = this.GetSpellInfoProperty(spellId, atTime, <any>name, targetGUID);
+        let requirement: string | undefined;
+        for (const [name, handler] of pairs(this.requirement.nowRequirements)) {
+            let value = this.GetSpellInfoProperty(
+                spellId,
+                atTime,
+                <any>name,
+                targetGUID
+            );
             if (value) {
                 if (!isString(value) && isLuaArray<string>(value)) {
-                    [verified, requirement] = handler(spellId, atTime, name, value, 1, targetGUID);
-                }
-                else {
+                    [verified, requirement] = handler(
+                        spellId,
+                        atTime,
+                        name,
+                        value,
+                        1,
+                        targetGUID
+                    );
+                } else {
                     tempTokens[1] = <string>value;
-                    [verified, requirement] = handler(spellId, atTime, name, tempTokens, 1, targetGUID);
+                    [verified, requirement] = handler(
+                        spellId,
+                        atTime,
+                        name,
+                        tempTokens,
+                        1,
+                        targetGUID
+                    );
                 }
                 if (!verified) {
                     break;
@@ -524,17 +551,31 @@ class OvaleDataClass extends OvaleDataBase {
         }
         return [verified, requirement];
     }
-    GetItemInfoProperty(itemId: number, atTime: number, property: keyof SpellInfo) {
-        const targetGUID = OvaleGUID.UnitGUID("player");
+    GetItemInfoProperty(
+        itemId: number,
+        atTime: number,
+        property: keyof SpellInfo
+    ) {
+        const targetGUID = this.ovaleGuid.UnitGUID("player");
         let ii = this.ItemInfo(itemId);
         let value = ii && ii[property];
         let requirements = ii && ii.require[property];
         if (requirements) {
-            for (const [v, requirement] of pairs(requirements)) {
-                let verified = CheckRequirements(itemId, atTime, requirement, 1, targetGUID);
-                if (verified) {
-                    value = tonumber(v) || v;
-                    break;
+            for (const [v, rArray] of pairs(requirements)) {
+                if (isLuaArray(rArray)) {
+                    for (const [, requirement] of ipairs<any>(rArray)) {
+                        let verified = this.requirement.CheckRequirements(
+                            itemId,
+                            atTime,
+                            requirement,
+                            1,
+                            targetGUID
+                        );
+                        if (verified) {
+                            value = tonumber(v) || v;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -542,43 +583,72 @@ class OvaleDataClass extends OvaleDataBase {
     }
     //GetSpellInfoProperty(spellId, atTime, property:"gcd"|"duration"|"combopoints"|"inccounter"|"resetcounter", targetGUID):number;
     /**
-     * 
-     * @param spellId 
-     * @param atTime 
-     * @param property 
-     * @param targetGUID 
+     *
+     * @param spellId
+     * @param atTime
+     * @param property
+     * @param targetGUID
      * @param noCalculation Checks only SpellInfo and SpellRequire for the property itself.  No `add_${property}` or `${property}_percent`
      * @returns value or [value, ratio]
      */
-    GetSpellInfoProperty<T extends keyof SpellInfo>(spellId: number, atTime: number, property:T, targetGUID: string|undefined): SpellInfo[T] {
-        targetGUID = targetGUID || OvaleGUID.UnitGUID(baseState.next.defaultTarget || "target");
+    GetSpellInfoProperty<T extends keyof SpellInfo>(
+        spellId: number,
+        atTime: number,
+        property: T,
+        targetGUID: string | undefined
+    ): SpellInfo[T] {
+        targetGUID =
+            targetGUID ||
+            this.ovaleGuid.UnitGUID(
+                this.baseState.next.defaultTarget || "target"
+            );
         let si = this.spellInfo[spellId];
         let value = si && si[property];
         let requirements = si && si.require[property];
         if (requirements) {
-            for (const [v, requirement] of pairs(requirements)) {
-                let verified = CheckRequirements(spellId, atTime, requirement, 1, targetGUID);
-                if (verified) {
-                    value = tonumber(v) || v;
-                    break;
+            for (const [v, rArray] of kpairs(requirements)) {
+                if (isLuaArray(rArray)) {
+                    for (const [, requirement] of ipairs<any>(rArray)) {
+                        let verified = this.requirement.CheckRequirements(
+                            spellId,
+                            atTime,
+                            requirement,
+                            1,
+                            targetGUID
+                        );
+                        if (verified) {
+                            (<any>value) = tonumber(v) || v;
+                            break;
+                        }
+                    }
                 }
             }
         }
         return value;
     }
     /**
-     * 
-     * @param spellId 
+     *
+     * @param spellId
      * @param atTime If undefined, will not check SpellRequire
-     * @param property 
-     * @param targetGUID 
+     * @param property
+     * @param targetGUID
      * @param splitRatio Split the value and ratio into separate return values instead of multiplying them together
      * @returns value or [value, ratio]
      */
-    GetSpellInfoPropertyNumber(spellId: number, atTime: number|undefined, property:keyof SpellInfo, targetGUID: string|undefined, splitRatio?: boolean): number[] {
-        targetGUID = targetGUID || OvaleGUID.UnitGUID(baseState.next.defaultTarget || "target");
+    GetSpellInfoPropertyNumber(
+        spellId: number,
+        atTime: number | undefined,
+        property: keyof SpellInfo,
+        targetGUID: string | undefined,
+        splitRatio?: boolean
+    ): number[] {
+        targetGUID =
+            targetGUID ||
+            this.ovaleGuid.UnitGUID(
+                this.baseState.next.defaultTarget || "target"
+            );
         let si = this.spellInfo[spellId];
-        
+
         let ratioParam = `${property}_percent` as keyof SpellInfo;
         let ratio = si && <number>si[ratioParam];
         if (ratio) {
@@ -586,22 +656,32 @@ class OvaleDataClass extends OvaleDataBase {
         } else {
             ratio = 1;
         }
-        if (atTime) {  
+        if (atTime) {
             let ratioRequirements = si && si.require[ratioParam];
             if (ratioRequirements) {
-                for (const [v, requirement] of pairs(ratioRequirements)) {
-                    let verified = CheckRequirements(spellId, atTime, requirement, 1, targetGUID);
-                    if (verified) {
-                        if (ratio != 0) {
-                            ratio = ratio * ((tonumber(v) / 100) || 1);
-                        } else {
-                            break;
+                for (const [v, rArray] of pairs(ratioRequirements)) {
+                    if (isLuaArray(rArray)) {
+                        for (const [, requirement] of ipairs<any>(rArray)) {
+                            let verified = this.requirement.CheckRequirements(
+                                spellId,
+                                atTime,
+                                requirement,
+                                1,
+                                targetGUID
+                            );
+                            if (verified) {
+                                if (ratio != 0) {
+                                    ratio = ratio * (tonumber(v) / 100 || 1);
+                                } else {
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        let value = si && <number>si[property] || 0;
+        let value = (si && <number>si[property]) || 0;
         if (ratio != 0) {
             let addParam = `add_${property}` as keyof SpellInfo;
             let addProperty = si && <number>si[addParam];
@@ -611,16 +691,26 @@ class OvaleDataClass extends OvaleDataBase {
             if (atTime) {
                 let addRequirements = si && si.require[addParam];
                 if (addRequirements) {
-                    for (const [v, requirement] of pairs(addRequirements)) {
-                        let verified = CheckRequirements(spellId, atTime, requirement, 1, targetGUID);
-                        if (verified) {
-                            value = value + (tonumber(v) || 0);
+                    for (const [v, rArray] of pairs(addRequirements)) {
+                        if (isLuaArray(rArray)) {
+                            for (const [, requirement] of ipairs<any>(rArray)) {
+                                let verified = this.requirement.CheckRequirements(
+                                    spellId,
+                                    atTime,
+                                    requirement,
+                                    1,
+                                    targetGUID
+                                );
+                                if (verified) {
+                                    value = value + (tonumber(v) || 0);
+                                }
+                            }
                         }
                     }
                 }
             }
-            
-        } else { // If ratio is 0, value must be 0.
+        } else {
+            // If ratio is 0, value must be 0.
             value = 0;
         }
         if (splitRatio) {
@@ -629,7 +719,14 @@ class OvaleDataClass extends OvaleDataBase {
         return [value * ratio];
     }
 
-    GetDamage(spellId: number, attackpower: number, spellpower: number, mainHandWeaponDPS: number, offHandWeaponDPS: number, combopoints: number): number {
+    GetDamage(
+        spellId: number,
+        attackpower: number,
+        spellpower: number,
+        mainHandWeaponDPS: number,
+        offHandWeaponDPS: number,
+        combopoints: number
+    ): number | undefined {
         let si = this.spellInfo[spellId];
         if (!si) {
             return undefined;
@@ -661,5 +758,3 @@ class OvaleDataClass extends OvaleDataBase {
         return damage;
     }
 }
-
-export const OvaleData = new OvaleDataClass();

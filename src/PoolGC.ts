@@ -1,12 +1,12 @@
-import { Ovale } from "./Ovale";
 import { tostring } from "@wowts/lua";
+import { Print } from "./tools";
 
 export class OvalePoolGC {
     name = "OvalePoolGC";
     size = 0;
     __index = OvalePoolGC;
-    
-    constructor(name: string){
+
+    constructor(name: string) {
         this.name = name;
     }
     Get() {
@@ -16,12 +16,11 @@ export class OvalePoolGC {
     Release(item: any) {
         this.Clean(item);
     }
-    Clean(item: any) {
-    }
+    Clean(item: any) {}
     Drain() {
         this.size = 0;
     }
     DebuggingInfo() {
-        Ovale.Print("Pool %s has size %d.", tostring(this.name), this.size);
+        Print("Pool %s has size %d.", tostring(this.name), this.size);
     }
 }

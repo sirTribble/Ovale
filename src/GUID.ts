@@ -1,13 +1,26 @@
-import { OvaleDebug } from "./Debug";
-import { Ovale } from "./Ovale";
-import aceEvent from "@wowts/ace_event-3.0";
+import aceEvent, { AceEvent } from "@wowts/ace_event-3.0";
 import { floor } from "@wowts/math";
-import { ipairs, setmetatable, type, unpack, LuaArray, lualength, LuaObj } from "@wowts/lua";
+import {
+    ipairs,
+    setmetatable,
+    type,
+    unpack,
+    LuaArray,
+    lualength,
+    LuaObj,
+} from "@wowts/lua";
 import { insert, remove } from "@wowts/table";
 import { GetTime, UnitGUID, UnitName } from "@wowts/wow-mock";
+import { AceModule } from "@wowts/tsaddon";
+import { OvaleClass } from "./Ovale";
+import { Tracer, OvaleDebugClass } from "./Debug";
+import {
+    ConditionFunction,
+    OvaleConditionClass,
+    ReturnConstant,
+} from "./Condition";
 
-let OvaleGUIDBase = OvaleDebug.RegisterDebugging(Ovale.NewModule("OvaleGUID", aceEvent));
-let PET_UNIT:LuaObj<string> = {}
+let PET_UNIT: LuaObj<string> = {};
 {
     PET_UNIT["player"] = "pet";
     for (let i = 1; i <= 5; i += 1) {
@@ -22,11 +35,10 @@ let PET_UNIT:LuaObj<string> = {}
     setmetatable(PET_UNIT, {
         __index: function (t, unitId) {
             return `${unitId}pet`;
-        }
+        },
     });
 }
-let UNIT_AURA_UNITS: LuaArray<string> = {
-}
+let UNIT_AURA_UNITS: LuaArray<string> = {};
 {
     insert(UNIT_AURA_UNITS, "player");
     insert(UNIT_AURA_UNITS, "pet");
@@ -54,7 +66,7 @@ let UNIT_AURA_UNITS: LuaArray<string> = {
     insert(UNIT_AURA_UNITS, "npc");
 }
 
-let UNIT_AURA_UNIT: LuaObj<number> = {}
+let UNIT_AURA_UNIT: LuaObj<number> = {};
 
 for (const [i, unitId] of ipairs(UNIT_AURA_UNITS)) {
     UNIT_AURA_UNIT[unitId] = i;
@@ -62,10 +74,10 @@ for (const [i, unitId] of ipairs(UNIT_AURA_UNITS)) {
 setmetatable(UNIT_AURA_UNIT, {
     __index: function (t, unitId) {
         return lualength(UNIT_AURA_UNITS) + 1;
-    }
+    },
 });
 
-type CompareFunction<T> = (a:T, b:T) => boolean;
+type CompareFunction<T> = (a: T, b: T) => boolean;
 
 function compareDefault<T>(a: T, b: T) {
     return a < b;
@@ -75,7 +87,12 @@ function isCompareFunction<T>(a: any): a is CompareFunction<T> {
     return type(a) === "function";
 }
 
-function BinaryInsert<T>(t: LuaArray<T>, value:T, unique: boolean | CompareFunction<T>, compare?: CompareFunction<T>) {
+function BinaryInsert<T>(
+    t: LuaArray<T>,
+    value: T,
+    unique: boolean | CompareFunction<T>,
+    compare?: CompareFunction<T>
+) {
     if (isCompareFunction<T>(unique)) {
         [unique, compare] = [false, unique];
     }
@@ -94,7 +111,11 @@ function BinaryInsert<T>(t: LuaArray<T>, value:T, unique: boolean | CompareFunct
     insert(t, low, value);
     return low;
 }
-function BinarySearch<T>(t: LuaArray<T>, value:T, compare: CompareFunction<T>) {
+function BinarySearch<T>(
+    t: LuaArray<T>,
+    value: T,
+    compare: CompareFunction<T>
+) {
     compare = compare || compareDefault;
     let [low, high] = [1, lualength(t)];
     while (low <= high) {
@@ -110,80 +131,134 @@ function BinarySearch<T>(t: LuaArray<T>, value:T, compare: CompareFunction<T>) {
     return undefined;
 }
 
-function BinaryRemove<T>(t: LuaArray<T>, value:T, compare: CompareFunction<T>) {
+function BinaryRemove<T>(
+    t: LuaArray<T>,
+    value: T,
+    compare: CompareFunction<T>
+) {
     let index = BinarySearch(t, value, compare);
     if (index) {
         remove(t, index);
     }
     return index;
 }
-const CompareUnit = function(a: string, b: string) {
+const CompareUnit = function (a: string, b: string) {
     return UNIT_AURA_UNIT[a] < UNIT_AURA_UNIT[b];
-}
-class OvaleGUIDClass extends OvaleGUIDBase {
-
-    unitGUID: LuaObj<string> = {}
-    guidUnit: LuaObj<LuaArray<string>> = {}
-    unitName: LuaObj<string> = {}
-    nameUnit: LuaObj<LuaArray<string>> = {}
-    guidName: LuaObj<string> = {}
-    nameGUID: LuaObj<LuaArray<string>> = {}
-    petGUID: LuaObj<number> = {}
+};
+export class OvaleGUIDClass {
+    unitGUID: LuaObj<string> = {};
+    guidUnit: LuaObj<LuaArray<string>> = {};
+    unitName: LuaObj<string> = {};
+    nameUnit: LuaObj<LuaArray<string>> = {};
+    guidName: LuaObj<string> = {};
+    nameGUID: LuaObj<LuaArray<string>> = {};
+    petGUID: LuaObj<number> = {};
     UNIT_AURA_UNIT = UNIT_AURA_UNIT;
-    
-    OnInitialize() {
-        this.RegisterEvent("ARENA_OPPONENT_UPDATE");
-        this.RegisterEvent("GROUP_ROSTER_UPDATE");
-        this.RegisterEvent("INSTANCE_ENCOUNTER_ENGAGE_UNIT");
-        this.RegisterEvent("PLAYER_ENTERING_WORLD", event => this.UpdateAllUnits());
-        this.RegisterEvent("PLAYER_FOCUS_CHANGED");
-        this.RegisterEvent("PLAYER_TARGET_CHANGED");
-        this.RegisterEvent("UNIT_NAME_UPDATE");
-        this.RegisterEvent("UNIT_PET");
-        this.RegisterEvent("UNIT_TARGET");
+    private module: AceModule & AceEvent;
+    private tracer: Tracer;
+
+    constructor(
+        private ovale: OvaleClass,
+        ovaleDebug: OvaleDebugClass,
+        condition: OvaleConditionClass
+    ) {
+        this.module = ovale.createModule(
+            "OvaleGUID",
+            this.OnInitialize,
+            this.OnDisable,
+            aceEvent
+        );
+        this.tracer = ovaleDebug.create(this.module.GetName());
+        condition.RegisterCondition("guid", false, this.getGuid);
+        condition.RegisterCondition("targetguid", false, this.getTargetGuid);
     }
-    OnDisable() {
-        this.UnregisterEvent("ARENA_OPPONENT_UPDATE");
-        this.UnregisterEvent("GROUP_ROSTER_UPDATE");
-        this.UnregisterEvent("INSTANCE_ENCOUNTER_ENGAGE_UNIT");
-        this.UnregisterEvent("PLAYER_ENTERING_WORLD");
-        this.UnregisterEvent("PLAYER_FOCUS_CHANGED");
-        this.UnregisterEvent("PLAYER_TARGET_CHANGED");
-        this.UnregisterEvent("UNIT_NAME_UPDATE");
-        this.UnregisterEvent("UNIT_PET");
-        this.UnregisterEvent("UNIT_TARGET");
-    }
-    ARENA_OPPONENT_UPDATE(event: string, unitId: string, eventType: string) {
+
+    private getGuid: ConditionFunction = (_, namedParameters) => {
+        return ReturnConstant(
+            this.UnitGUID(namedParameters.target || "target")
+        );
+    };
+
+    private getTargetGuid: ConditionFunction = (_, namedParameters) => {
+        return ReturnConstant(
+            this.UnitGUID((namedParameters.target || "target") + "target")
+        );
+    };
+
+    private OnInitialize = () => {
+        this.module.RegisterEvent(
+            "ARENA_OPPONENT_UPDATE",
+            this.ARENA_OPPONENT_UPDATE
+        );
+        this.module.RegisterEvent(
+            "GROUP_ROSTER_UPDATE",
+            this.GROUP_ROSTER_UPDATE
+        );
+        this.module.RegisterEvent(
+            "INSTANCE_ENCOUNTER_ENGAGE_UNIT",
+            this.INSTANCE_ENCOUNTER_ENGAGE_UNIT
+        );
+        this.module.RegisterEvent("PLAYER_ENTERING_WORLD", (event) =>
+            this.UpdateAllUnits()
+        );
+        this.module.RegisterEvent(
+            "PLAYER_FOCUS_CHANGED",
+            this.PLAYER_FOCUS_CHANGED
+        );
+        this.module.RegisterEvent(
+            "PLAYER_TARGET_CHANGED",
+            this.PLAYER_TARGET_CHANGED
+        );
+        this.module.RegisterEvent("UNIT_NAME_UPDATE", this.UNIT_NAME_UPDATE);
+        this.module.RegisterEvent("UNIT_PET", this.UNIT_PET);
+        this.module.RegisterEvent("UNIT_TARGET", this.UNIT_TARGET);
+    };
+    private OnDisable = () => {
+        this.module.UnregisterEvent("ARENA_OPPONENT_UPDATE");
+        this.module.UnregisterEvent("GROUP_ROSTER_UPDATE");
+        this.module.UnregisterEvent("INSTANCE_ENCOUNTER_ENGAGE_UNIT");
+        this.module.UnregisterEvent("PLAYER_ENTERING_WORLD");
+        this.module.UnregisterEvent("PLAYER_FOCUS_CHANGED");
+        this.module.UnregisterEvent("PLAYER_TARGET_CHANGED");
+        this.module.UnregisterEvent("UNIT_NAME_UPDATE");
+        this.module.UnregisterEvent("UNIT_PET");
+        this.module.UnregisterEvent("UNIT_TARGET");
+    };
+    private ARENA_OPPONENT_UPDATE = (
+        event: string,
+        unitId: string,
+        eventType: string
+    ) => {
         if (eventType != "cleared" || this.unitGUID[unitId]) {
-            this.Debug(event, unitId, eventType);
+            this.tracer.Debug(event, unitId, eventType);
             this.UpdateUnitWithTarget(unitId);
         }
-    }
-    GROUP_ROSTER_UPDATE(event: string) {
-        this.Debug(event);
+    };
+    private GROUP_ROSTER_UPDATE = (event: string) => {
+        this.tracer.Debug(event);
         this.UpdateAllUnits();
-        this.SendMessage("Ovale_GroupChanged");
-    }
-    INSTANCE_ENCOUNTER_ENGAGE_UNIT(event: string) {
-        this.Debug(event);
+        this.module.SendMessage("Ovale_GroupChanged");
+    };
+    private INSTANCE_ENCOUNTER_ENGAGE_UNIT = (event: string) => {
+        this.tracer.Debug(event);
         for (let i = 1; i <= 4; i += 1) {
             this.UpdateUnitWithTarget(`boss${i}`);
         }
-    }
-    PLAYER_FOCUS_CHANGED(event: string) {
-        this.Debug(event);
+    };
+    private PLAYER_FOCUS_CHANGED = (event: string) => {
+        this.tracer.Debug(event);
         this.UpdateUnitWithTarget("focus");
-    }
-    PLAYER_TARGET_CHANGED(event: string, cause: string) {
-        this.Debug(event, cause);
+    };
+    private PLAYER_TARGET_CHANGED = (event: string, cause: string) => {
+        this.tracer.Debug(event, cause);
         this.UpdateUnit("target");
-    }
-    UNIT_NAME_UPDATE(event: string, unitId: string) {
-        this.Debug(event, unitId);
+    };
+    private UNIT_NAME_UPDATE = (event: string, unitId: string) => {
+        this.tracer.Debug(event, unitId);
         this.UpdateUnit(unitId);
-    }
-    UNIT_PET(event: string, unitId: string) {
-        this.Debug(event, unitId);
+    };
+    private UNIT_PET = (event: string, unitId: string) => {
+        this.tracer.Debug(event, unitId);
         let pet = PET_UNIT[unitId];
         this.UpdateUnitWithTarget(pet);
         if (unitId == "player") {
@@ -191,17 +266,17 @@ class OvaleGUIDClass extends OvaleGUIDBase {
             if (guid) {
                 this.petGUID[guid] = GetTime();
             }
-            this.SendMessage("Ovale_PetChanged", guid);
+            this.module.SendMessage("Ovale_PetChanged", guid);
         }
-        this.SendMessage("Ovale_GroupChanged");
-    }
-    UNIT_TARGET(event: string, unitId: string) {
+        this.module.SendMessage("Ovale_GroupChanged");
+    };
+    private UNIT_TARGET = (event: string, unitId: string) => {
         if (unitId != "player") {
-            this.Debug(event, unitId);
+            this.tracer.Debug(event, unitId);
             let target = `${unitId}target`;
             this.UpdateUnit(target);
         }
-    }
+    };
     UpdateAllUnits() {
         for (const [, unitId] of ipairs(UNIT_AURA_UNITS)) {
             this.UpdateUnitWithTarget(unitId);
@@ -216,9 +291,13 @@ class OvaleGUIDClass extends OvaleGUIDBase {
             delete this.unitGUID[unitId];
             if (previousGUID) {
                 if (this.guidUnit[previousGUID]) {
-                    BinaryRemove(this.guidUnit[previousGUID], unitId, CompareUnit);
+                    BinaryRemove(
+                        this.guidUnit[previousGUID],
+                        unitId,
+                        CompareUnit
+                    );
                 }
-                Ovale.refreshNeeded[previousGUID] = true;
+                this.ovale.refreshNeeded[previousGUID] = true;
             }
         }
         if (!name || name != previousName) {
@@ -236,38 +315,42 @@ class OvaleGUIDClass extends OvaleGUIDBase {
         if (guid && guid != previousGUID) {
             this.unitGUID[unitId] = guid;
             {
-                let list = this.guidUnit[guid] || {}
+                let list = this.guidUnit[guid] || {};
                 BinaryInsert(list, unitId, true, CompareUnit);
                 this.guidUnit[guid] = list;
             }
-            this.Debug("'%s' is '%s'.", unitId, guid);
-            Ovale.refreshNeeded[guid] = true;
+            this.tracer.Debug("'%s' is '%s'.", unitId, guid);
+            this.ovale.refreshNeeded[guid] = true;
         }
         if (name && name != previousName) {
             this.unitName[unitId] = name;
             {
-                let list = this.nameUnit[name] || {}
+                let list = this.nameUnit[name] || {};
                 BinaryInsert(list, unitId, true, CompareUnit);
                 this.nameUnit[name] = list;
             }
-            this.Debug("'%s' is '%s'.", unitId, name);
+            this.tracer.Debug("'%s' is '%s'.", unitId, name);
         }
         if (guid && name) {
             let previousNameFromGUID = this.guidName[guid];
             this.guidName[guid] = name;
             if (name != previousNameFromGUID) {
-                let list = this.nameGUID[name] || {}
+                let list = this.nameGUID[name] || {};
                 BinaryInsert(list, guid, true);
                 this.nameGUID[name] = list;
                 if (guid == previousGUID) {
-                    this.Debug("'%s' changed names to '%s'.", guid, name);
+                    this.tracer.Debug(
+                        "'%s' changed names to '%s'.",
+                        guid,
+                        name
+                    );
                 } else {
-                    this.Debug("'%s' is '%s'.", guid, name);
+                    this.tracer.Debug("'%s' is '%s'.", guid, name);
                 }
             }
         }
         if (guid && guid != previousGUID) {
-            this.SendMessage("Ovale_UnitChanged", unitId, guid);
+            this.module.SendMessage("Ovale_UnitChanged", unitId, guid);
         }
     }
     UpdateUnitWithTarget(unitId: string) {
@@ -276,9 +359,9 @@ class OvaleGUIDClass extends OvaleGUIDBase {
     }
     IsPlayerPet(guid: string): [boolean, number] {
         let atTime = this.petGUID[guid];
-        return [(!!atTime), atTime];
+        return [!!atTime, atTime];
     }
-    UnitGUID(unitId: string): string {
+    UnitGUID(unitId: string): string | undefined {
         return this.unitGUID[unitId] || UnitGUID(unitId);
     }
     GUIDUnit(guid: string) {
@@ -309,8 +392,6 @@ class OvaleGUIDClass extends OvaleGUIDBase {
         if (name && this.nameGUID[name]) {
             return unpack(this.nameGUID[name]);
         }
-        return undefined;
+        return [];
     }
 }
-
-export const OvaleGUID = new OvaleGUIDClass();
